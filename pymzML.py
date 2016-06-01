@@ -26,7 +26,7 @@ for spectrum in run:
     scans = scans + 1
 
 # -----------------------------------------------------------------------
-scansPerLine = scans / lines
+scansPerLine = scans / lines  # 6328 , 8
 if not scansPerLine.is_integer():
     raise Exception('Pixels per line not integer value')
 scansPerLine = int(scansPerLine)
@@ -51,11 +51,5 @@ for line in range(0, lines):
 np_data = np.array(data)
 Z = np_data[:, :, 1]
 
-# http://stackoverflow.com/questions/22121239/matplotlib-imshow-default-colour-normalisation
-plt.figure()
-plt.imshow(Z, cmap=plt.get_cmap('hot'), origin='upper', interpolation='nearest',
-           vmin=0, vmax=Z.max(), extent=[0, 790, 0, 7])
-plt.colorbar()
-plt.show()
 
 print("Finished")
