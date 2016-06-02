@@ -13,8 +13,8 @@ def image(Z):
     img = Image.fromarray(Z)  # monochromatic image
     img.show()
     # img.save('my.png')
-    imrgb = Image.merge('RGB', (img, img, img))  # color image
-    imrgb.show()
+    # imrgb = Image.merge('RGB', (img, img, img))  # color image
+    # imrgb.show()
 
 
 # max_mz, max_i = getPeak(spectrum)
@@ -64,7 +64,7 @@ t = []
 
 for index in range(1, scansTotal + 1):
     spectrum = run[index]
-    spectrum.reduce(mzRange=(374, 376))
+    spectrum.reduce(mzRange=(324, 326))
     try:
         intensity = getSum(spectrum)
     except:
