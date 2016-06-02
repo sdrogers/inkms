@@ -6,7 +6,8 @@ from numpy import eye
 
 
 def image(Z):
-    Z = Z / Z.max() * 255
+    max = Z.max()
+    Z = Z / max * 255
     Z = Z.astype('uint8')
 
     img = Image.fromarray(Z)  # monochromatic image
@@ -63,7 +64,7 @@ t = []
 
 for index in range(1, scansTotal + 1):
     spectrum = run[index]
-    spectrum.reduce(mzRange=(428, 430))
+    spectrum.reduce(mzRange=(374, 376))
     try:
         intensity = getSum(spectrum)
     except:
