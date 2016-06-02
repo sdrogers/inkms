@@ -38,7 +38,7 @@ def getSum(spectrum):
 
 
 lines = 8
-width = 7
+
 # Read File
 run = pymzml.run.Reader('..\\data\\abcdefgh_1.mzML', MS1_Precision=5e-6)
 
@@ -52,17 +52,18 @@ for spectrum in run:
     else:
         print('skip')
 
-scansPerLine = scansTotal / lines  # 6328 , 8
+scansPerLine = scansTotal / lines  # 6327 , 8
 # if not scansPerLine.is_integer():
 #    raise Exception('Pixels per line not integer value')
-scansPerLine = int(scansPerLine)
+scansPerLine = int(scansPerLine)  # 6320
+remaining = scansTotal - lines * scansPerLine
 
 x = []
 t = []
 
 for index in range(1, scansTotal + 1):
     spectrum = run[index]
-    spectrum.reduce(mzRange=(350, 360))
+    spectrum.reduce(mzRange=(428, 430))
     try:
         intensity = getSum(spectrum)
     except:
@@ -75,21 +76,27 @@ for index in range(1, scansTotal + 1):
 # data[line] = [[[m/z, value],...,[m/z, value]],[[m/z, value],]]
 data = []
 direction = True  # forward /  backward
+index = 0
 for line in range(0, lines):
     data.append([])
     if direction:
-        for scan in range(0, scansPerLine):
-            data[line].append([x[line * scansPerLine + scan], t[line * scan + scan]])
-            # print(line * scansPerLine + scan, "\n")
+        for i in range(0, scansPerLine):
+            data[line].append([x[index], t[index]])
+            index = index + 1
     else:
-        for scan in reversed(range(0, scansPerLine)):
-            data[line].append([x[line * scansPerLine + scan], t[line * scan + scan]])
-            # print(line * scansPerLine + scan, "\n")
+        for i in reversed(range(0, scansPerLine)):
+            data[line].append([x[index], t[index]])
+            index = index + 1
+
     direction = not direction
+    if remaining >= 0:
+        remaining = remaining - 1
+        index = index + 1
 
 # -----------------------------------------------------------------------
 
 np_data = np.array(data)
 Z = np_data[:, :, 1]
+image(Z)
 
 print("Finished")
