@@ -56,7 +56,7 @@ for spectrum in run:
 scansPerLine = scansTotal / lines  # 6327 , 8
 # if not scansPerLine.is_integer():
 #    raise Exception('Pixels per line not integer value')
-scansPerLine = int(scansPerLine)  # 6320
+scansPerLine = int(scansPerLine)  # 790 : 6320
 remaining = scansTotal - lines * scansPerLine
 
 x = []
@@ -86,8 +86,8 @@ for line in range(0, lines):
             index = index + 1
     else:
         for i in reversed(range(0, scansPerLine)):
-            data[line].append([x[index], t[index]])
-            index = index + 1
+            data[line].append([x[index + i], t[index + i]])
+        index = index + scansPerLine
 
     direction = not direction
     if remaining >= 0:
