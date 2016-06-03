@@ -41,7 +41,8 @@ def getSum(spectrum):
 lines = 8
 
 # Read File
-run = pymzml.run.Reader('..\\data\\abcdefgh_1.mzML', MS1_Precision=5e-6)
+# run = pymzml.run.Reader('..\\data\\abcdefgh_1.mzML', MS1_Precision=5e-6)
+run = pymzml.run.Reader('/Users/simon/Dropbox/MS_Ink_Data/ALphabet/abcdefgh_1.mzML', MS1_Precision=5e-6)
 
 # -----------------------------------------------------------------------
 # Maximum peaks in 1d array
@@ -100,4 +101,7 @@ np_data = np.array(data)
 Z = np_data[:, :, 1]
 image(Z)
 
+plt.figure()
+plt.matshow(Z)
+plt.show()
 print("Finished")
