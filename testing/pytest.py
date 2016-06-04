@@ -3,10 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 from numpy import eye
+import platform
+
+print(platform.python_implementation())
 
 lines = 8
 # Read File
-run = pymzml.run.Reader('..\\data\\abcdefgh_1.mzML', MS1_Precision=5e-6)
+run = pymzml.run.Reader('..\\..\\data\\abcdefgh_1.mzML', MS1_Precision=5e-6)
+print(run.getSpectrumCount())
 
 # -----------------------------------------------------------------------
 # Maximum peaks in 1d array

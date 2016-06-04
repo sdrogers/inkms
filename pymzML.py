@@ -6,6 +6,7 @@ import pymzml
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
+import time
 from numpy import eye
 
 # # Parameters
@@ -31,8 +32,9 @@ def imageFromArray(Z):
     Z = Z.astype('uint8')
 
     img = Image.fromarray(Z)  # monochromatic image
+    img.save('org.png')
     img.show()
-    # img.save('my.png')
+
     # imrgb = Image.merge('RGB', (img, img, img))  # color image
     # imrgb.show()
 
@@ -65,13 +67,14 @@ def getSum(spectrum):
 run = pymzml.run.Reader(filename, MS1_Precision=5e-6)
 
 # Maximum peaks in 1d array
-scansTotal = 0
+scansTotal = run.getSpectrumCount()
 
-for spectrum in run:
-    if type(spectrum['id']) == int:
-        scansTotal = scansTotal + 1
-    else:
-        print('skip')
+# scansTotal =0
+# for spectrum in run:
+#    if type(spectrum['id']) == int:
+#        scansTotal = scansTotal + 1
+#    else:
+#        print('skip')
 
 scansPerLine = scansTotal / lines  # 6327 , 8 =  790 + 7 remaining
 # if not scansPerLine.is_integer():
@@ -81,6 +84,9 @@ scansPerLine = int(scansPerLine)
 skip = scansTotal - lines * scansPerLine
 skipPerLine = int(skip / lines)
 remaining = skip - skipPerLine * lines
+
+start = time.clock()
+print(start)
 
 x = []
 t = []
@@ -94,6 +100,9 @@ for index in range(1, scansTotal + 1):
         intensity = 0
     x.append(0)
     t.append(intensity)
+
+end = time.clock()
+print(end - start)
 
 # -----------------------------------------------------------------------
 
@@ -122,14 +131,14 @@ for line in range(0, lines):
 
 np_data = np.array(data)
 Z = np_data[:, :, 1]
-# image(Z)
-
+# np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), Z, delimiter=",")
+# imageFromArray(Z)
 
 # In[10]:
 
 plt.figure()
 plt.imshow(Z, extent=[0, widthInMM, 0, heightInMM], interpolation='none', cmap='hot')
-# plt.savefig('test.png')
+plt.savefig('fig{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
 plt.show()
 
 print("Finished")
