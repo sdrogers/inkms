@@ -1,3 +1,4 @@
+
 # coding: utf-8
 
 # In[1]:
@@ -8,11 +9,12 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from numpy import eye
 
+
 # # Parameters
 
 # In[2]:
 
-# get_ipython().magic('matplotlib inline')
+get_ipython().magic('matplotlib inline')
 # filename = '/Users/simon/Dropbox/MS_Ink_Data/ALphabet/abcdefgh_1.mzML'
 filename = '..\\data\\abcdefgh_1.mzML'
 mzRangeLower = 374
@@ -128,7 +130,7 @@ Z = np_data[:, :, 1]
 # In[10]:
 
 plt.figure()
-plt.imshow(Z, extent=[0, widthInMM, 0, heightInMM], interpolation='none', cmap='hot')
+plt.imshow(Z, extent=[0,widthInMM,0,heightInMM], interpolation='none', cmap='hot')
 # plt.savefig('test.png')
 plt.show()
 
@@ -136,3 +138,6 @@ print("Finished")
 
 
 # In[ ]:
+
+
+
