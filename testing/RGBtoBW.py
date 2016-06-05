@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image
 
+# http://stackoverflow.com/questions/18777873/convert-rgb-to-black-or-white
 im = Image.open('..\\..\\data\\unspecified.png')
 print(im.getpixel((23, 0)))  # 238,246,255
 #  When translating a color image to black and white (mode "L"),

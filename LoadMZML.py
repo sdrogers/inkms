@@ -63,10 +63,10 @@ class LoadMZML(object):
             for column in range(len(self.data[line])):
                 index = self.data[line][column]
                 spectrum = self.run[index]
-                tmp_peaks = [(mz, i) for mz, i in spectrum.peaks if param.mzRangeLower <= mz <= param.mzRangeHighest]
                 intensity = 0
-                for mz, i in tmp_peaks:
-                    intensity = intensity + i
+                for mz, i in spectrum.peaks:
+                    if param.mzRangeLower <= mz <= param.mzRangeHighest:
+                        intensity = intensity + i
                 row.append(intensity)
             result.append(row)
 

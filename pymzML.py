@@ -25,6 +25,45 @@ def imageFromArray(Z):
     # imrgb.show()
 
 
+def graphVlines(x_start_mm, x_stop_mm):
+    start = time.clock()
+    print(start)
+
+    x_start = int(x_start_mm / param.widthInMM * len(data[0]))
+    x_stop = int(x_stop_mm / param.widthInMM * len(data[0]))
+
+    mz_g = []
+    i_g = []
+
+    for line in range(len(data)):
+        for x in range(x_start, x_stop):
+            index = data[line][x]
+            spectrum = run[index]
+
+            for (mz, i) in spectrum.peaks:
+                if param.mzRangeLower <= mz <= param.mzRangeHighest:
+                    mz_g.append(mz)
+                    i_g.append(i)
+
+    end = time.clock()
+    print(end - start)
+
+    fig = plt.figure()
+    plt.plot(mz_g, i_g, 'b^')
+    plt.vlines(mz_g, [0], i_g)
+    plt.savefig('Vlines{0}-{1}.png'.format(x_start_mm, x_stop_mm))
+    plt.show()
+
+
+def plotImshow():
+    intensity = loadMZML.getReduceSpec(param)
+    # np.savetxt('Z{0}-{1}.csv'.format(param.mzRangeLower, param.mzRangeHighest), intensity, delimiter=",")
+    plt.figure()
+    plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
+    plt.savefig('imShow{0}-{1}.png'.format(param.mzRangeLower, param.mzRangeHighest))
+    plt.show()
+
+
 class Parameters:
     def __init__(self):
         #  self.filename = '/Users/simon/Dropbox/MS_Ink_Data/ALphabet/abcdefgh_1.mzML'
@@ -40,23 +79,9 @@ class Parameters:
 param = Parameters()
 loadMZML = LoadMZML(param)
 run = loadMZML.run
-intensity = loadMZML.getReduceSpec(param)
+data = loadMZML.data
 
-# s = pymzml.spec.Spectrum(measuredPrecision=5e-6)
-
-# for x in range(np_data.shape[0]):
-#    for y in range(np_data.shape[1]):
-#        index = np_data(x, y)
-#        spectrum = run[index]
-#        s += spectrum
-
-
-np.savetxt('Z{0}-{1}.csv'.format(param.mzRangeLower, param.mzRangeHighest), intensity, delimiter=",")
-# imageFromArray(Z)
-
-plt.figure()
-plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
-plt.savefig('fig{0}-{1}.png'.format(param.mzRangeLower, param.mzRangeHighest))
-plt.show()
+# graphVlines(x_start_mm=30, x_stop_mm=40)
+plotImshow()
 
 print("Finished")
