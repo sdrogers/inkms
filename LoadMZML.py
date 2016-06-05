@@ -27,39 +27,20 @@ class LoadMZML(object):
         skipPerLine = int(skip / param.lines)
         remaining = skip - skipPerLine * param.lines
 
-        start = time.clock()
-        print(start)
-
-        x_ids = []
-        t_inten = []
-
-        for index in range(1, scansTotal + 1):
-            spectrum = self.run[index]
-            tmp_peaks = [(mz, i) for mz, i in spectrum.peaks if param.mzRangeLower <= mz <= param.mzRangeHighest]
-            intensity = 0
-            for mz, i in tmp_peaks:
-                intensity = intensity + i
-            x_ids.append(index)
-            t_inten.append(intensity)
-
-        end = time.clock()
-        print(end - start)
-
         # -----------------------------------------------------------------------
 
-        # data[line] = [[[m/z, value],...,[m/z, value]],[[m/z, value],]]
         data = []
         direction = True  # forward /  backward
-        index = 0
+        index = 1
         for line in range(0, param.lines):
             data.append([])
             if direction:
                 for i in range(0, scansPerLine):
-                    data[line].append([x_ids[index], t_inten[index]])
+                    data[line].append(index)
                     index = index + 1
             else:
                 for i in reversed(range(0, scansPerLine)):
-                    data[line].append([x_ids[index + i], t_inten[index + i]])
+                    data[line].append(index + i)
                 index = index + scansPerLine
 
             index = index + skipPerLine
@@ -68,9 +49,30 @@ class LoadMZML(object):
                 remaining = remaining - 1
                 index = index + 1
 
+        self.data = data
         # -----------------------------------------------------------------------
 
-        self.np_data = np.array(data)
+    def getReduceSpec(self, param):
+
+        start = time.clock()
+        print(start)
+
+        result = []
+        for line in range(len(self.data)):
+            row = []
+            for column in range(len(self.data[line])):
+                index = self.data[line][column]
+                spectrum = self.run[index]
+                tmp_peaks = [(mz, i) for mz, i in spectrum.peaks if param.mzRangeLower <= mz <= param.mzRangeHighest]
+                intensity = 0
+                for mz, i in tmp_peaks:
+                    intensity = intensity + i
+                row.append(intensity)
+            result.append(row)
+
+        end = time.clock()
+        print(end - start)
+        return np.array(result)
 
     # max_mz, max_i = getPeak(spectrum)
     def getPeak(spectrum):

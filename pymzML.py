@@ -40,14 +40,22 @@ class Parameters:
 param = Parameters()
 loadMZML = LoadMZML(param)
 run = loadMZML.run
-np_data = loadMZML.np_data
+intensity = loadMZML.getReduceSpec(param)
 
-Z = np_data[:, :, 1]
-# np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), Z, delimiter=",")
+# s = pymzml.spec.Spectrum(measuredPrecision=5e-6)
+
+# for x in range(np_data.shape[0]):
+#    for y in range(np_data.shape[1]):
+#        index = np_data(x, y)
+#        spectrum = run[index]
+#        s += spectrum
+
+
+np.savetxt('Z{0}-{1}.csv'.format(param.mzRangeLower, param.mzRangeHighest), intensity, delimiter=",")
 # imageFromArray(Z)
 
 plt.figure()
-plt.imshow(Z, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
+plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
 plt.savefig('fig{0}-{1}.png'.format(param.mzRangeLower, param.mzRangeHighest))
 plt.show()
 
