@@ -53,11 +53,14 @@ def getPeak(spectrum):
     return [max_mz, max_i]
 
 
-# getSum(spectrum)
-def getSum(spectrum):
+#     spectrum.reduce(mzRange=(mzRangeLower, mzRangeHighest))
+def getSumSpectrum(spectrum):
     intensity = 0
-    for mz, i in spectrum.peaks:
-        intensity = intensity + i
+    try:
+        for mz, i in spectrum.peaks:
+            intensity = intensity + i
+    except:
+        intensity = 0
     return intensity
 
 
@@ -88,18 +91,17 @@ remaining = skip - skipPerLine * lines
 start = time.clock()
 print(start)
 
-x = []
-t = []
+x_ids = []
+t_inten = []
 
 for index in range(1, scansTotal + 1):
     spectrum = run[index]
-    spectrum.reduce(mzRange=(mzRangeLower, mzRangeHighest))
-    try:
-        intensity = getSum(spectrum)
-    except:
-        intensity = 0
-    x.append(0)
-    t.append(intensity)
+    tmp_peaks = [(mz, i) for mz, i in spectrum.peaks if mzRangeLower <= mz <= mzRangeHighest]
+    intensity = 0
+    for mz, i in tmp_peaks:
+        intensity = intensity + i
+    x_ids.append(index)
+    t_inten.append(intensity)
 
 end = time.clock()
 print(end - start)
@@ -114,11 +116,11 @@ for line in range(0, lines):
     data.append([])
     if direction:
         for i in range(0, scansPerLine):
-            data[line].append([x[index], t[index]])
+            data[line].append([x_ids[index], t_inten[index]])
             index = index + 1
     else:
         for i in reversed(range(0, scansPerLine)):
-            data[line].append([x[index + i], t[index + i]])
+            data[line].append([x_ids[index + i], t_inten[index + i]])
         index = index + scansPerLine
 
     index = index + skipPerLine
