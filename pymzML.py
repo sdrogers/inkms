@@ -1,5 +1,5 @@
 # coding: utf-8
-
+import sys
 import pymzml
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +27,6 @@ def imageFromArray(Z):
 
 def graphVlines(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
     start = time.clock()
-    print(start)
 
     x_start = int(x_start_mm / param.widthInMM * len(data[0]))
     x_stop = int(x_stop_mm / param.widthInMM * len(data[0]))
@@ -36,6 +35,8 @@ def graphVlines(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
     i_g = []
 
     for line in range(len(data)):
+        sys.stdout.write("\r{0}%".format(line / len(data) * 100))
+        sys.stdout.flush()
         for x in range(x_start, x_stop):
             index = data[line][x]
             spectrum = run[index]
@@ -45,27 +46,27 @@ def graphVlines(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
                     mz_g.append(mz)
                     i_g.append(i)
 
+    sys.stdout.write("\r100%\n")
     end = time.clock()
-    print(end - start)
+    print("%.2fs" % (end - start))
 
     fig = plt.figure()
     plt.plot(mz_g, i_g, 'b^')
     plt.vlines(mz_g, [0], i_g)
-    plt.savefig('Vlines_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest))
+    # plt.savefig('Vlines_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest))
     plt.show()
 
 
-def graphVlinesV2(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
+def graphVlinesV2(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest, resolution, n=5):
     start = time.clock()
-    print(start)
 
     x_start = int(x_start_mm / param.widthInMM * len(data[0]))
     x_stop = int(x_stop_mm / param.widthInMM * len(data[0]))
 
-    resolution = 200
     resolutionMZ = mzRangeHighest - mzRangeLower
 
     mz_g = np.zeros((resolution,), dtype=np.float)
+    diff_g = np.zeros((resolution,), dtype=np.float)
 
     c_g = np.zeros((resolution,), dtype=np.int)
     i_g = np.zeros((resolution,), dtype=np.float)
@@ -74,6 +75,8 @@ def graphVlinesV2(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
     i_g1 = np.zeros((resolution,), dtype=np.float)
 
     for line in range(len(data)):
+        sys.stdout.write("\r{0}%".format(line / len(data) * 100))
+        sys.stdout.flush()
         for x in range(0, len(data[0])):
             index = data[line][x]
             spectrum = run[index]
@@ -95,21 +98,36 @@ def graphVlinesV2(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
         if c_g1[i] != 0:
             i_g1[i] = i_g1[i] / c_g1[i]
         mz_g[i] = i * resolutionMZ / resolution + mzRangeLower
+        diff_g[i] = i_g1[i] - i_g[i]
 
+    sys.stdout.write("\r100%\n")
     end = time.clock()
-    print(end - start)
+    print("%.2fs" % (end - start))
+
+    perm = diff_g.argsort()  # permutation that sorts arrays
+    print("i1 - i:")
+    print(diff_g[perm][0:n])
+    print("mz:")
+    print(mz_g[perm][0:n])
+    print("i:")
+    print(i_g[perm][0:n])
+    print("i1:")
+    print(i_g1[perm][0:n])
 
     fig = plt.figure()
     plt.plot(mz_g, i_g, 'b^')
     plt.vlines(mz_g, [0], i_g)
-    plt.savefig('Vlines0_{0}-{1}.png'.format(x_start_mm, x_stop_mm))
-    plt.show()
+    # plt.savefig('Vlines0_{0}-{1}.png'.format(x_start_mm, x_stop_mm))
 
     fig = plt.figure()
     plt.plot(mz_g, i_g1, 'b^')
     plt.vlines(mz_g, [0], i_g1)
-    plt.savefig('Vlines1_{0}-{1}.png'.format(x_start_mm, x_stop_mm))
+    # plt.savefig('Vlines1_{0}-{1}.png'.format(x_start_mm, x_stop_mm))
     plt.show()
+
+    # np.savetxt('mz{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), mz_g, delimiter=",")
+    # np.savetxt('i_g{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), i_g, delimiter=",")
+    # np.savetxt('i_g1{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), i_g1, delimiter=",")
 
 
 def plotImshow(mzRangeLower, mzRangeHighest):
@@ -117,7 +135,7 @@ def plotImshow(mzRangeLower, mzRangeHighest):
     np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
     plt.figure()
     plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
-    plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
+    # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
     plt.show()
 
 
@@ -136,8 +154,9 @@ loadMZML = LoadMZML(param)
 run = loadMZML.run
 data = loadMZML.data
 
-# graphVlines(x_start_mm=30, x_stop_mm=40, mzRangeLower=374, mzRangeHighest=376)
-# graphVlinesV2(x_start_mm=30, x_stop_mm=40, mzRangeLower=300,mzRangeHighest=500)
-plotImshow(mzRangeLower=374, mzRangeHighest=376)
+# graphVlines(x_start_mm=30, x_stop_mm=40, mzRangeLower=374, mzRangeHighest=376).
+# graphVlines(x_start_mm=40, x_stop_mm=50, mzRangeLower=374, mzRangeHighest=376)
+graphVlinesV2(x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500, resolution=200)
+# plotImshow(mzRangeLower=374, mzRangeHighest=376)
 
 print("Finished")

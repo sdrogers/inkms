@@ -1,3 +1,4 @@
+import sys
 import pymzml
 import numpy as np
 import time
@@ -71,16 +72,17 @@ class LoadMZML(object):
             result.append(row)
 
         end = time.clock()
-        print(end - start)
+        print("%.2fs" % (end - start))
         return np.array(result)
 
     def getReduceSpecFast(self, mzRangeLower, mzRangeHighest):
 
         start = time.clock()
-        print(start)
 
         result = []
         for line in range(len(self.data)):
+            sys.stdout.write("\r{0}%".format(line / len(self.data) * 100))
+            sys.stdout.flush()
             row = []
             for column in range(len(self.data[line])):
                 index = self.data[line][column]
@@ -98,8 +100,9 @@ class LoadMZML(object):
                 row.append(intensity)
             result.append(row)
 
+        sys.stdout.write("\r100%\n")
         end = time.clock()
-        print(end - start)
+        print("%.2fs" % (end - start))
         return np.array(result)
 
     def binarySearch(self, alist, item):
