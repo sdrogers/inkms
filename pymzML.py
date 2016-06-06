@@ -113,7 +113,7 @@ def graphVlinesV2(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
 
 
 def plotImshow(mzRangeLower, mzRangeHighest):
-    intensity = loadMZML.getReduceSpec(mzRangeLower, mzRangeHighest)
+    intensity = loadMZML.getReduceSpecFast(mzRangeLower, mzRangeHighest)
     np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
     plt.figure()
     plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')

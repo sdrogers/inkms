@@ -74,6 +74,51 @@ class LoadMZML(object):
         print(end - start)
         return np.array(result)
 
+    def getReduceSpecFast(self, mzRangeLower, mzRangeHighest):
+
+        start = time.clock()
+        print(start)
+
+        result = []
+        for line in range(len(self.data)):
+            row = []
+            for column in range(len(self.data[line])):
+                index = self.data[line][column]
+                spectrum = self.run[index]
+                intensity = 0
+                searchList = spectrum.peaks
+                startIndex = self.binarySearch(searchList, mzRangeLower)
+
+                for j in range(startIndex + 1, len(searchList)):
+                    mz, i = searchList[j]
+                    if mz > mzRangeHighest:
+                        break
+                    intensity = intensity + i
+
+                row.append(intensity)
+            result.append(row)
+
+        end = time.clock()
+        print(end - start)
+        return np.array(result)
+
+    def binarySearch(self, alist, item):
+        first = 0
+        last = len(alist) - 1
+
+        while first < last:
+            midpoint = (first + last) // 2
+            if alist[midpoint][0] < item and alist[midpoint + 1][0] >= item:
+                return midpoint
+            elif midpoint == 0 and alist[midpoint][0] >= item:
+                return -1
+            else:
+                if item < alist[midpoint][0]:
+                    last = midpoint - 1
+                else:
+                    first = midpoint + 1
+        return last
+
     # max_mz, max_i = getPeak(spectrum)
     def getPeak(spectrum):
         max_mz = spectrum.peaks[0][0]
