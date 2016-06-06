@@ -52,7 +52,7 @@ class LoadMZML(object):
         self.data = data
         # -----------------------------------------------------------------------
 
-    def getReduceSpec(self, param):
+    def getReduceSpec(self, mzRangeLower, mzRangeHighest):
 
         start = time.clock()
         print(start)
@@ -65,7 +65,7 @@ class LoadMZML(object):
                 spectrum = self.run[index]
                 intensity = 0
                 for mz, i in spectrum.peaks:
-                    if param.mzRangeLower <= mz <= param.mzRangeHighest:
+                    if mzRangeLower <= mz <= mzRangeHighest:
                         intensity = intensity + i
                 row.append(intensity)
             result.append(row)
