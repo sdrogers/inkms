@@ -7,6 +7,7 @@ import time
 class LoadMZML(object):
     def __init__(self, param):
         # Read File
+        self.param = param
         self.run = pymzml.run.Reader(param.filename, MS1_Precision=5e-6)
 
         # Maximum peaks in 1d array
@@ -56,28 +57,6 @@ class LoadMZML(object):
     def getReduceSpec(self, mzRangeLower, mzRangeHighest):
 
         start = time.clock()
-        print(start)
-
-        result = []
-        for line in range(len(self.data)):
-            row = []
-            for column in range(len(self.data[line])):
-                index = self.data[line][column]
-                spectrum = self.run[index]
-                intensity = 0
-                for mz, i in spectrum.peaks:
-                    if mzRangeLower <= mz <= mzRangeHighest:
-                        intensity = intensity + i
-                row.append(intensity)
-            result.append(row)
-
-        end = time.clock()
-        print("%.2fs" % (end - start))
-        return np.array(result)
-
-    def getReduceSpecFast(self, mzRangeLower, mzRangeHighest):
-
-        start = time.clock()
 
         result = []
         for line in range(len(self.data)):
@@ -88,13 +67,10 @@ class LoadMZML(object):
                 index = self.data[line][column]
                 spectrum = self.run[index]
                 intensity = 0
-                searchList = spectrum.peaks
-                startIndex = self.binarySearch(searchList, mzRangeLower)
 
-                for j in range(startIndex + 1, len(searchList)):
-                    mz, i = searchList[j]
-                    if mz > mzRangeHighest:
-                        break
+                # for mz, i in spectrum.peaks:
+                #    if mzRangeLower <= mz <= mzRangeHighest:
+                for mz, i in LoadMZML.generator(spectrum.peaks, mzRangeLower, mzRangeHighest):
                     intensity = intensity + i
 
                 row.append(intensity)
@@ -105,7 +81,18 @@ class LoadMZML(object):
         print("%.2fs" % (end - start))
         return np.array(result)
 
-    def binarySearch(self, alist, item):
+    @staticmethod
+    def generator(peaks, mzRangeLower, mzRangeHighest):
+        startIndex = LoadMZML.binarySearch(peaks, mzRangeLower)
+
+        for j in range(startIndex + 1, len(peaks)):
+            mz, i = peaks[j]
+            if mz > mzRangeHighest:
+                break
+            yield mz, i
+
+    @staticmethod
+    def binarySearch(alist, item):
         first = 0
         last = len(alist) - 1
 
