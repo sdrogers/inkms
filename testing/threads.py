@@ -30,7 +30,7 @@ def worker():
 
 # Create the queue and thread pool.
 q = Queue()
-for i in range(4):
+for i in range(num_cores):
     t = threading.Thread(target=worker)
     t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
     t.start()

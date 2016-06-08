@@ -54,14 +54,26 @@ def graphVlines(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
     fig = plt.figure()
     plt.plot(mz_g, i_g, 'b^')
     plt.vlines(mz_g, [0], i_g)
+
+    # Save Data
+    # np.savetxt('mz_{0}-{1}mm{2}-{3}.csv'.format(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest), mz_g,
+    # delimiter = ",")
+    # np.savetxt('i_g_{0}-{1}mm{2}-{3}.csv'.format(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest), i_g,
+    # delimiter = ",")
     # plt.savefig('Vlines_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest))
 
 
 def plotImshow(mzRangeLower, mzRangeHighest):
+    # from NativeMZXML import NativeMZXML
+    # nativeMZXML = NativeMZXML(param, '..\\data\\abcdefgh_1.mzXML')
+    # intensity = nativeMZXML.getReduceSpec(mzRangeLower, mzRangeHighest)
     intensity = loadMZML.getReduceSpec(mzRangeLower, mzRangeHighest)
-    np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
+
     plt.figure()
     plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
+
+    # Save Data
+    np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
     # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
 
 

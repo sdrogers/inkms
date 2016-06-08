@@ -58,14 +58,19 @@ class OptimalMz(object):
             mz_g[i] = i * resolutionMZ / resolution + mzRangeLower
             diff_g[i] = i_g1[i] - i_g[i]
 
+        sys.stdout.write("\r100%\n")
+        end = time.clock()
+        print("%.2fs" % (end - start))
+
         self.mz_g = mz_g
         self.diff_g = diff_g
         self.i_g = i_g
         self.i_g1 = i_g1
-
-        sys.stdout.write("\r100%\n")
-        end = time.clock()
-        print("%.2fs" % (end - start))
+        self.x_start_mm = x_start_mm
+        self.x_stop_mm = x_stop_mm
+        self.mzRangeLower = mzRangeLower
+        self.mzRangeHighest = mzRangeHighest
+        self.resolution = resolution
 
     def printN(self, n=5):
         perm = self.diff_g.argsort()  # permutation that sorts arrays
@@ -82,13 +87,22 @@ class OptimalMz(object):
         fig = plt.figure()
         plt.plot(self.mz_g, self.i_g, 'b^')
         plt.vlines(self.mz_g, [0], self.i_g)
-        # plt.savefig('Vlines0_{0}-{1}.png'.format(x_start_mm, x_stop_mm))
 
         fig = plt.figure()
         plt.plot(self.mz_g, self.i_g1, 'b^')
         plt.vlines(self.mz_g, [0], self.i_g1)
-        # plt.savefig('Vlines1_{0}-{1}.png'.format(x_start_mm, x_stop_mm))
 
-        # np.savetxt('mz{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), mz_g, delimiter=",")
-        # np.savetxt('i_g{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), i_g, delimiter=",")
-        # np.savetxt('i_g1{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), i_g1, delimiter=",")
+        # Save Data
+        # plt.savefig('Vlines0_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm,mzRangeLower, mzRangeHighest))
+        # plt.savefig('Vlines1_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm,mzRangeLower, mzRangeHighest))
+        # np.savetxt(
+        #    'mz{0}-{1}-{2}.csv'.format(self.mzRangeLower, self.mzRangeHighest, self.resolution),
+        #    self.mz_g, delimiter=",")
+        # np.savetxt(
+        #    'i_g0_{0}-{1}mm{2}-{3}.csv'.format(self.x_start_mm, self.x_stop_mm, self.mzRangeLower, self.mzRangeHighest),
+        #    self.i_g,
+        #    delimiter=",")
+        # np.savetxt(
+        #    'i_g1_{0}-{1}mm{2}-{3}.csv'.format(self.x_start_mm, self.x_stop_mm, self.mzRangeLower, self.mzRangeHighest),
+        #    self.i_g1,
+        #    delimiter=",")
