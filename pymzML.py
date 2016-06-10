@@ -73,7 +73,22 @@ def plotImshow(mzRangeLower, mzRangeHighest):
     plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
 
     # Save Data
-    np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
+    # np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
+    # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
+
+
+def plotImshowII(*rangeTuples):
+    # from NativeMZXML import NativeMZXML
+    # nativeMZXML = NativeMZXML(param, '..\\data\\abcdefgh_1.mzXML')
+    # intensity = nativeMZXML.getReduceSpec(mzRangeLower, mzRangeHighest)
+
+    intensity = loadMZML.getReduceSpecII(rangeTuples)
+
+    plt.figure()
+    plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
+
+    # Save Data
+    # np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
     # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
 
 
@@ -97,6 +112,8 @@ data = loadMZML.data
 # optimalMz = OptimalMz(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500, resolution=200)
 # optimalMz.printN()
 # optimalMz.plot()
-plotImshow(mzRangeLower=374, mzRangeHighest=376)
+# plotImshow(mzRangeLower=374, mzRangeHighest=376)
+plotImshowII((324, 326),(374, 376))
+
 plt.show()
 print("Finished")

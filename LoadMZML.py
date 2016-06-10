@@ -50,6 +50,34 @@ class LoadMZML(object):
         print("%.2fs" % (end - start))
         return np.array(result)
 
+    def getReduceSpecII(self, rangeTuples):
+
+        start = time.clock()
+
+        result = []
+        for line in range(len(self.data)):
+            sys.stdout.write("\r{0}%".format(line / len(self.data) * 100))
+            sys.stdout.flush()
+            row = []
+            for column in range(len(self.data[line])):
+                index = self.data[line][column]
+                spectrum = self.run[index]
+                intensity = 0
+
+                for rangeTuple in rangeTuples:
+                    # for mz, i in spectrum.peaks:
+                    #    if mzRangeLower <= mz <= mzRangeHighest:
+                    for mz, i in LoadMZML.generator(spectrum.peaks, rangeTuple[0], rangeTuple[1]):
+                        intensity = intensity + i
+
+                row.append(intensity)
+            result.append(row)
+
+        sys.stdout.write("\r100%\n")
+        end = time.clock()
+        print("%.2fs" % (end - start))
+        return np.array(result)
+
     @staticmethod
     def getDataStructure(param, scansTotal):
         scansPerLine = scansTotal / param.lines  # 6327 , 8 =  790 + 7 remaining
