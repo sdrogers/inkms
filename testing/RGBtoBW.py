@@ -4,10 +4,10 @@ from PIL import Image
 # http://stackoverflow.com/questions/18777873/convert-rgb-to-black-or-white
 im = Image.open('..\\..\\data\\unspecified.png')
 print(im.getpixel((23, 0)))  # 238,246,255
+
 #  When translating a color image to black and white (mode "L"),
 #  the library uses the ITU-R 601-2 luma transform::
 #  L = R * 299/1000 + G * 587/1000 + B * 114/1000
-
 gray = im.convert('L')
 print(gray.getpixel((23, 0)))
 

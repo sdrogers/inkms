@@ -50,7 +50,7 @@ class LoadMZML(object):
         print("%.2fs" % (end - start))
         return np.array(result)
 
-    def getReduceSpecII(self, rangeTuples):
+    def getReduceSpecII(self, *rangeTuples):
 
         start = time.clock()
 

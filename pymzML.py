@@ -7,27 +7,17 @@ import time
 from numpy import eye
 from LoadMZML import LoadMZML
 from OptimalMz import OptimalMz
+from PlotImage import PlotImage
+from LetterRecognition import LetterRecognition
 
 
 # % matplotlib inline
 
-
-def imageFromArray(Z):
-    max = Z.max()
-    Z = Z / max * 255
-    Z = Z.astype('uint8')
-
-    img = Image.fromarray(Z)  # monochromatic image
-    img.save('org.png')
-    img.show()
-
-    # imrgb = Image.merge('RGB', (img, img, img))  # color image
-    # imrgb.show()
-
-
-def graphVlines(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
+def graphVlines(loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
     start = time.clock()
 
+    data = loadMZML.data
+    run = loadMZML.run
     x_start = int(x_start_mm / param.widthInMM * len(data[0]))
     x_stop = int(x_stop_mm / param.widthInMM * len(data[0]))
 
@@ -63,35 +53,6 @@ def graphVlines(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
     # plt.savefig('Vlines_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest))
 
 
-def plotImshow(mzRangeLower, mzRangeHighest):
-    # from NativeMZXML import NativeMZXML
-    # nativeMZXML = NativeMZXML(param, '..\\data\\abcdefgh_1.mzXML')
-    # intensity = nativeMZXML.getReduceSpec(mzRangeLower, mzRangeHighest)
-    intensity = loadMZML.getReduceSpec(mzRangeLower, mzRangeHighest)
-
-    plt.figure()
-    plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
-
-    # Save Data
-    # np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
-    # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
-
-
-def plotImshowII(*rangeTuples):
-    # from NativeMZXML import NativeMZXML
-    # nativeMZXML = NativeMZXML(param, '..\\data\\abcdefgh_1.mzXML')
-    # intensity = nativeMZXML.getReduceSpec(mzRangeLower, mzRangeHighest)
-
-    intensity = loadMZML.getReduceSpecII(rangeTuples)
-
-    plt.figure()
-    plt.imshow(intensity, extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
-
-    # Save Data
-    # np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
-    # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
-
-
 class Parameters:
     def __init__(self):
         #  self.filename = '/Users/simon/Dropbox/MS_Ink_Data/ALphabet/abcdefgh_1.mzML'
@@ -104,16 +65,39 @@ class Parameters:
 
 param = Parameters()
 loadMZML = LoadMZML(param)
-run = loadMZML.run
-data = loadMZML.data
 
-# graphVlines(x_start_mm=30, x_stop_mm=40, mzRangeLower=374, mzRangeHighest=376)
-# graphVlines(x_start_mm=40, x_stop_mm=50, mzRangeLower=374, mzRangeHighest=376)
+# graphVlines(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=374, mzRangeHighest=376)
+# graphVlines(loadMZML, x_start_mm=40, x_stop_mm=50, mzRangeLower=374, mzRangeHighest=376)
+
 # optimalMz = OptimalMz(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500, resolution=200)
 # optimalMz.printN()
 # optimalMz.plot()
-# plotImshow(mzRangeLower=374, mzRangeHighest=376)
-plotImshowII((324, 326),(374, 376))
+
+# plotImage = PlotImage(loadMZML, param)
+# plotImage.plotImshow(mzRangeLower=374, mzRangeHighest=376)
+# plotImage.plotImshowII((324, 326),(374, 376))
+# plotImage.printRT()
+# plotImage.save()
+
+template_path = '..\\data\\unspecified.png'
+original_b = 137
+original_e = 462
+template_b = 343
+template_e = 1180
+letterRecognition = LetterRecognition(loadMZML, param)
+
+im = Image.open(template_path)
+plt.figure()
+plt.imshow(np.asarray(im))
+
+template = letterRecognition.RGBtoBW(template_path)
+plt.figure()
+plt.imshow(np.asarray(template))
+
+images = letterRecognition.alignment(template, original_b, original_e, template_b, template_e, (374, 376))
+plt.figure()
+plt.imshow(np.asarray(images['org']), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none')
+plt.imshow(np.asarray(images['template']), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none')
 
 plt.show()
 print("Finished")
