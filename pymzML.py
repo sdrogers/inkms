@@ -2,15 +2,13 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from Cython.Tempita._tempita import _TemplateBreak
 from PIL import Image
 import time
 from numpy import eye
 from LoadMZML import LoadMZML
 from OptimalMz import OptimalMz
-from OptimalMzII import OptimalMzII
 from PlotImage import PlotImage
-from LetterRecognition import LetterRecognition
+from TemplateOverlay import TemplateOverlay
 
 
 # % matplotlib inline
@@ -70,10 +68,9 @@ loadMZML = LoadMZML(param)
 
 # graphVlines(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=374, mzRangeHighest=376)
 # graphVlines(loadMZML, x_start_mm=40, x_stop_mm=50, mzRangeLower=374, mzRangeHighest=376)
-
-# optimalMz = OptimalMz(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500, resolution=200)
-# optimalMz.printN()
-# optimalMz.plot()
+optimalMz = OptimalMz.V1(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500, resolution=200)
+optimalMz.printN()
+optimalMz.plot()
 
 # plotImage = PlotImage(loadMZML, param)
 # plotImage.plotImshow(mzRangeLower=374, mzRangeHighest=376)
@@ -81,35 +78,38 @@ loadMZML = LoadMZML(param)
 # plotImage.printRT()
 # plotImage.save()
 
+# Parameters
 template_path = '..\\data\\unspecified.png'
 generated_b = 137
 generated_e = 462
 template_b = 343
 template_e = 1180
-letterRecognition = LetterRecognition(loadMZML, param)
+letterRecognition = TemplateOverlay(loadMZML, param)
 
+# Original Image
 im = Image.open(template_path)
 plt.figure()
 plt.imshow(np.asarray(im))
 
+# Black and White
 template = letterRecognition.RGBtoBW(template_path)
 plt.figure()
-plt.imshow(np.asarray(template))
+plt.imshow(np.asarray(template), cmap='Greys_r')
 
+# Overlay template and generated
 template = letterRecognition.alignTemplate(generated_b, generated_e, template_b, template_e, template)
 generated = letterRecognition.alignGenerated(generated_b, generated_e, template_b, template_e, (374, 376))
 template, generated = letterRecognition.alignment(template, generated)
 
 plt.figure()
-
 plt.imshow(np.asarray(generated), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
-
 plt.imshow(np.asarray(template), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot',
            alpha=0.15)  # 0 fully transparent
 
-optimalMzII = OptimalMzII(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500, resolution=200,
-                          letterRecognition=letterRecognition)
-optimalMzII.printN()
+# Calculate optimal mass based on template
+optimalMz = OptimalMz.V2(loadMZML, mzRangeLower=300, mzRangeHighest=500, resolution=200,
+                           letterRecognition=letterRecognition)
+optimalMz.printN()
 # optimalMzII.plot()
 
 plt.show()

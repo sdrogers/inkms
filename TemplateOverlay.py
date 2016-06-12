@@ -5,7 +5,7 @@ from PIL import Image
 from PlotImage import PlotImage
 
 
-class LetterRecognition(object):
+class TemplateOverlay(object):
     def __init__(self, loadMZML, param):
         self.loadMZML = loadMZML
         self.param = param

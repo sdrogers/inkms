@@ -10,15 +10,11 @@ from LoadMZML import LoadMZML
 
 
 class OptimalMz(object):
-    def __init__(self, loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest, resolution):
-        param = loadMZML.param
+    def __init__(self, loadMZML, mzRangeLower, mzRangeHighest, resolution, isLetterFunction):
         run = loadMZML.run
         data = loadMZML.data
 
         start = time.clock()
-
-        x_start = int(x_start_mm / param.widthInMM * len(data[0]))
-        x_stop = int(x_stop_mm / param.widthInMM * len(data[0]))
 
         resolutionMZ = mzRangeHighest - mzRangeLower
 
@@ -37,7 +33,7 @@ class OptimalMz(object):
             for x in range(0, len(data[0])):
                 index = data[line][x]
                 spectrum = run[index]
-                isLetter = x_start <= x <= x_stop
+                isLetter = isLetterFunction(x, line)
 
                 # for (mz, i) in spectrum.peaks:
                 #    if mzRangeLower <= mz <= mzRangeHighest:
@@ -67,11 +63,23 @@ class OptimalMz(object):
         self.diff_g = diff_g
         self.i_g = i_g
         self.i_g1 = i_g1
-        self.x_start_mm = x_start_mm
-        self.x_stop_mm = x_stop_mm
         self.mzRangeLower = mzRangeLower
         self.mzRangeHighest = mzRangeHighest
         self.resolution = resolution
+
+    @classmethod
+    def V1(cls, loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest, resolution):
+        param = loadMZML.param
+        data = loadMZML.data
+        x_start = int(x_start_mm / param.widthInMM * len(data[0]))
+        x_stop = int(x_stop_mm / param.widthInMM * len(data[0]))
+        isLetterFunction = lambda x, line: x_start <= x <= x_stop
+        return cls(loadMZML, mzRangeLower, mzRangeHighest, resolution, isLetterFunction)
+
+    @classmethod
+    def V2(cls, loadMZML, mzRangeLower, mzRangeHighest, resolution, letterRecognition):
+        isLetterFunction = lambda x, line: letterRecognition.checkIfLetter(x, line)
+        return cls(loadMZML, mzRangeLower, mzRangeHighest, resolution, isLetterFunction)
 
     def printN(self, n=5):
         perm = self.diff_g.argsort()  # permutation that sorts arrays
