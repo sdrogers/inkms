@@ -2,11 +2,13 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from Cython.Tempita._tempita import _TemplateBreak
 from PIL import Image
 import time
 from numpy import eye
 from LoadMZML import LoadMZML
 from OptimalMz import OptimalMz
+from OptimalMzII import OptimalMzII
 from PlotImage import PlotImage
 from LetterRecognition import LetterRecognition
 
@@ -80,8 +82,8 @@ loadMZML = LoadMZML(param)
 # plotImage.save()
 
 template_path = '..\\data\\unspecified.png'
-original_b = 137
-original_e = 462
+generated_b = 137
+generated_e = 462
 template_b = 343
 template_e = 1180
 letterRecognition = LetterRecognition(loadMZML, param)
@@ -94,10 +96,21 @@ template = letterRecognition.RGBtoBW(template_path)
 plt.figure()
 plt.imshow(np.asarray(template))
 
-images = letterRecognition.alignment(template, original_b, original_e, template_b, template_e, (374, 376))
+template = letterRecognition.alignTemplate(generated_b, generated_e, template_b, template_e, template)
+generated = letterRecognition.alignGenerated(generated_b, generated_e, template_b, template_e, (374, 376))
+template, generated = letterRecognition.alignment(template, generated)
+
 plt.figure()
-plt.imshow(np.asarray(images['org']), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none')
-plt.imshow(np.asarray(images['template']), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none')
+
+plt.imshow(np.asarray(generated), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
+
+plt.imshow(np.asarray(template), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot',
+           alpha=0.15)  # 0 fully transparent
+
+optimalMzII = OptimalMzII(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500, resolution=200,
+                          letterRecognition=letterRecognition)
+optimalMzII.printN()
+# optimalMzII.plot()
 
 plt.show()
 print("Finished")

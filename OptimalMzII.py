@@ -9,8 +9,8 @@ from numpy import eye
 from LoadMZML import LoadMZML
 
 
-class OptimalMz(object):
-    def __init__(self, loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest, resolution):
+class OptimalMzII(object):
+    def __init__(self, loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest, resolution, letterRecognition):
         param = loadMZML.param
         run = loadMZML.run
         data = loadMZML.data
@@ -37,7 +37,7 @@ class OptimalMz(object):
             for x in range(0, len(data[0])):
                 index = data[line][x]
                 spectrum = run[index]
-                isLetter = x_start <= x <= x_stop
+                isLetter = letterRecognition.checkIfLetter(x, line)
 
                 # for (mz, i) in spectrum.peaks:
                 #    if mzRangeLower <= mz <= mzRangeHighest:
