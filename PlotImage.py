@@ -46,8 +46,8 @@ class PlotImage(object):
         img = Image.fromarray(Z)  # monochromatic image
         return img
 
-    def save(self, *rangeTuples, filename):
-        self.getPillowImage(rangeTuples).save(filename + '.png')
+    def save(self, filename, *rangeTuples):
+        self.getPillowImage(*rangeTuples).save(filename + '.png')
 
     def printRT(self):
         for line in range(len(self.loadMZML.data)):
