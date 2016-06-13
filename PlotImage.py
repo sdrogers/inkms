@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 
@@ -33,7 +34,7 @@ class PlotImage(object):
                    cmap='hot')
 
         # Save Data
-        # np.savetxt('Z{0}-{1}.csv'.format(mzRangeLower, mzRangeHighest), intensity, delimiter=",")
+        # np.savetxt('Z{0}.csv'.format(rangeTuples), intensity, delimiter=",")
         # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
 
     def getPillowImage(self, *rangeTuples):

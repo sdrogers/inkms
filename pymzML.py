@@ -53,7 +53,65 @@ def graphVlines(loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
     # plt.savefig('Vlines_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest))
 
 
-class Parameters:
+def imagePlot():
+    plotImage = PlotImage(loadMZML, param)
+    # plotImage.plotImshow(mzRangeLower=374, mzRangeHighest=376)
+    plotImage.plotImshowII((374, 376))
+    # plotImage.printRT()
+    # plotImage.save('plotImage_324-326_374-376', (324, 326), (374, 376))
+
+
+def graphVlinesN():
+    graphVlines(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=374, mzRangeHighest=376)
+    graphVlines(loadMZML, x_start_mm=40, x_stop_mm=50, mzRangeLower=374, mzRangeHighest=376)
+
+
+def OptimalMz():
+    optimalMz = OptimalMz.V1(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500,
+                             resolution=200)
+    optimalMz.printN()
+    optimalMz.plot()
+
+
+def TemplateOverlay():
+    # Parameters
+    template_path = '..\\data\\unspecified.png'
+    generated_b = 137
+    generated_e = 462
+    template_b = 343
+    template_e = 1180
+    plotValues = (374, 376)
+    templateOverlay = TemplateOverlay(loadMZML, param)
+
+    # Original Image
+    im = Image.open(template_path)
+    plt.figure()
+    plt.imshow(np.asarray(im))
+
+    # Black and White
+    template = templateOverlay.RGBtoBW(template_path)
+    plt.figure()
+    plt.imshow(np.asarray(template), cmap='Greys_r')
+
+    # Overlay template and generated
+    template = templateOverlay.alignTemplate(generated_b, generated_e, template_b, template_e, template)
+    generated = templateOverlay.alignGenerated(generated_b, generated_e, template_b, template_e, plotValues)
+    template, generated = templateOverlay.alignment(template, generated)
+
+    plt.figure()
+    plt.imshow(np.asarray(generated), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none',
+               cmap='hot')
+    plt.imshow(np.asarray(template), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot',
+               alpha=0.15)  # 0 fully transparent
+
+    # Calculate optimal mass based on template
+    optimalMz = OptimalMz.V2(loadMZML, mzRangeLower=300, mzRangeHighest=500, resolution=200,
+                             letterRecognition=templateOverlay)
+    optimalMz.printN()
+    optimalMz.plot()
+
+
+class Parameters1:
     def __init__(self):
         #  self.filename = '/Users/simon/Dropbox/MS_Ink_Data/ALphabet/abcdefgh_1.mzML'
         self.filename = '..\\data\\abcdefgh_1.mzML'
@@ -63,55 +121,25 @@ class Parameters:
         self.downMotionInMM = 1.25
 
 
-param = Parameters()
-loadMZML = LoadMZML(param)
+class Parameters2:
+    def __init__(self):
+        #  self.filename = '/Users/simon/Dropbox/MS_Ink_Data/ALphabet/abcdefgh_1.mzML'
+        self.filename = '..\\data\\AA_Array_2.mzML'
+        self.lines = 6
+        self.widthInMM = 50
+        self.heightInMM = 15
+        self.downMotionInMM = 2.5
 
-# graphVlines(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=374, mzRangeHighest=376)
-# graphVlines(loadMZML, x_start_mm=40, x_stop_mm=50, mzRangeLower=374, mzRangeHighest=376)
 
-# optimalMz = OptimalMz.V1(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500, resolution=200)
-# optimalMz.printN()
-# optimalMz.plot()
+# param = Parameters1()
+# loadMZML = LoadMZML(param)
+# imagePlot()
+
+param = Parameters2()
+loadMZML = LoadMZML(param, 'positive')
 
 plotImage = PlotImage(loadMZML, param)
-# plotImage.plotImshow(mzRangeLower=374, mzRangeHighest=376)
-plotImage.plotImshowII((324, 326), (374, 376))
-plotImage.printRT()
-plotImage.save('plotImage_324-326_374-376.png', (324, 326), (374, 376))
-
-# Parameters
-template_path = '..\\data\\unspecified.png'
-generated_b = 137
-generated_e = 462
-template_b = 343
-template_e = 1180
-templateOverlay = TemplateOverlay(loadMZML, param)
-
-# Original Image
-im = Image.open(template_path)
-plt.figure()
-plt.imshow(np.asarray(im))
-
-# Black and White
-template = templateOverlay.RGBtoBW(template_path)
-plt.figure()
-plt.imshow(np.asarray(template), cmap='Greys_r')
-
-# Overlay template and generated
-template = templateOverlay.alignTemplate(generated_b, generated_e, template_b, template_e, template)
-generated = templateOverlay.alignGenerated(generated_b, generated_e, template_b, template_e, (374, 376))
-template, generated = templateOverlay.alignment(template, generated)
-
-plt.figure()
-plt.imshow(np.asarray(generated), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot')
-plt.imshow(np.asarray(template), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot',
-           alpha=0.15)  # 0 fully transparent
-
-# Calculate optimal mass based on template
-optimalMz = OptimalMz.V2(loadMZML, mzRangeLower=300, mzRangeHighest=500, resolution=200,
-                         letterRecognition=templateOverlay)
-optimalMz.printN()
-# optimalMzII.plot()
+plotImage.plotImshowII((132, 133))
 
 plt.show()
 print("Finished")

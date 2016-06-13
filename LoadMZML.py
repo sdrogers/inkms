@@ -2,16 +2,33 @@ import sys
 import pymzml
 import numpy as np
 import time
+import math
 
 
 class LoadMZML(object):
-    def __init__(self, param):
+    # type: normal, positive, negative
+    # positive scans have odd number id 1,3,5
+    # negative scans have even number id 0,2,4
+    def __init__(self, param, type="normal"):
+
         # Read File
         self.param = param
         self.run = pymzml.run.Reader(param.filename, MS1_Precision=5e-6)
 
-        # Maximum peaks in 1d array
-        scansTotal = self.run.getSpectrumCount()
+        self.scansTotal = self.run.getSpectrumCount()
+        if type == "positive":
+            self.scansTotal = math.ceil(self.scansTotal / 2)
+            self.startIndex = 1
+            self.step = 2
+        elif type == 'negative':
+            self.scansTotal = math.floor(self.scansTotal / 2)
+            self.startIndex = 2
+            self.step = 2
+        elif type == 'normal':
+            self.startIndex = 1
+            self.step = 1
+        else:
+            raise Exception('Invalid Type: normal, positive or negative')
 
         # scansTotal =0
         # for spectrum in run:
@@ -20,7 +37,7 @@ class LoadMZML(object):
         #    else:
         #        print('skip')
 
-        self.data = LoadMZML.getDataStructure(param, scansTotal)
+        self.data = self.getDataStructure()
         # -----------------------------------------------------------------------
 
     def getReduceSpec(self, mzRangeLower, mzRangeHighest):
@@ -56,7 +73,7 @@ class LoadMZML(object):
 
         result = []
         for line in range(len(self.data)):
-            sys.stdout.write("\r{0}%".format(line / len(self.data) * 100))
+            sys.stdout.write("\r{0:.2f}%".format(line / len(self.data) * 100))
             sys.stdout.flush()
             row = []
             for column in range(len(self.data[line])):
@@ -78,8 +95,10 @@ class LoadMZML(object):
         print("%.2fs" % (end - start))
         return np.array(result)
 
-    @staticmethod
-    def getDataStructure(param, scansTotal):
+    def getDataStructure(self):
+        param = self.param
+        scansTotal = self.scansTotal
+
         scansPerLine = scansTotal / param.lines  # 6327 , 8 =  790 + 7 remaining
         # if not scansPerLine.is_integer():
         #    raise Exception('Pixels per line not integer value')
@@ -93,23 +112,23 @@ class LoadMZML(object):
 
         data = []
         direction = True  # forward /  backward
-        index = 1
+        index = self.startIndex
         for line in range(0, param.lines):
             data.append([])
             if direction:
                 for i in range(0, scansPerLine):
                     data[line].append(index)
-                    index = index + 1
+                    index = index + self.step
             else:
                 for i in reversed(range(0, scansPerLine)):
-                    data[line].append(index + i)
-                index = index + scansPerLine
+                    data[line].append(index + (i * self.step))
+                index = index + (scansPerLine * self.step)
 
-            index = index + skipPerLine
+            index = index + (skipPerLine * self.step)
             direction = not direction
             if remaining >= 0:
                 remaining = remaining - 1
-                index = index + 1
+                index = index + self.step
         return data
 
     @staticmethod
