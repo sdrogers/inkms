@@ -28,7 +28,7 @@ class OptimalMz(object):
         i_g1 = np.zeros((resolution,), dtype=np.float)
 
         for line in range(len(data)):
-            sys.stdout.write("\r{0}%".format(line / len(data) * 100))
+            sys.stdout.write("\r{0:.2f}%".format(line / len(data) * 100))
             sys.stdout.flush()
             for x in range(0, len(data[0])):
                 index = data[line][x]
@@ -66,14 +66,17 @@ class OptimalMz(object):
         self.mzRangeLower = mzRangeLower
         self.mzRangeHighest = mzRangeHighest
         self.resolution = resolution
+        self.resolutionMZ = resolutionMZ
 
     @classmethod
-    def V1(cls, loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest, resolution):
+    def V1(cls, loadMZML, x_start_mm, x_stop_mm, y_start_mm, y_stop_mm, mzRangeLower, mzRangeHighest, resolution):
         param = loadMZML.param
         data = loadMZML.data
         x_start = int(x_start_mm / param.widthInMM * len(data[0]))
         x_stop = int(x_stop_mm / param.widthInMM * len(data[0]))
-        isLetterFunction = lambda x, line: x_start <= x <= x_stop
+        y_start = int(y_start_mm / param.heightInMM * len(data))
+        y_stop = int(y_stop_mm / param.heightInMM * len(data))
+        isLetterFunction = lambda x, line: x_start <= x and x <= x_stop and y_start <= line and line <= y_stop
         return cls(loadMZML, mzRangeLower, mzRangeHighest, resolution, isLetterFunction)
 
     @classmethod
@@ -85,12 +88,17 @@ class OptimalMz(object):
         perm = self.diff_g.argsort()  # permutation that sorts arrays
         print("i1 - i:")
         print(self.diff_g[perm][0:n])
-        print("mz:")
-        print(self.mz_g[perm][0:n])
+        print("\nmz:")
+        for i in range(0, n):
+            print("{0}-{1}\t".format(self.mz_g[perm][i], (self.mz_g[perm][i] + self.resolutionMZ / self.resolution),
+                                     ), end=" ")
+        print("")
         print("i:")
         print(self.i_g[perm][0:n])
         print("i1:")
         print(self.i_g1[perm][0:n])
+        print("range:")
+        print(self.resolutionMZ / self.resolution)
 
     def plot(self):
         fig = plt.figure()
@@ -101,17 +109,18 @@ class OptimalMz(object):
         plt.plot(self.mz_g, self.i_g1, 'b^')
         plt.vlines(self.mz_g, [0], self.i_g1)
 
+    def save(self):
         # Save Data
         # plt.savefig('Vlines0_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm,mzRangeLower, mzRangeHighest))
         # plt.savefig('Vlines1_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm,mzRangeLower, mzRangeHighest))
-        # np.savetxt(
-        #    'mz{0}-{1}-{2}.csv'.format(self.mzRangeLower, self.mzRangeHighest, self.resolution),
-        #    self.mz_g, delimiter=",")
-        # np.savetxt(
-        #    'i_g0_{0}-{1}mm{2}-{3}.csv'.format(self.x_start_mm, self.x_stop_mm, self.mzRangeLower, self.mzRangeHighest),
-        #    self.i_g,
-        #    delimiter=",")
-        # np.savetxt(
-        #    'i_g1_{0}-{1}mm{2}-{3}.csv'.format(self.x_start_mm, self.x_stop_mm, self.mzRangeLower, self.mzRangeHighest),
-        #    self.i_g1,
-        #    delimiter=",")
+        np.savetxt(
+            'mz{0}-{1}-{2}.csv'.format(self.mzRangeLower, self.mzRangeHighest, self.resolution),
+            self.mz_g, delimiter=",")
+        np.savetxt(
+            'i_g0_{0}-{1}.csv'.format(self.mzRangeLower, self.mzRangeHighest),
+            self.i_g,
+            delimiter=",")
+        np.savetxt(
+            'i_g1_{0}-{1}.csv'.format(self.mzRangeLower, self.mzRangeHighest),
+            self.i_g1,
+            delimiter=",")

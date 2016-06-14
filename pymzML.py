@@ -53,7 +53,7 @@ def graphVlines(loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
     # plt.savefig('Vlines_{0}-{1}mm{2}-{3}mz.png'.format(x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest))
 
 
-def imagePlot():
+def imagePlotN():
     plotImage = PlotImage(loadMZML, param)
     # plotImage.plotImshow(mzRangeLower=374, mzRangeHighest=376)
     plotImage.plotImshowII((374, 376))
@@ -66,14 +66,16 @@ def graphVlinesN():
     graphVlines(loadMZML, x_start_mm=40, x_stop_mm=50, mzRangeLower=374, mzRangeHighest=376)
 
 
-def OptimalMz():
-    optimalMz = OptimalMz.V1(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500,
+def OptimalMzN():
+    optimalMz = OptimalMz.V1(loadMZML, x_start_mm=30, x_stop_mm=40, y_start_mm=0, y_stop_mm=10, mzRangeLower=300,
+                             mzRangeHighest=500,
                              resolution=200)
     optimalMz.printN()
-    optimalMz.plot()
+    # optimalMz.save()
+    # optimalMz.plot()
 
 
-def TemplateOverlay():
+def TemplateOverlayN():
     # Parameters
     template_path = '..\\data\\unspecified.png'
     generated_b = 137
@@ -134,12 +136,21 @@ class Parameters2:
 # param = Parameters1()
 # loadMZML = LoadMZML(param)
 # imagePlot()
+# graphVlinesN()
+# OptimalMzN()
+# TemplateOverlayN()
 
 param = Parameters2()
 loadMZML = LoadMZML(param, 'positive')
 
-plotImage = PlotImage(loadMZML, param)
-plotImage.plotImshowII((132, 133))
+# plotImage = PlotImage(loadMZML, param)
+# plotImage.plotImshowII((101.0,101.25))
+
+optimalMz = OptimalMz.V1(loadMZML, x_start_mm=0, x_stop_mm=6.25, y_start_mm=0, y_stop_mm=5,
+                         mzRangeLower=100, mzRangeHighest=200, resolution=800)
+optimalMz.printN()
+
+# optimalMz.plot()
 
 plt.show()
 print("Finished")
