@@ -84,6 +84,13 @@ class OptimalMz(object):
         isLetterFunction = lambda x, line: letterRecognition.checkIfLetter(x, line)
         return cls(loadMZML, mzRangeLower, mzRangeHighest, resolution, isLetterFunction)
 
+    def getN(self, n=5):
+        perm = self.diff_g.argsort()  # permutation that sorts arrays
+        result = []
+        for i in range(0, n):
+            result.append((self.mz_g[perm][i], self.mz_g[perm][i] + self.resolutionMZ / self.resolution))
+        return result
+
     def printN(self, n=5):
         perm = self.diff_g.argsort()  # permutation that sorts arrays
         print("i1 - i:")

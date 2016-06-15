@@ -113,6 +113,24 @@ def TemplateOverlayN():
     optimalMz.plot()
 
 
+def AminoAcidN():
+    plotImage = PlotImage(loadMZML, param)
+
+    # cell 1
+    # optimalMz = OptimalMz.V1(loadMZML, x_start_mm=0, x_stop_mm=6.25, y_start_mm=0, y_stop_mm=4,
+    #                         mzRangeLower=50, mzRangeHighest=200, resolution=600)
+    # optimalMz.printN()
+    # for i, j in optimalMz.getN(5):
+    #    plotImage.plotImshowII((i, j))
+
+    # Cell 12
+    optimalMz = OptimalMz.V1(loadMZML, x_start_mm=18.75, x_stop_mm=25, y_start_mm=6, y_stop_mm=9,
+                             mzRangeLower=50, mzRangeHighest=200, resolution=600)
+    optimalMz.printN()
+    for i, j in optimalMz.getN(5):
+        plotImage.plotImshowII((i, j))
+
+
 class Parameters1:
     def __init__(self):
         #  self.filename = '/Users/simon/Dropbox/MS_Ink_Data/ALphabet/abcdefgh_1.mzML'
@@ -135,22 +153,14 @@ class Parameters2:
 
 # param = Parameters1()
 # loadMZML = LoadMZML(param)
-# imagePlot()
+# imagePlotN()
 # graphVlinesN()
 # OptimalMzN()
 # TemplateOverlayN()
 
 param = Parameters2()
 loadMZML = LoadMZML(param, 'positive')
-
-# plotImage = PlotImage(loadMZML, param)
-# plotImage.plotImshowII((101.0,101.25))
-
-optimalMz = OptimalMz.V1(loadMZML, x_start_mm=0, x_stop_mm=6.25, y_start_mm=0, y_stop_mm=5,
-                         mzRangeLower=100, mzRangeHighest=200, resolution=800)
-optimalMz.printN()
-
-# optimalMz.plot()
+AminoAcidN()
 
 plt.show()
 print("Finished")
