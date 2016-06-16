@@ -107,12 +107,14 @@ class OptimalMz(object):
         print("range:")
         print(self.resolutionMZ / self.resolution)
 
-    def plot(self):
+    def plot(self, ymax):
         fig = plt.figure()
+        plt.ylim(0, ymax)
         plt.plot(self.mz_g, self.i_g, 'b^')
         plt.vlines(self.mz_g, [0], self.i_g)
 
         fig = plt.figure()
+        plt.ylim(0, ymax)
         plt.plot(self.mz_g, self.i_g1, 'b^')
         plt.vlines(self.mz_g, [0], self.i_g1)
 

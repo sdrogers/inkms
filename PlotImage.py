@@ -35,7 +35,7 @@ class PlotImage(object):
 
         # Save Data
         # np.savetxt('Z{0}.csv'.format(rangeTuples), intensity, delimiter=",")
-        # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
+        # plt.savefig('imShow{0}'.format(rangeTuples))
 
     def getPillowImage(self, *rangeTuples):
         Z = self.loadMZML.getReduceSpecII(*rangeTuples)

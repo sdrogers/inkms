@@ -13,7 +13,7 @@ from TemplateOverlay import TemplateOverlay
 
 # % matplotlib inline
 
-def graphVlines(loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
+def graphVlines(loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest, ymax):
     start = time.clock()
 
     data = loadMZML.data
@@ -41,7 +41,8 @@ def graphVlines(loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
     end = time.clock()
     print("%.2fs" % (end - start))
 
-    fig = plt.figure()
+    plt.figure()
+    plt.ylim(0, ymax)
     plt.plot(mz_g, i_g, 'b^')
     plt.vlines(mz_g, [0], i_g)
 
@@ -56,14 +57,14 @@ def graphVlines(loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest):
 def imagePlotN():
     plotImage = PlotImage(loadMZML, param)
     # plotImage.plotImshow(mzRangeLower=374, mzRangeHighest=376)
-    plotImage.plotImshowII((374, 376))
+    plotImage.plotImshowII((324, 326), (374, 376))
     # plotImage.printRT()
     # plotImage.save('plotImage_324-326_374-376', (324, 326), (374, 376))
 
 
 def graphVlinesN():
-    graphVlines(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=374, mzRangeHighest=376)
-    graphVlines(loadMZML, x_start_mm=40, x_stop_mm=50, mzRangeLower=374, mzRangeHighest=376)
+    graphVlines(loadMZML, x_start_mm=30, x_stop_mm=40, mzRangeLower=300, mzRangeHighest=500, ymax=80000)
+    graphVlines(loadMZML, x_start_mm=40, x_stop_mm=50, mzRangeLower=300, mzRangeHighest=500, ymax=80000)
 
 
 def OptimalMzN():
@@ -71,8 +72,8 @@ def OptimalMzN():
                              mzRangeHighest=500,
                              resolution=200)
     optimalMz.printN()
+    optimalMz.plot(2500)
     # optimalMz.save()
-    # optimalMz.plot()
 
 
 def TemplateOverlayN():
@@ -148,7 +149,7 @@ class Parameters2:
         self.lines = 6
         self.widthInMM = 50
         self.heightInMM = 15
-        self.downMotionInMM = 2.5
+        self.downMotionInMM = 3
 
 
 # param = Parameters1()
