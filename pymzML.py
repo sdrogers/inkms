@@ -84,6 +84,8 @@ def TemplateOverlayN():
     template_b = 343
     template_e = 1180
     plotValues = (374, 376)
+
+    #PlotImage(loadMZML, param).save("abcdef_gen", plotValues)
     templateOverlay = TemplateOverlay(loadMZML, param)
 
     # Original Image
@@ -109,7 +111,7 @@ def TemplateOverlayN():
 
     # Calculate optimal mass based on template
     optimalMz = OptimalMz.V2(loadMZML, mzRangeLower=300, mzRangeHighest=500, resolution=200,
-                             letterRecognition=templateOverlay)
+                             templateClass=templateOverlay)
     optimalMz.printN()
     optimalMz.plot()
 
@@ -124,11 +126,11 @@ def AminoAcidN():
     # for i, j in optimalMz.getN(5):
     #    plotImage.plotImshowII((i, j))
 
-    # Cell 12
-    optimalMz = OptimalMz.V1(loadMZML, x_start_mm=18.75, x_stop_mm=25, y_start_mm=6, y_stop_mm=9,
+    # Cell 20
+    optimalMz = OptimalMz.V1(loadMZML, x_start_mm=18.75, x_stop_mm=22, y_start_mm=12, y_stop_mm=15,
                              mzRangeLower=50, mzRangeHighest=200, resolution=600)
     optimalMz.printN()
-    for i, j in optimalMz.getN(5):
+    for i, j in optimalMz.getN():
         plotImage.plotImshowII((i, j))
 
 

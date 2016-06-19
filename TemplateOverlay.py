@@ -30,6 +30,7 @@ class TemplateOverlay(object):
         imfile = Image.fromarray(bw)
         return imfile
 
+    #Scale Template
     def alignTemplate(self, generated_b, generated_e, template_b, template_e, template):
         genHeight = len(self.loadMZML.data)
         genWidth = len(self.loadMZML.data[0])
@@ -43,6 +44,7 @@ class TemplateOverlay(object):
         self.tempWidth = self.template.size[0]
         return self.template
 
+    # Shift generated
     def alignGenerated(self, generated_b, generated_e, template_b, template_e, *rangeTuples):
         genHeight = len(self.loadMZML.data)
         genWidth = len(self.loadMZML.data[0])
@@ -52,6 +54,7 @@ class TemplateOverlay(object):
 
         return generated
 
+    # Make both the same size
     def alignment(self, template, generated):
         # template.save('template.png')
         # generated.save('generated.png')

@@ -24,6 +24,8 @@ class OptimalMz(object):
         c_g = np.zeros((resolution,), dtype=np.int)
         i_g = np.zeros((resolution,), dtype=np.float)
 
+        noLettersCount = 0
+        w_g1 = np.zeros((resolution,), dtype=np.int)
         c_g1 = np.zeros((resolution,), dtype=np.int)
         i_g1 = np.zeros((resolution,), dtype=np.float)
 
@@ -35,31 +37,67 @@ class OptimalMz(object):
                 spectrum = run[index]
                 isLetter = isLetterFunction(x, line)
 
+                if not isLetter:
+                    continue
+
                 # for (mz, i) in spectrum.peaks:
                 #    if mzRangeLower <= mz <= mzRangeHighest:
                 for mz, i in LoadMZML.generator(spectrum.peaks, mzRangeLower, mzRangeHighest):
-                    if isLetter:  # letter
-                        indx = (mz - mzRangeLower) / resolutionMZ * resolution
-                        c_g[indx] += 1
-                        i_g[indx] += i
-                    else:
-                        indx = (mz - mzRangeLower) / resolutionMZ * resolution
-                        c_g1[indx] += 1
-                        i_g1[indx] += i
+                    indx = (mz - mzRangeLower) / resolutionMZ * resolution
+                    c_g[indx] += 1
+                    i_g[indx] += i
 
-        for i in range(0, c_g.shape[0]):
+        for i in range(0, resolution):
             if c_g[i] != 0:
                 i_g[i] = i_g[i] / c_g[i]
+
+        for line in range(len(data)):
+            sys.stdout.write("\r{0:.2f}%".format(line / len(data) * 100))
+            sys.stdout.flush()
+            for x in range(0, len(data[0])):
+                index = data[line][x]
+                spectrum = run[index]
+                isLetter = isLetterFunction(x, line)
+
+                if isLetter:
+                    continue
+
+                noLettersCount = noLettersCount + 1
+                sumi = np.zeros((resolution,), dtype=np.float)
+                ci = np.zeros((resolution,), dtype=np.int)
+                # for (mz, i) in spectrum.peaks:
+                #    if mzRangeLower <= mz <= mzRangeHighest:
+                for mz, i in LoadMZML.generator(spectrum.peaks, mzRangeLower, mzRangeHighest):
+                    indx = (mz - mzRangeLower) / resolutionMZ * resolution
+
+                    sumi[indx] = sumi[indx] + i
+                    ci[indx] = ci[indx] + 1
+
+                    c_g1[indx] += 1
+                    i_g1[indx] += i
+
+                for k in range(0, resolution):
+                    if (sumi[k] / (ci[k] + 1)) < i_g[k]:
+                        w_g1[k] = w_g1[k] + 1
+
+        for i in range(0, resolution):
+            # diff_g[i] = -(i_g[i] - i_g1[i]) * (c_g[i]/ (c_g1[i]  + 1))
+            mz_g[i] = i * resolutionMZ / resolution + mzRangeLower
             if c_g1[i] != 0:
                 i_g1[i] = i_g1[i] / c_g1[i]
-            mz_g[i] = i * resolutionMZ / resolution + mzRangeLower
-            diff_g[i] = i_g1[i] - i_g[i]
+            # if i_g[i] < 1000:
+            #    diff_g[i] = 0
+            # else:
+            diff_g[i] = -(i_g[i] - i_g1[i]) * (w_g1[indx] / noLettersCount)
 
         sys.stdout.write("\r100%\n")
         end = time.clock()
         print("%.2fs" % (end - start))
 
         perm = diff_g.argsort()  # permutation that sorts arrays
+
+        self.noLettersCount = noLettersCount
+        self.w_g1 = w_g1[perm]
 
         self.mz_g = mz_g[perm]
         self.diff_g = diff_g[perm]
@@ -112,6 +150,9 @@ class OptimalMz(object):
         print("")
         print("mz:")
         print(result)
+        print("")
+        print("Not letters {0} below are {1} of {2}%".format(self.noLettersCount, self.w_g1[indexes],
+                                                             self.w_g1[indexes] / self.noLettersCount * 100))
         print("")
         print("i:")
         print(self.i_g[indexes])
