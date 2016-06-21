@@ -78,14 +78,14 @@ def OptimalMzN():
 
 def TemplateOverlayN():
     # Parameters
-    template_path = '..\\data\\unspecified.png'
+    template_path = '..\\data\\abcdef.png'
     generated_b = 137
     generated_e = 462
     template_b = 343
     template_e = 1180
     plotValues = (374, 376)
 
-    #PlotImage(loadMZML, param).save("abcdef_gen", plotValues)
+    # PlotImage(loadMZML, param).save("abcdef_gen", plotValues)
     templateOverlay = TemplateOverlay(loadMZML, param)
 
     # Original Image

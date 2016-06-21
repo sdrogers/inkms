@@ -9,7 +9,7 @@ from numpy import eye
 from LoadMZML import LoadMZML
 
 
-class OptimalMz(object):
+class OptimalMzV2(object):
     def __init__(self, loadMZML, mzRangeLower, mzRangeHighest, resolution, isLetterFunction):
         run = loadMZML.run
         data = loadMZML.data
