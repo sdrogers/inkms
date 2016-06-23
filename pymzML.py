@@ -154,6 +154,16 @@ class Parameters2:
         self.downMotionInMM = 3
 
 
+class Parameters3:
+    def __init__(self):
+        #  self.filename = '/Users/simon/Dropbox/MS_Ink_Data/ALphabet/abcdefgh_1.mzML'
+        self.filename = '..\\data\\Block2_neg_50.mzML'
+        self.lines = 6
+        self.widthInMM = 70
+        self.heightInMM = 10
+        self.downMotionInMM = 1.66
+
+
 # param = Parameters1()
 # loadMZML = LoadMZML(param)
 # imagePlotN()
@@ -161,9 +171,14 @@ class Parameters2:
 # OptimalMzN()
 # TemplateOverlayN()
 
-param = Parameters2()
-loadMZML = LoadMZML(param, 'positive')
-AminoAcidN()
+# param = Parameters2()
+# loadMZML = LoadMZML(param, 'positive')
+# AminoAcidN()
+
+param = Parameters3()
+loadMZML = LoadMZML(param)
+plotImage = PlotImage(loadMZML, param)
+plotImage.plotImshowII((220, 220.3))
 
 plt.show()
 print("Finished")

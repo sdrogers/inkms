@@ -5,10 +5,10 @@ from PIL import Image
 from numpy import eye
 
 # Read File
-run = pymzml.run.Reader('..\\..\\data\\AA_Array_2.mzML', MS1_Precision=5e-6)
+run = pymzml.run.Reader('..\\..\\data\\Block2_neg_50.mzML', MS1_Precision=5e-6)
 print(run.getSpectrumCount())
 
-spectrum = run[2]
+spectrum = run[1]
 # print(spectrum.peaks)
 # spectrum.reduce(mzRange=(100, 200))
 # print(spectrum.peaks)
