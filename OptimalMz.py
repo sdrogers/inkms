@@ -88,13 +88,12 @@ class OptimalMz(object):
         isLetterFunction = lambda x, line: templateClass.checkIfLetter(x, line)
         return cls(loadMZML, mzRangeLower, mzRangeHighest, resolution, isLetterFunction)
 
-    def getMZandIndex(self, n=5):
-        # skip zero intensity values
+    def getMZandIndex(self, n=5, threshold_i=0):
         indexes = []
         result = []
 
         for i in range(0, self.mz_g.shape[0]):
-            if self.i_g[i] != 0 and self.i_g1[i] != 0:
+            if self.i_g[i] >= threshold_i and self.i_g1[i] >= threshold_i:
                 indexes.append(i)
                 result.append((self.mz_g[i], self.mz_g[i] + self.resolutionMZ / self.resolution))
             if len(indexes) == n:
@@ -102,8 +101,8 @@ class OptimalMz(object):
 
         return result, indexes
 
-    def getN(self, n=5):
-        return self.getMZandIndex(n)[0]
+    def getN(self, n=5, threshold_i=0):
+        return self.getMZandIndex(n, threshold_i)[0]
 
     def printN(self, n=5):
         result, indexes = self.getMZandIndex(n)

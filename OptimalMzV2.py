@@ -71,10 +71,7 @@ class OptimalMzV2(object):
                         diff_g[i] = diff_g[i] + 1
 
         for i in range(0, resolution):
-            if False and c_g[i] < 200:
-                diff_g[i] = 0
-            else:
-                diff_g[i] = -(i_g[i] - i_g1[i]) * (diff_g[i])* (diff_g[i])
+            diff_g[i] = -(i_g[i] - i_g1[i]) * (diff_g[i]) * (diff_g[i])
 
         sys.stdout.write("\r100%\n")
         end = time.clock()
@@ -109,13 +106,13 @@ class OptimalMzV2(object):
         isLetterFunction = lambda x, line: templateClass.checkIfLetter(x, line)
         return cls(loadMZML, mzRangeLower, mzRangeHighest, resolution, isLetterFunction)
 
-    def getMZandIndex(self, n=5):
+    def getMZandIndex(self, n=5, threshold_i=0):
         # skip zero intensity values
         indexes = []
         result = []
 
         for i in range(0, self.mz_g.shape[0]):
-            if True or self.i_g[i] != 0 and self.i_g1[i] != 0:
+            if self.i_g[i] >= threshold_i and self.i_g1[i] >= threshold_i:
                 indexes.append(i)
                 result.append((self.mz_g[i], self.mz_g[i] + self.resolutionMZ / self.resolution))
             if len(indexes) == n:
@@ -123,8 +120,8 @@ class OptimalMzV2(object):
 
         return result, indexes
 
-    def getN(self, n=5):
-        return self.getMZandIndex(n)[0]
+    def getN(self, n=5, threshold_i=0):
+        return self.getMZandIndex(n, threshold_i)[0]
 
     def printN(self, n=5):
         result, indexes = self.getMZandIndex(n)
