@@ -15,7 +15,7 @@ from LoadMZML import LoadMZML
 
 
 class NativeMZXML(object):
-    def __init__(self, param, filename):
+    def __init__(self, loadMZML, param, filename):
         namespace = "{http://sashimi.sourceforge.net/schema_revision/mzXML_3.2}"
         tree = ET.parse(filename)
         root = tree.getroot()
@@ -33,11 +33,12 @@ class NativeMZXML(object):
                             # peak children
                             raw.append(scan_children.text)
         self.raw = raw
+        self.loadMZML = loadMZML
         self.param = param
 
     def getReduceSpec(self, mzRangeLower, mzRangeHighest):
 
-        data = LoadMZML.getDataStructure(self.param, len(self.raw))
+        data = self.loadMZML.getDataStructure()
         start = time.clock()
 
         result = np.zeros((len(data), len(data[0])), dtype=np.float)

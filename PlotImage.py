@@ -9,9 +9,7 @@ class PlotImage(object):
         self.param = param
 
     def plotImshow(self, mzRangeLower, mzRangeHighest):
-        # from NativeMZXML import NativeMZXML
-        # nativeMZXML = NativeMZXML(param, '..\\data\\abcdefgh_1.mzXML')
-        # intensity = nativeMZXML.getReduceSpec(mzRangeLower, mzRangeHighest)
+
         intensity = self.loadMZML.getReduceSpec(mzRangeLower, mzRangeHighest)
 
         plt.figure()
@@ -23,9 +21,6 @@ class PlotImage(object):
         # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
 
     def plotImshowII(self, *rangeTuples):
-        # from NativeMZXML import NativeMZXML
-        # nativeMZXML = NativeMZXML(param, '..\\data\\abcdefgh_1.mzXML')
-        # intensity = nativeMZXML.getReduceSpec(mzRangeLower, mzRangeHighest)
 
         intensity = self.loadMZML.getReduceSpecII(*rangeTuples)
 

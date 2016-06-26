@@ -12,6 +12,14 @@ from TemplateOverlay import TemplateOverlay
 
 
 # % matplotlib inline
+def nativeMZXML():
+    param = Parameters1()
+    loadMZML = LoadMZML(param)
+    from NativeMZXML import NativeMZXML
+
+    nativeMZXML = NativeMZXML(loadMZML, param, '..\\data\\abcdefgh_1.mzXML')
+    print(nativeMZXML.getReduceSpec(104, 105))
+
 
 def graphVlines(loadMZML, x_start_mm, x_stop_mm, mzRangeLower, mzRangeHighest, ymax):
     start = time.clock()
