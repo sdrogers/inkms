@@ -99,7 +99,7 @@ class LoadMZML(object):
         param = self.param
         scansTotal = self.scansTotal
 
-        scansPerLine = scansTotal / param.lines  # 6327 , 8 =  790 + 7 remaining
+        scansPerLine = scansTotal / param.lines
         # if not scansPerLine.is_integer():
         #    raise Exception('Pixels per line not integer value')
         scansPerLine = scansPerLine * (param.widthInMM - param.downMotionInMM) / param.widthInMM

@@ -172,9 +172,9 @@ class Parameters3:
         self.downMotionInMM = 1.66
 
 
-# param = Parameters1()
-# loadMZML = LoadMZML(param)
-# imagePlotN()
+param = Parameters1()
+loadMZML = LoadMZML(param)
+imagePlotN()
 # graphVlinesN()
 # OptimalMzN()
 # TemplateOverlayN()
