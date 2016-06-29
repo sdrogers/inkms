@@ -10,7 +10,7 @@ import java.awt.image.ImageObserver;
 
 import javax.swing.JPanel;
 
-public class Graph extends JPanel {
+public class PanelGraph extends JPanel {
 	private final int MARGIN_X_LEFT = 20;
 	private final int MARGIN_X_RIGHT = 5;
 	private final int MARGIN_Y_BOTTOM = 5;
@@ -31,7 +31,7 @@ public class Graph extends JPanel {
 	private Font titleFont;
 	private Font axisFont;
 
-	Graph() {
+	PanelGraph() {
 		super();
 		hot(1024);
 		titleFont = new Font("SansSerif", Font.BOLD, 15);

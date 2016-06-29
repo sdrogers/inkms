@@ -64,12 +64,9 @@ public class LoadMZXML {
 			System.out.flush();
 
 			for (int column = 0; column < columns; column++) {
-				int index = data[line][column];
-				// get a List of all scan numbers in the mzXML file
-				// List<String> scanNumbers = inputParser.getSpectraIds();
-				Spectrum spectrum = run.getSpectrumByIndex(index);
-				double intensity = 0;
 
+				double intensity = 0;
+				Spectrum spectrum = getSpectrum(line, column);
 				Map<Double, Double> map = spectrum.getPeakList();
 				for (Entry<Double, Double> entry : map.entrySet()) {
 					double mz = entry.getKey();
@@ -87,6 +84,14 @@ public class LoadMZXML {
 		System.out.println(String.format("%.2fs", end / 1000000000.0));
 
 		return result;
+	}
+
+	public Spectrum getSpectrum(int line, int column) throws JMzReaderException {
+		int index = data[line][column];
+		// get a List of all scan numbers in the mzXML file
+		// List<String> scanNumbers = inputParser.getSpectraIds();
+		Spectrum spectrum = run.getSpectrumByIndex(index);
+		return spectrum;
 	}
 
 	private int[][] getDataStructure() {
@@ -127,8 +132,20 @@ public class LoadMZXML {
 		return data;
 	}
 
-	public Param getParameters() {
-		return param;
+	public int getLines() {
+		return data.length;
+	}
+
+	public int getWidth() {
+		return data[0].length;
+	}
+
+	public int getWidthMM() {
+		return param.widthInMM;
+	}
+
+	public int getHeightMM() {
+		return param.heightInMM;
 	}
 
 	public enum Type {

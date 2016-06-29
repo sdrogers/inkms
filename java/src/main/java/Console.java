@@ -1,11 +1,9 @@
-import java.awt.Color;
-
 import pyhton.LoadMZXML;
 
-public class Main {
+public class Console {
 
 	public static void main(String[] args) throws Exception {
-		new Main().run();
+		new Console().run();
 	}
 
 	public void run() throws Exception {
