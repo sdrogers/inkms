@@ -9,5 +9,5 @@ public interface IOptimalMz {
 
 	public int[] getIndexesN(int n);
 
-	public void printN(int n);
+	public String printN(int n);
 }

@@ -1,5 +1,5 @@
 package pyhton;
 
-public interface IsLetter {
+public interface ICheckLetter {
 	public boolean check(int x, int line);
 }

@@ -1,6 +1,6 @@
 package pyhton;
 
-public class IsLetterV2 implements IsLetter {
+public class IsLetterV2 implements ICheckLetter {
 
 	public IsLetterV2(LoadMZXML loadMZML, double mzRangeLower, double mzRangeHighest, int resolution) {
 

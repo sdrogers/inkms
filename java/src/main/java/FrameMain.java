@@ -1,6 +1,7 @@
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -13,13 +14,17 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 
 import pyhton.LoadMZXML;
 import pyhton.OptimalMz;
-import pyhton.OptimalMzV2;
 import pyhton.IOptimalMz;
+import pyhton.IProgress;
 import pyhton.IsLetterV1;
 
 @SuppressWarnings("serial")
@@ -30,7 +35,7 @@ public class FrameMain extends JFrame {
 	private static int GRAPHS = 5;
 
 	private LoadMZXML loadMZXML;
-
+	private JProgressBar progressBar;
 	private JTabbedPane tabbedPane;
 
 	private ExecutorService executorService;
@@ -49,6 +54,12 @@ public class FrameMain extends JFrame {
 		background.setBorder(new EmptyBorder(5, 5, 5, 5));
 		// Border Layout North, South,East,West
 		background.setLayout(new BorderLayout(0, 0));
+
+		progressBar = new JProgressBar(0, 100);
+		progressBar.setValue(0);
+		progressBar.setStringPainted(true);
+		progressBar.setVisible(false);
+		background.add(BorderLayout.NORTH, progressBar);
 
 		// Create a tabbed pane
 		tabbedPane = new JTabbedPane();
@@ -110,7 +121,6 @@ public class FrameMain extends JFrame {
 		});
 
 		executorService = Executors.newFixedThreadPool(THREADS);
-
 	}
 
 	private void btnLoad() {
@@ -123,6 +133,7 @@ public class FrameMain extends JFrame {
 			param.downMotionInMM = 1.25f;
 			try {
 				loadMZXML = new LoadMZXML(param, LoadMZXML.Type.NORMAL);
+				loadMZXML.setProgressListener(progressTracker);
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -221,20 +232,34 @@ public class FrameMain extends JFrame {
 						double higherMass = Double.parseDouble(dialog.jHigherMass.getText());// 500
 						int resolution = Integer.parseInt(dialog.jResolution.getText());// 200
 
-						IsLetterV1 isLetter = new IsLetterV1(loadMZXML, x_start, x_stop, y_start, y_stop);
-						IOptimalMz optimalMz;
-						if (version == 1) {
-							optimalMz = new OptimalMz(isLetter, loadMZXML, lowerMass, higherMass, resolution);
-						} else {
-							optimalMz = new OptimalMzV2(isLetter, loadMZXML, lowerMass, higherMass, resolution);
-						}
-						optimalMz.printN(5);
+						ITask task = new ITask() {
 
-						double range = optimalMz.getRange();
-						for (int index : optimalMz.getIndexesN(GRAPHS)) {
-							double mz = optimalMz.getMz(index);
-							createGraph(mz, mz + range);
-						}
+							@Override
+							public void run() throws Exception {
+								IsLetterV1 isLetter = new IsLetterV1(loadMZXML, x_start, x_stop, y_start, y_stop);
+								IOptimalMz optimalMz;
+								if (version == 1) {
+									OptimalMz optimalMzV1 = new OptimalMz();
+									optimalMzV1.setProgressListener(progressTracker);
+									optimalMzV1.run(isLetter, loadMZXML, lowerMass, higherMass, resolution);
+									optimalMz = optimalMzV1;
+								} else {
+									OptimalMz optimalMzV2 = new OptimalMz();
+									optimalMzV2.setProgressListener(progressTracker);
+									optimalMzV2.run(isLetter, loadMZXML, lowerMass, higherMass, resolution);
+									optimalMz = optimalMzV2;
+								}
+
+								createTextBox(optimalMz.printN(5));
+
+								double range = optimalMz.getRange();
+								for (int index : optimalMz.getIndexesN(GRAPHS)) {
+									double mz = optimalMz.getMz(index);
+									createGraph(mz, mz + range);
+								}
+							}
+						};
+						submitTask(task);
 
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -252,30 +277,65 @@ public class FrameMain extends JFrame {
 	}
 
 	private void createGraph(String strLowerMass, String strHigherMass, double lowerMass, double higherMass) {
-		Runnable task = new Runnable() {
+		ITask task = new ITask() {
+
+			@Override
+			public void run() throws Exception {
+				double[][] intensity = loadMZXML.getReduceSpec(lowerMass, higherMass);
+				PanelGraph graph = new PanelGraph();
+
+				graph.setTitle(String.format("%sm/z - %sm/z", strLowerMass, strHigherMass));
+				graph.draw(intensity, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+
+				updateUI(new Runnable() {
+					@Override
+					public void run() {
+						tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), graph);
+					}
+				});
+			}
+		};
+		submitTask(task);
+	}
+
+	private void createTextBox(String t) {
+		JPanel background = new JPanel();
+		background.setBorder(new EmptyBorder(5, 5, 5, 5));
+		background.setLayout(new BorderLayout(0, 0));
+
+		JTextArea textBox = new JTextArea();
+		textBox.setEditable(false);
+		textBox.setText(t);
+		Font f = new Font("monospaced", Font.PLAIN, 16);
+		textBox.setFont(f);
+		JScrollPane scroller = new JScrollPane(textBox);
+		textBox.setLineWrap(true);
+		scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+		background.add(BorderLayout.CENTER, scroller);
+
+		updateUI(new Runnable() {
+			@Override
+			public void run() {
+				tabbedPane.add("OptimalMz " + (tabbedPane.getTabCount() + 1), background);
+			}
+		});
+	}
+
+	private void submitTask(ITask task) {
+
+		executorService.submit(new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-
-					double[][] intensity = loadMZXML.getReduceSpec(lowerMass, higherMass);
-					PanelGraph graph = new PanelGraph();
-
-					graph.setTitle(String.format("%sm/z - %sm/z", strLowerMass, strHigherMass));
-					graph.draw(intensity, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
-
-					updateUI(new Runnable() {
-						@Override
-						public void run() {
-							tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), graph);
-						}
-					});
+					task.run();
 				} catch (Exception ex) {
-					JOptionPane.showMessageDialog(null, "Task Failed", "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
-		};
-		executorService.submit(task);
+		});
 	}
 
 	private void updateUI(Runnable task) {
@@ -289,4 +349,21 @@ public class FrameMain extends JFrame {
 			}
 		});
 	}
+
+	interface ITask {
+		public void run() throws Exception;
+	}
+
+	IProgress progressTracker = new IProgress() {
+
+		@Override
+		public void update(int value) {
+			if (value == 0) {
+				progressBar.setVisible(true);
+			} else if (value == 100) {
+				progressBar.setVisible(false);
+			}
+			progressBar.setValue(value);
+		}
+	};
 }

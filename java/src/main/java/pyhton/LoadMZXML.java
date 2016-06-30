@@ -11,15 +11,16 @@ import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
 
 public class LoadMZXML {
 
-	int scansTotal;
-	int startIndex;
-	int step;
+	private int scansTotal;
+	private int startIndex;
+	private int step;
 
-	JMzReader run;
-	Param param;
-	int lines;
-	int columns;
-	int[][] data;
+	private JMzReader run;
+	private Param param;
+	private int lines;
+	private int columns;
+	private int[][] data;
+	private IProgress p;
 
 	public LoadMZXML(Param param, Type type) throws Exception {
 
@@ -60,8 +61,8 @@ public class LoadMZXML {
 
 		double[][] result = new double[lines][columns];
 		for (int line = 0; line < lines; line++) {
-			System.out.print(String.format("\r%f", (float) line / data.length * 100));
-			System.out.flush();
+			if (p != null)
+				p.update((int) ((float) line / data.length * 100));
 
 			for (int column = 0; column < columns; column++) {
 
@@ -79,7 +80,8 @@ public class LoadMZXML {
 				result[line][column] = intensity;
 			}
 		}
-		System.out.print("\r100%\n");
+		if (p != null)
+			p.update(100);
 		long end = System.nanoTime() - start;
 		System.out.println(String.format("%.2fs", end / 1000000000.0));
 
@@ -146,6 +148,10 @@ public class LoadMZXML {
 
 	public int getHeightMM() {
 		return param.heightInMM;
+	}
+
+	public void setProgressListener(IProgress p) {
+		this.p = p;
 	}
 
 	public enum Type {

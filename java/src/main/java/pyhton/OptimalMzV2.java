@@ -29,13 +29,18 @@ public class OptimalMzV2 implements IOptimalMz {
 
 	private Stats[] stats;
 
-	private IsLetter isLetter;
+	private ICheckLetter isLetter;
 	private double mzRangeLower;
 	private double mzRangeHighest;
 	private int resolution;
 	private double range;
+	private IProgress p;
 
-	public OptimalMzV2(IsLetter isLetter, LoadMZXML loadMZML, double mzRangeLower, double mzRangeHighest,
+	public OptimalMzV2() {
+
+	}
+
+	public void run(ICheckLetter isLetter, LoadMZXML loadMZML, double mzRangeLower, double mzRangeHighest,
 			int resolution) throws JMzReaderException {
 
 		this.isLetter = isLetter;
@@ -51,8 +56,9 @@ public class OptimalMzV2 implements IOptimalMz {
 		Pixel[][][] pixels = new Pixel[loadMZML.getLines()][loadMZML.getWidth()][resolution];
 
 		for (int line = 0; line < loadMZML.getLines(); line++) {
-			System.out.println(String.format("\r%.2f", (float) line / loadMZML.getLines() * 100));
-			System.out.flush();
+			if (p != null)
+				p.update((int) ((float) line / loadMZML.getLines() * 100));
+
 			for (int x = 0; x < loadMZML.getWidth(); x++) {
 				for (int i = 0; i < resolution; i++) {
 					pixels[line][x][i] = new Pixel();
@@ -89,8 +95,9 @@ public class OptimalMzV2 implements IOptimalMz {
 		}
 
 		for (int line = 0; line < loadMZML.getLines(); line++) {
-			System.out.println(String.format("\r%.2f", (float) line / loadMZML.getLines() * 100));
-			System.out.flush();
+			if (p != null)
+				p.update((int) ((float) line / loadMZML.getLines() * 100));
+
 			for (int x = 0; x < loadMZML.getWidth(); x++) {
 
 				boolean isLetterCheck = isLetter.check(x, line);
@@ -110,7 +117,8 @@ public class OptimalMzV2 implements IOptimalMz {
 			stats[i].diff = -(stats[i].i - stats[i].i1) * (stats[i].diff) * (stats[i].diff);
 		}
 
-		System.out.println("\r100%\n");
+		if (p != null)
+			p.update(100);
 		long end = System.nanoTime() - startTime;
 		System.out.println(String.format("%.2fs", end / 1000000000.0));
 
@@ -154,18 +162,23 @@ public class OptimalMzV2 implements IOptimalMz {
 		return getIndexesN(n, 0);
 	}
 
-	public void printN(int n) {
+	public String printN(int n) {
+		StringBuffer sb = new StringBuffer();
 		int[] result = getIndexesN(n);
 		for (int i = 0; i < result.length; i++) {
 			int indx = result[i];
-			System.out.println(String.format("mz: %f - %f , i: %f - %f, c: %d - %d", stats[indx].mz,
-					stats[i].mz + range, stats[indx].i, stats[indx].i1, stats[indx].c, stats[indx].c1));
-			System.out.print("i1 - i: ");
-			System.out.println(stats[indx].diff);
+			sb.append(String.format("mz: %f - %f , i: %f - %f, c: %d - %d \n", stats[indx].mz, stats[i].mz + range,
+					stats[indx].i, stats[indx].i1, stats[indx].c, stats[indx].c1));
+			sb.append(String.format("i1 - i: "));
+			sb.append(String.format("%f\n", stats[indx].diff));
 
 		}
-		System.out.println("range:");
-		System.out.println(range);
+		sb.append(String.format("range:"));
+		sb.append(String.format("%f\n", range));
+		return sb.toString();
 	}
 
+	public void setProgressListener(IProgress p) {
+		this.p = p;
+	}
 }

@@ -1,6 +1,6 @@
 package pyhton;
 
-public class IsLetterV1 implements IsLetter {
+public class IsLetterV1 implements ICheckLetter {
 
 	private int x_start;
 	private int x_stop;
