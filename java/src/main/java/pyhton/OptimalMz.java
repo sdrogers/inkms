@@ -7,15 +7,15 @@ import java.util.Map.Entry;
 import uk.ac.ebi.pride.tools.jmzreader.JMzReaderException;
 import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
 
-public abstract class OptimalMz {
+public class OptimalMz implements IOptimalMz {
 
-	class Stats implements Comparable<Stats> {
-		double mz;
-		double diff;
-		int c;
-		double i;
-		int c1;
-		double i1;
+	public class Stats implements Comparable<Stats> {
+		public double mz;
+		public double diff;
+		public int c;
+		public double i;
+		public int c1;
+		public double i1;
 
 		@Override
 		public int compareTo(Stats o) {
@@ -25,23 +25,23 @@ public abstract class OptimalMz {
 
 	private Stats[] stats;
 
+	private IsLetter isLetter;
 	private double mzRangeLower;
 	private double mzRangeHighest;
 	private int resolution;
 	private double range;
 
-	public OptimalMz() {
-	}
-
-	public void init(LoadMZXML loadMZML, double mzRangeLower, double mzRangeHighest, int resolution)
+	public OptimalMz(IsLetter isLetter, LoadMZXML loadMZML, double mzRangeLower, double mzRangeHighest, int resolution)
 			throws JMzReaderException {
 
+		this.isLetter = isLetter;
 		long startTime = System.nanoTime();
 
 		double resolutionMZ = mzRangeHighest - mzRangeLower;
 		stats = new Stats[resolution];
 		for (int i = 0; i < resolution; i++) {
 			stats[i] = new Stats();
+			stats[i].mz = i * resolutionMZ / resolution + mzRangeLower;
 		}
 
 		for (int line = 0; line < loadMZML.getLines(); line++) {
@@ -49,14 +49,14 @@ public abstract class OptimalMz {
 			System.out.flush();
 			for (int x = 0; x < loadMZML.getWidth(); x++) {
 				Spectrum spectrum = loadMZML.getSpectrum(line, x);
-				boolean isLetter = isLetter(x, line);
+				boolean isLetterCheck = isLetter.check(x, line);
 
 				Map<Double, Double> map = spectrum.getPeakList();
 				for (Entry<Double, Double> entry : map.entrySet()) {
 					double mz = entry.getKey();
 					double i = entry.getValue();
 					if (mzRangeLower <= mz && mz <= mzRangeHighest) {
-						if (isLetter) {
+						if (isLetterCheck) {
 							int indx = (int) ((mz - mzRangeLower) / resolutionMZ * resolution);
 							stats[indx].c += 1;
 							stats[indx].i += i;
@@ -74,7 +74,6 @@ public abstract class OptimalMz {
 				stats[i].i = stats[i].i / stats[i].c;
 			if (stats[i].c1 != 0)
 				stats[i].i1 = stats[i].i1 / stats[i].c1;
-			stats[i].mz = i * resolutionMZ / resolution + mzRangeLower;
 			stats[i].diff = stats[i].i1 - stats[i].i;
 		}
 		System.out.println("\r100%\n");
@@ -88,9 +87,20 @@ public abstract class OptimalMz {
 		this.range = resolutionMZ / resolution;
 	}
 
-	public abstract boolean isLetter(int x, int line);
+	public double getRange() {
+		return range;
+	}
 
-	public int[] getN(int n, int threshold_i) {
+	public Stats get(int i) {
+		return stats[i];
+	}
+
+	@Override
+	public double getMz(int i) {
+		return stats[i].mz;
+	}
+	
+	public int[] getIndexesN(int n, int threshold_i) {
 
 		int j = 0;
 		int[] result = new int[n];
@@ -107,12 +117,12 @@ public abstract class OptimalMz {
 		return result;
 	}
 
-	public int[] getN(int n) {
-		return getN(n, 0);
+	public int[] getIndexesN(int n) {
+		return getIndexesN(n, 0);
 	}
 
 	public void printN(int n) {
-		int[] result = getN(n);
+		int[] result = getIndexesN(n);
 		for (int i = 0; i < result.length; i++) {
 			int indx = result[i];
 			System.out.println(String.format("mz: %f - %f , i: %f - %f, c: %d - %d", stats[indx].mz,
@@ -124,4 +134,6 @@ public abstract class OptimalMz {
 		System.out.println("range:");
 		System.out.println(range);
 	}
+
+
 }

@@ -12,7 +12,7 @@ import javax.swing.SpringLayout;
 import javax.swing.border.EmptyBorder;
 import layout.SpringUtilities;
 
-public class DialogGraph extends JDialog {
+public class DialogOptimalMz extends JDialog {
 
 	/**
 	 * Create the dialog.
@@ -24,8 +24,13 @@ public class DialogGraph extends JDialog {
 	JPanel panelSouth = new JPanel();
 	JButton buttonOK = new JButton("OK");
 
+	JTextField jxStart = new JTextField(10);
+	JTextField jxStop = new JTextField(10);
+	JTextField jyStart = new JTextField(10);
+	JTextField jyStop = new JTextField(10);
 	JTextField jLowerMass = new JTextField(10);
 	JTextField jHigherMass = new JTextField(10);
+	JTextField jResolution = new JTextField(10);
 
 	private void setupUI() {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -37,6 +42,26 @@ public class DialogGraph extends JDialog {
 		JPanel panelCenter = new JPanel(new SpringLayout());
 		JLabel l;
 
+		l = new JLabel("x start (mm)", JLabel.TRAILING);
+		panelCenter.add(l);
+		l.setLabelFor(jxStart);
+		panelCenter.add(jxStart);
+
+		l = new JLabel("x stop (mm)", JLabel.TRAILING);
+		panelCenter.add(l);
+		l.setLabelFor(jxStop);
+		panelCenter.add(jxStop);
+
+		l = new JLabel("y start (mm)", JLabel.TRAILING);
+		panelCenter.add(l);
+		l.setLabelFor(jyStart);
+		panelCenter.add(jyStart);
+
+		l = new JLabel("y stop (mm)", JLabel.TRAILING);
+		panelCenter.add(l);
+		l.setLabelFor(jyStop);
+		panelCenter.add(jyStop);
+
 		l = new JLabel("Lower Mass", JLabel.TRAILING);
 		panelCenter.add(l);
 		l.setLabelFor(jLowerMass);
@@ -47,8 +72,13 @@ public class DialogGraph extends JDialog {
 		l.setLabelFor(jHigherMass);
 		panelCenter.add(jHigherMass);
 
+		l = new JLabel("Resolution", JLabel.TRAILING);
+		panelCenter.add(l);
+		l.setLabelFor(jResolution);
+		panelCenter.add(jResolution);
+
 		// Lay out the panel.
-		SpringUtilities.makeCompactGrid(panelCenter, 2, 2, // rows, cols
+		SpringUtilities.makeCompactGrid(panelCenter, 7, 2, // rows, cols
 				6, 6, // initX, initY
 				6, 6); // xPad, yPad
 
@@ -88,7 +118,7 @@ public class DialogGraph extends JDialog {
 		getContentPane().add(panelSouth, BorderLayout.SOUTH);
 	}
 
-	public DialogGraph(FrameMain mainFrame, String title, boolean modal) {
+	public DialogOptimalMz(FrameMain mainFrame, String title, boolean modal) {
 		super(mainFrame, title, modal);
 		setupUI();
 	}

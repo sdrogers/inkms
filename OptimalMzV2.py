@@ -25,13 +25,13 @@ class OptimalMzV2(object):
         diff_g = np.zeros((resolution,), dtype=np.float)
 
         ip_g = np.zeros((len(data), len(data[0]), resolution), dtype=np.float)
-        cp_g = np.ones((len(data), len(data[0]), resolution), dtype=np.int)
+        cp_g = np.zeros((len(data), len(data[0]), resolution), dtype=np.int)
 
         i_g = np.zeros((resolution,), dtype=np.float)
-        c_g = np.ones((resolution,), dtype=np.int)
+        c_g = np.zeros((resolution,), dtype=np.int)
 
         i_g1 = np.zeros((resolution,), dtype=np.float)
-        c_g1 = np.ones((resolution,), dtype=np.int)
+        c_g1 = np.zeros((resolution,), dtype=np.int)
 
         for line in range(len(data)):
             sys.stdout.write("\r{0:.2f}%".format(line / len(data) * 100))
@@ -54,8 +54,10 @@ class OptimalMzV2(object):
                     cp_g[line, x, indx] += 1
 
         for i in range(0, resolution):
-            i_g[i] = i_g[i] / c_g[i]
-            i_g1[i] = i_g1[i] / c_g1[i]
+            if c_g[i] != 0:
+                i_g[i] = i_g[i] / c_g[i]
+            if c_g1[i] != 0:
+                i_g1[i] = i_g1[i] / c_g1[i]
 
         for line in range(len(data)):
             sys.stdout.write("\r{0:.2f}%".format(line / len(data) * 100))
@@ -67,7 +69,7 @@ class OptimalMzV2(object):
                     continue
 
                 for i in range(0, resolution):
-                    if ip_g[line, x, i] / cp_g[line, x, i] > i_g1[i]:
+                    if cp_g[line, x, i] > 0 and ip_g[line, x, i] / cp_g[line, x, i] > i_g1[i]:
                         diff_g[i] = diff_g[i] + 1
 
         for i in range(0, resolution):
