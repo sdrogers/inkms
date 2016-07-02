@@ -4,32 +4,71 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JPanel;
 
 public class PanelGraph extends JPanel {
-	private final int MARGIN_X_LEFT = 20;
-	private final int MARGIN_X_RIGHT = 5;
-	private final int MARGIN_Y_BOTTOM = 5;
-	private final float MARGIN_Y_TOP_RATIO = 1.8f;
+	// CONSTANTS
+	protected final int MARGIN_X_LEFT = 20;
+	protected final int MARGIN_X_RIGHT = 5;
+	protected final int MARGIN_Y_BOTTOM = 5;
+	protected final float MARGIN_Y_TOP_RATIO = 1.8f;
 
-	private final int MARGIN_X_AXIS = 3;
-	private final int MARGIN_Y_AXIS = 3;
+	protected final int MARGIN_X_AXIS = 3;
+	protected final int MARGIN_Y_AXIS = 3;
 
-	private final int MARGIN_LABELS = 20;
+	protected final int MARGIN_LABELS = 20;
 
-	private int widthInMM;
-	private int heightInMM;
-	private BufferedImage bufferImage;
-	private ImageObserver observer;
-	private int[] colormap;
+	public static class Point {
+		double x;
+		double y;
 
-	private String title;
-	private Font titleFont;
-	private Font axisFont;
+		Point(double x, double y) {
+			this.x = x;
+			this.y = y;
+		}
+	}
+
+	public interface ImageListener {
+		public void mouseClicked(Point p);
+	}
+
+	protected List<ImageListener> mouseListeners = new ArrayList<ImageListener>(1);
+
+	public void addListener(ImageListener list) {
+		mouseListeners.add(list);
+	}
+
+	public void removeListener(ImageListener list) {
+		mouseListeners.remove(list);
+	}
+
+	protected void triggerMouseListeners(Point p) {
+		for (ImageListener l : mouseListeners) {
+			l.mouseClicked(p);
+		}
+	}
+
+	// Image Dimensions
+	protected int widthInMM;
+	protected int heightInMM;
+	protected BufferedImage bufferImage;
+	protected int[] colormap;
+
+	// Mouse Listener transform x,y relative to image
+	protected int margin_y_top;
+	protected int widthDisplayed;
+	protected int heightDisplayed;
+
+	// Graphics
+	protected String title = "";
+	protected Font titleFont;
+	protected Font axisFont;
 
 	PanelGraph() {
 		super();
@@ -37,12 +76,37 @@ public class PanelGraph extends JPanel {
 		titleFont = new Font("SansSerif", Font.BOLD, 15);
 		axisFont = new Font("SansSerif", Font.BOLD, 10);
 
-		observer = new ImageObserver() {
+		addMouseListener(new MouseListener() {
+
 			@Override
-			public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
-				return false;
+			public void mouseClicked(MouseEvent e) {
+				PanelGraph.this.mouseClicked(e);
 			}
-		};
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
 	}
 
 	public void setTitle(String title) {
@@ -50,9 +114,15 @@ public class PanelGraph extends JPanel {
 		this.repaint();
 	}
 
-	public void draw(double[][] intensity, int widthInMM, int heightInMM) {
+	public void draw(BufferedImage img, int widthInMM, int heightInMM) {
 		this.widthInMM = widthInMM;
 		this.heightInMM = heightInMM;
+
+		this.bufferImage = img;
+		this.repaint();
+	}
+
+	public BufferedImage getImage(double[][] intensity) {
 
 		int height = intensity.length;
 		int width = intensity[0].length;
@@ -68,7 +138,7 @@ public class PanelGraph extends JPanel {
 		}
 
 		int resolution = colormap.length - 1;
-		bufferImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		BufferedImage bufferImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				// Color Image
@@ -80,8 +150,7 @@ public class PanelGraph extends JPanel {
 			}
 		}
 
-		this.repaint();
-
+		return bufferImage;
 	}
 
 	private int paintTitleHeight(Graphics g) {
@@ -127,14 +196,20 @@ public class PanelGraph extends JPanel {
 		if (ratio > ratio_) {
 			width = available_width;
 			height = (int) (available_width / ratio);
+			this.margin_y_top = margin_y_top;
+			this.widthDisplayed = width;
+			this.heightDisplayed = height;
 			// Reduce Height
-			g.drawImage(bufferImage, MARGIN_X_LEFT, margin_y_top, width, height, observer);
+			g.drawImage(bufferImage, MARGIN_X_LEFT, margin_y_top, width, height, null);
 
 		} else {
 			width = (int) (available_height * ratio);
 			height = available_height;
+			this.margin_y_top = margin_y_top;
+			this.widthDisplayed = width;
+			this.heightDisplayed = height;
 			// Reduce Width
-			g.drawImage(bufferImage, MARGIN_X_LEFT, margin_y_top, width, height, observer);
+			g.drawImage(bufferImage, MARGIN_X_LEFT, margin_y_top, width, height, null);
 		}
 		return new int[] { width, height };
 	}
@@ -234,8 +309,18 @@ public class PanelGraph extends JPanel {
 		}
 
 		for (int i = 0; i < resolution; i++) {
-			hot[i] = new Color(r[i], g[i], b[i]).getRGB();
+			hot[i] = new Color(r[i], g[i], b[i], 1.0f).getRGB();
 		}
 		this.colormap = hot;
+	}
+
+	private void mouseClicked(MouseEvent e) {
+
+		int x = e.getX() - MARGIN_X_LEFT;
+		int y = e.getY() - margin_y_top;
+		if (x >= 0 && x <= widthDisplayed && y >= 0 && y <= heightDisplayed) {
+			Point p = new Point((double) x / widthDisplayed, (double) y / heightDisplayed);
+			triggerMouseListeners(p);
+		}
 	}
 }

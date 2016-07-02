@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.Box;
@@ -30,7 +31,6 @@ import pyhton.IsLetterV1;
 @SuppressWarnings("serial")
 public class FrameMain extends JFrame {
 
-	private static boolean DEBUG = true;
 	private static int THREADS = 1;
 	private static int GRAPHS = 5;
 
@@ -65,8 +65,8 @@ public class FrameMain extends JFrame {
 		tabbedPane = new JTabbedPane();
 		background.add(BorderLayout.CENTER, tabbedPane);
 
-		Box buttonBox = new Box(BoxLayout.X_AXIS);
-		background.add(BorderLayout.SOUTH, buttonBox);
+		Box boxSouth = new Box(BoxLayout.X_AXIS);
+		background.add(BorderLayout.SOUTH, boxSouth);
 
 		JButton btnLoad = new JButton("Load");
 		btnLoad.addActionListener(new ActionListener() {
@@ -76,8 +76,8 @@ public class FrameMain extends JFrame {
 				btnLoad();
 			}
 		});
-		buttonBox.add(btnLoad);
-		buttonBox.add(Box.createRigidArea(new Dimension(10, 0)));
+		boxSouth.add(btnLoad);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		JButton btnGraph = new JButton("Graph");
 		btnGraph.addActionListener(new ActionListener() {
@@ -87,8 +87,8 @@ public class FrameMain extends JFrame {
 				btnGraph();
 			}
 		});
-		buttonBox.add(btnGraph);
-		buttonBox.add(Box.createRigidArea(new Dimension(10, 0)));
+		boxSouth.add(btnGraph);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		JButton btnOptimalMz = new JButton("OptimalMz");
 		btnOptimalMz.addActionListener(new ActionListener() {
@@ -98,8 +98,8 @@ public class FrameMain extends JFrame {
 				btnOptimalMz(1);
 			}
 		});
-		buttonBox.add(btnOptimalMz);
-		buttonBox.add(Box.createRigidArea(new Dimension(10, 0)));
+		boxSouth.add(btnOptimalMz);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		JButton btnOptimalMz2 = new JButton("OptimalMz2");
 		btnOptimalMz2.addActionListener(new ActionListener() {
@@ -109,8 +109,8 @@ public class FrameMain extends JFrame {
 				btnOptimalMz(2);
 			}
 		});
-		buttonBox.add(btnOptimalMz2);
-		buttonBox.add(Box.createRigidArea(new Dimension(10, 0)));
+		boxSouth.add(btnOptimalMz2);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -124,20 +124,8 @@ public class FrameMain extends JFrame {
 	}
 
 	private void btnLoad() {
-		if (DEBUG) {
-			LoadMZXML.Param param = new LoadMZXML.Param();
-			param.filepath = "E:\\Enironments\\data\\abcdefgh_1.mzXML";
-			param.lines = 8;
-			param.widthInMM = 62;
-			param.heightInMM = 10;
-			param.downMotionInMM = 1.25f;
-			try {
-				loadMZXML = new LoadMZXML(param, LoadMZXML.Type.NORMAL);
-				loadMZXML.setProgressListener(progressTracker);
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+		if (Startup.DEBUG) {
+			loadMZXML = Startup.loadMZML(progressTracker);
 		} else {
 
 			DialogParameters dialog = new DialogParameters(FrameMain.this, "Set Parameters", true);
@@ -282,15 +270,16 @@ public class FrameMain extends JFrame {
 			@Override
 			public void run() throws Exception {
 				double[][] intensity = loadMZXML.getReduceSpec(lowerMass, higherMass);
-				PanelGraph graph = new PanelGraph();
+				PanelGraph panelGraph = new PanelGraph();
 
-				graph.setTitle(String.format("%sm/z - %sm/z", strLowerMass, strHigherMass));
-				graph.draw(intensity, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+				panelGraph.setTitle(String.format("%sm/z - %sm/z", strLowerMass, strHigherMass));
+				BufferedImage image = panelGraph.getImage(intensity);
+				panelGraph.draw(image, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
 
 				updateUI(new Runnable() {
 					@Override
 					public void run() {
-						tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), graph);
+						tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), panelGraph);
 					}
 				});
 			}

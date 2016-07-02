@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -26,6 +27,11 @@ public class DialogGraph extends JDialog {
 
 	JTextField jLowerMass = new JTextField(10);
 	JTextField jHigherMass = new JTextField(10);
+
+	public DialogGraph(JFrame jFrame, String title, boolean modal) {
+		super(jFrame, title, modal);
+		setupUI();
+	}
 
 	private void setupUI() {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -86,11 +92,6 @@ public class DialogGraph extends JDialog {
 
 		getRootPane().setDefaultButton(buttonOK);
 		getContentPane().add(panelSouth, BorderLayout.SOUTH);
-	}
-
-	public DialogGraph(FrameMain mainFrame, String title, boolean modal) {
-		super(mainFrame, title, modal);
-		setupUI();
 	}
 
 	public void addOkListener(ActionListener l) {
