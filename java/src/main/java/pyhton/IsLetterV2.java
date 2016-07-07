@@ -1,19 +1,32 @@
 package pyhton;
 
+import java.awt.image.BufferedImage;
+
 public class IsLetterV2 implements ICheckLetter {
 
-	public IsLetterV2(LoadMZXML loadMZML, double mzRangeLower, double mzRangeHighest, int resolution) {
+	private BufferedImage imgTemplate;
+	private int width;
+	private int height;
 
+	// -1 white
+	// -16777216 black
+	public IsLetterV2(BufferedImage imgTemplate) {
+		this.imgTemplate = imgTemplate;
+		this.width = imgTemplate.getWidth();
+		this.height = imgTemplate.getHeight();
 	}
 
 	@Override
 	public boolean check(int x, int line) {
-		// @classmethod
-		// def V2(cls, loadMZML, mzRangeLower, mzRangeHighest, resolution, templateClass):
-		// isLetterFunction = lambda x, line: templateClass.checkIfLetter(x, line)
-		// return cls(loadMZML, mzRangeLower, mzRangeHighest, resolution,
-		// isLetterFunction)
-		return false;
+		if (x >= 0 && x < width && line >= 0 && line < height) {
+			if (imgTemplate.getRGB(x, line) == -16777216) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
 	}
 
 }

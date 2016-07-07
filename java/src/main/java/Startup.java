@@ -7,7 +7,7 @@ import pyhton.LoadMZXML;
 
 public class Startup {
 
-	public static boolean DEBUG = true;
+	public static boolean DEBUG = false;
 
 	public static LoadMZXML loadMZML(IProgress progressTracker) {
 		LoadMZXML.Param param = new LoadMZXML.Param();

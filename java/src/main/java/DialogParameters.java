@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JFileChooser;
 import java.io.File;
 
@@ -81,6 +82,8 @@ public class DialogParameters extends JDialog {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
+				FileNameExtensionFilter filter = new FileNameExtensionFilter("mzXML files", "mzXML");
+				fileChooser.setFileFilter(filter);
 				int result = fileChooser.showOpenDialog(DialogParameters.this);
 				if (result == JFileChooser.APPROVE_OPTION) {
 					File selectedFile = fileChooser.getSelectedFile();

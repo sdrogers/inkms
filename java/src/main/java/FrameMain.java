@@ -4,6 +4,8 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -12,6 +14,7 @@ import java.util.concurrent.Executors;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -24,6 +27,8 @@ import javax.swing.border.EmptyBorder;
 
 import pyhton.LoadMZXML;
 import pyhton.OptimalMz;
+import pyhton.OptimalMzV2;
+import pyhton.ICheckLetter;
 import pyhton.IOptimalMz;
 import pyhton.IProgress;
 import pyhton.IsLetterV1;
@@ -38,15 +43,19 @@ public class FrameMain extends JFrame {
 	private JProgressBar progressBar;
 	private JTabbedPane tabbedPane;
 
+	private JCheckBox jcheckRectangle;
+	private JCheckBox jCheckTemplate;
+	private ICheckLetter templateIsLetter;
+
 	private ExecutorService executorService;
 
 	/**
 	 * Create the frame.
 	 */
 	public FrameMain() {
-		setTitle("JavaBall");
+		setTitle("MSI");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 550, 300);
+		setBounds(100, 100, 800, 400);
 
 		JPanel background = new JPanel();
 		setContentPane(background);
@@ -69,47 +78,34 @@ public class FrameMain extends JFrame {
 		background.add(BorderLayout.SOUTH, boxSouth);
 
 		JButton btnLoad = new JButton("Load");
-		btnLoad.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnLoad();
-			}
-		});
 		boxSouth.add(btnLoad);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		JButton btnGraph = new JButton("Graph");
-		btnGraph.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnGraph();
-			}
-		});
 		boxSouth.add(btnGraph);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		JButton btnOptimalMz = new JButton("OptimalMz");
-		btnOptimalMz.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnOptimalMz(1);
-			}
-		});
 		boxSouth.add(btnOptimalMz);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		JButton btnOptimalMz2 = new JButton("OptimalMz2");
-		btnOptimalMz2.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnOptimalMz(2);
-			}
-		});
 		boxSouth.add(btnOptimalMz2);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		JButton btnTemplate = new JButton("Template");
+		boxSouth.add(btnTemplate);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		boxSouth.add(Box.createHorizontalGlue());
+		jcheckRectangle = new JCheckBox("Rectangle");
+		jcheckRectangle.setSelected(true);
+		boxSouth.add(jcheckRectangle);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		jCheckTemplate = new JCheckBox("Template");
+		jCheckTemplate.setSelected(false);
+		boxSouth.add(jCheckTemplate);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		addWindowListener(new WindowAdapter() {
@@ -118,6 +114,60 @@ public class FrameMain extends JFrame {
 				super.windowClosing(e);
 			}
 
+		});
+
+		btnLoad.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnLoad();
+			}
+		});
+
+		btnGraph.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnGraph();
+			}
+		});
+
+		btnOptimalMz.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnOptimalMz(1);
+			}
+		});
+
+		btnOptimalMz2.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnOptimalMz(2);
+			}
+		});
+
+		btnTemplate.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnTemplate();
+			}
+		});
+
+		jcheckRectangle.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				jCheckTemplate.setSelected(!jcheckRectangle.isSelected());
+			}
+		});
+
+		jCheckTemplate.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				jcheckRectangle.setSelected(!jCheckTemplate.isSelected());
+			}
 		});
 
 		executorService = Executors.newFixedThreadPool(THREADS);
@@ -156,6 +206,7 @@ public class FrameMain extends JFrame {
 						}
 
 						loadMZXML = new LoadMZXML(param, type);
+						loadMZXML.setProgressListener(progressTracker);
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 					}
@@ -205,26 +256,39 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
-			DialogOptimalMz dialog = new DialogOptimalMz(FrameMain.this, "Set Parameters", true);
+			boolean rectangle = jcheckRectangle.isSelected();
+			if (!rectangle) {
+				if (templateIsLetter == null)
+					throw new Exception("Template Settings not loaded");
+			}
+
+			DialogOptimalMz dialog = new DialogOptimalMz(FrameMain.this, "Set Parameters", true, rectangle);
 			dialog.pack();
 			dialog.addOkListener(new ActionListener() {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					try {
-						int x_start = Integer.parseInt(dialog.jxStart.getText()); // 30
-						int x_stop = Integer.parseInt(dialog.jxStop.getText());// 40
-						int y_start = Integer.parseInt(dialog.jyStart.getText());// 0
-						int y_stop = Integer.parseInt(dialog.jyStop.getText());// 10
+						ICheckLetter isLetter;
 						double lowerMass = Double.parseDouble(dialog.jLowerMass.getText()); // 300
 						double higherMass = Double.parseDouble(dialog.jHigherMass.getText());// 500
 						int resolution = Integer.parseInt(dialog.jResolution.getText());// 200
+
+						if (rectangle) {
+							double x_start = Double.parseDouble(dialog.jxStart.getText()); // 30
+							double x_stop = Double.parseDouble(dialog.jxStop.getText());// 40
+							double y_start = Double.parseDouble(dialog.jyStart.getText());// 0
+							double y_stop = Double.parseDouble(dialog.jyStop.getText());// 10
+
+							isLetter = new IsLetterV1(loadMZXML, x_start, x_stop, y_start, y_stop);
+						} else {
+							isLetter = templateIsLetter;
+						}
 
 						ITask task = new ITask() {
 
 							@Override
 							public void run() throws Exception {
-								IsLetterV1 isLetter = new IsLetterV1(loadMZXML, x_start, x_stop, y_start, y_stop);
 								IOptimalMz optimalMz;
 								if (version == 1) {
 									OptimalMz optimalMzV1 = new OptimalMz();
@@ -232,7 +296,7 @@ public class FrameMain extends JFrame {
 									optimalMzV1.run(isLetter, loadMZXML, lowerMass, higherMass, resolution);
 									optimalMz = optimalMzV1;
 								} else {
-									OptimalMz optimalMzV2 = new OptimalMz();
+									OptimalMzV2 optimalMzV2 = new OptimalMzV2();
 									optimalMzV2.setProgressListener(progressTracker);
 									optimalMzV2.run(isLetter, loadMZXML, lowerMass, higherMass, resolution);
 									optimalMz = optimalMzV2;
@@ -260,7 +324,31 @@ public class FrameMain extends JFrame {
 		}
 	}
 
+	private void btnTemplate() {
+		try {
+
+			if (loadMZXML == null) {
+				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			DialogTemplate frame = new DialogTemplate(loadMZXML, FrameMain.this, true);
+			frame.addOkListener(new DialogTemplate.IOkListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
+					templateIsLetter = isLetter;
+					jCheckTemplate.setSelected(true);
+				}
+			});
+			frame.setVisible(true);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
 	private void createGraph(double lowerMass, double higherMass) {
+
 		createGraph(Double.toString(lowerMass), Double.toString(higherMass), lowerMass, higherMass);
 	}
 

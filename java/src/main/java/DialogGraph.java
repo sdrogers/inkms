@@ -1,10 +1,11 @@
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -28,8 +29,13 @@ public class DialogGraph extends JDialog {
 	JTextField jLowerMass = new JTextField(10);
 	JTextField jHigherMass = new JTextField(10);
 
-	public DialogGraph(JFrame jFrame, String title, boolean modal) {
-		super(jFrame, title, modal);
+	public DialogGraph(Frame frame, String title, boolean modal) {
+		super(frame, title, modal);
+		setupUI();
+	}
+
+	public DialogGraph(Dialog dialog, String title, boolean modal) {
+		super(dialog, title, modal);
 		setupUI();
 	}
 

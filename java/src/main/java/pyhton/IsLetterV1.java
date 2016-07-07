@@ -7,12 +7,12 @@ public class IsLetterV1 implements ICheckLetter {
 	private int y_start;
 	private int y_stop;
 
-	public IsLetterV1(LoadMZXML loadMZML, int x_start_mm, int x_stop_mm, int y_start_mm, int y_stop_mm) {
+	public IsLetterV1(LoadMZXML loadMZML, double x_start_mm, double x_stop_mm, double y_start_mm, double y_stop_mm) {
 
-		this.x_start = (int) ((double) x_start_mm / loadMZML.getWidthMM() * loadMZML.getWidth());
-		this.x_stop = (int) ((double) x_stop_mm / loadMZML.getWidthMM() * loadMZML.getWidth());
-		this.y_start = (int) ((double) y_start_mm / loadMZML.getHeightMM() * loadMZML.getLines());
-		this.y_stop = (int) ((double) y_stop_mm / loadMZML.getHeightMM() * loadMZML.getLines());
+		this.x_start = (int) (x_start_mm / loadMZML.getWidthMM() * loadMZML.getWidth());
+		this.x_stop = (int) (x_stop_mm / loadMZML.getWidthMM() * loadMZML.getWidth());
+		this.y_start = (int) (y_start_mm / loadMZML.getHeightMM() * loadMZML.getLines());
+		this.y_stop = (int) (y_stop_mm / loadMZML.getHeightMM() * loadMZML.getLines());
 	}
 
 	@Override

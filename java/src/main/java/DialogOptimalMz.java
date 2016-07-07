@@ -24,13 +24,21 @@ public class DialogOptimalMz extends JDialog {
 	JPanel panelSouth = new JPanel();
 	JButton buttonOK = new JButton("OK");
 
+	boolean showAdditionalSettings;
 	JTextField jxStart = new JTextField(10);
 	JTextField jxStop = new JTextField(10);
 	JTextField jyStart = new JTextField(10);
 	JTextField jyStop = new JTextField(10);
+
 	JTextField jLowerMass = new JTextField(10);
 	JTextField jHigherMass = new JTextField(10);
 	JTextField jResolution = new JTextField(10);
+
+	public DialogOptimalMz(FrameMain mainFrame, String title, boolean modal, boolean additionalSettings) {
+		super(mainFrame, title, modal);
+		this.showAdditionalSettings = additionalSettings;
+		setupUI();
+	}
 
 	private void setupUI() {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -42,25 +50,27 @@ public class DialogOptimalMz extends JDialog {
 		JPanel panelCenter = new JPanel(new SpringLayout());
 		JLabel l;
 
-		l = new JLabel("x start (mm)", JLabel.TRAILING);
-		panelCenter.add(l);
-		l.setLabelFor(jxStart);
-		panelCenter.add(jxStart);
+		if (showAdditionalSettings) {
+			l = new JLabel("x start", JLabel.TRAILING);
+			panelCenter.add(l);
+			l.setLabelFor(jxStart);
+			panelCenter.add(jxStart);
 
-		l = new JLabel("x stop (mm)", JLabel.TRAILING);
-		panelCenter.add(l);
-		l.setLabelFor(jxStop);
-		panelCenter.add(jxStop);
+			l = new JLabel("x stop", JLabel.TRAILING);
+			panelCenter.add(l);
+			l.setLabelFor(jxStop);
+			panelCenter.add(jxStop);
 
-		l = new JLabel("y start (mm)", JLabel.TRAILING);
-		panelCenter.add(l);
-		l.setLabelFor(jyStart);
-		panelCenter.add(jyStart);
+			l = new JLabel("y start", JLabel.TRAILING);
+			panelCenter.add(l);
+			l.setLabelFor(jyStart);
+			panelCenter.add(jyStart);
 
-		l = new JLabel("y stop (mm)", JLabel.TRAILING);
-		panelCenter.add(l);
-		l.setLabelFor(jyStop);
-		panelCenter.add(jyStop);
+			l = new JLabel("y stop", JLabel.TRAILING);
+			panelCenter.add(l);
+			l.setLabelFor(jyStop);
+			panelCenter.add(jyStop);
+		}
 
 		l = new JLabel("Lower Mass", JLabel.TRAILING);
 		panelCenter.add(l);
@@ -77,8 +87,14 @@ public class DialogOptimalMz extends JDialog {
 		l.setLabelFor(jResolution);
 		panelCenter.add(jResolution);
 
+		int rows;
+		if (showAdditionalSettings) {
+			rows = 7;
+		} else {
+			rows = 3;
+		}
 		// Lay out the panel.
-		SpringUtilities.makeCompactGrid(panelCenter, 7, 2, // rows, cols
+		SpringUtilities.makeCompactGrid(panelCenter, rows, 2, // rows, cols
 				6, 6, // initX, initY
 				6, 6); // xPad, yPad
 
@@ -116,11 +132,6 @@ public class DialogOptimalMz extends JDialog {
 
 		getRootPane().setDefaultButton(buttonOK);
 		getContentPane().add(panelSouth, BorderLayout.SOUTH);
-	}
-
-	public DialogOptimalMz(FrameMain mainFrame, String title, boolean modal) {
-		super(mainFrame, title, modal);
-		setupUI();
 	}
 
 	public void addOkListener(ActionListener l) {

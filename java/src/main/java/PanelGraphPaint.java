@@ -56,12 +56,8 @@ public class PanelGraphPaint extends PanelGraph {
 
 		boolean visible = true;
 
-		public void setVisible() {
-			visible = true;
-		}
-
-		public void setInvisible() {
-			visible = false;
+		public void setVisible(boolean visible) {
+			this.visible = visible;
 		}
 	}
 }
