@@ -127,12 +127,12 @@ def TemplateOverlayN():
 def AminoAcidN():
     plotImage = PlotImage(loadMZML, param)
 
-    # cell 1
-    # optimalMz = OptimalMz.V1(loadMZML, x_start_mm=0, x_stop_mm=6.25, y_start_mm=0, y_stop_mm=4,
-    #                         mzRangeLower=50, mzRangeHighest=200, resolution=600)
-    # optimalMz.printN()
-    # for i, j in optimalMz.getN(5):
-    #    plotImage.plotImshowII((i, j))
+    # Cell 1
+    optimalMz = OptimalMz.V1(loadMZML, x_start_mm=0, x_stop_mm=6.25, y_start_mm=0, y_stop_mm=4,
+                             mzRangeLower=50, mzRangeHighest=200, resolution=600)
+    optimalMz.printN()
+    for i, j in optimalMz.getN(5):
+        plotImage.plotImshowII((i, j))
 
     # Cell 20
     optimalMz = OptimalMz.V1(loadMZML, x_start_mm=18.75, x_stop_mm=22, y_start_mm=12, y_stop_mm=15,
@@ -172,9 +172,9 @@ class Parameters3:
         self.downMotionInMM = 1.66
 
 
-param = Parameters1()
-loadMZML = LoadMZML(param)
-imagePlotN()
+# param = Parameters1()
+# loadMZML = LoadMZML(param)
+# imagePlotN()
 # graphVlinesN()
 # OptimalMzN()
 # TemplateOverlayN()
@@ -183,10 +183,10 @@ imagePlotN()
 # loadMZML = LoadMZML(param, 'positive')
 # AminoAcidN()
 
-param = Parameters3()
-loadMZML = LoadMZML(param)
-plotImage = PlotImage(loadMZML, param)
-plotImage.plotImshowII((220, 220.3))
+# param = Parameters3()
+# loadMZML = LoadMZML(param)
+# plotImage = PlotImage(loadMZML, param)
+# plotImage.plotImshowII((220, 220.3))
 
 plt.show()
 print("Finished")

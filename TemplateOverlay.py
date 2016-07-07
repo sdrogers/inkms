@@ -30,11 +30,13 @@ class TemplateOverlay(object):
         imfile = Image.fromarray(bw)
         return imfile
 
-    #Scale Template
+    # Scale Template
     def alignTemplate(self, generated_b, generated_e, template_b, template_e, template):
         genHeight = len(self.loadMZML.data)
         genWidth = len(self.loadMZML.data[0])
         ratio = (generated_e - generated_b) / (template_e - template_b)
+
+        # Generated is offsetX pixels to the right
         self.offsetX = int(generated_b - (template_b * ratio))
 
         self.template = template.resize((int(template.size[0] * ratio), genHeight), PIL.Image.ANTIALIAS)
