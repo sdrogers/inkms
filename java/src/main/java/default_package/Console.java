@@ -1,3 +1,4 @@
+package default_package;
 import pyhton.LoadMZXML;
 
 public class Console {

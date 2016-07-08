@@ -1,3 +1,4 @@
+package default_package;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.FlowLayout;

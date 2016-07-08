@@ -1,3 +1,4 @@
+package default_package;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
