@@ -1,4 +1,5 @@
 package default_package;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -12,7 +13,6 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -36,7 +36,7 @@ import pyhton.ICheckLetter;
 import pyhton.IsLetterV2;
 import pyhton.LoadMZXML;
 
-public class DialogTemplate extends JDialog implements PanelGraph.ImageListener {
+public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	enum State {
 		NONE, GENERATED, TEMPLATE, BOTH
 	}
@@ -48,17 +48,17 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageListener 
 	private IOkListener ok;
 	private LoadMZXML loadMZXML;
 	private State state = State.NONE;
-	private PanelGraphPaint panelGraph;
+	private PanelGraphWithMarkers panelGraph;
 
 	private BufferedImage imgGenerated;
 	private BufferedImage imgTemplate;
 	private BufferedImage imgTemplateBW;
 	private BufferedImage imgTemplateApha;
 
-	private PanelGraphPaint.Marker mTemplateB = new PanelGraphPaint.Marker();
-	private PanelGraphPaint.Marker mTemplateE = new PanelGraphPaint.Marker();
-	private PanelGraphPaint.Marker mGeneratedB = new PanelGraphPaint.Marker();
-	private PanelGraphPaint.Marker mGeneratedE = new PanelGraphPaint.Marker();
+	private PanelGraphWithMarkers.Marker mTemplateB = new PanelGraphWithMarkers.Marker();
+	private PanelGraphWithMarkers.Marker mTemplateE = new PanelGraphWithMarkers.Marker();
+	private PanelGraphWithMarkers.Marker mGeneratedB = new PanelGraphWithMarkers.Marker();
+	private PanelGraphWithMarkers.Marker mGeneratedE = new PanelGraphWithMarkers.Marker();
 
 	private JFormattedTextField jtemplateB;
 	private JFormattedTextField jtemplateE;
@@ -95,8 +95,8 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageListener 
 		// Border Layout North, South,East,West
 		background.setLayout(new BorderLayout(0, 0));
 
-		panelGraph = new PanelGraphPaint();
-		panelGraph.addListener(this);
+		panelGraph = new PanelGraphWithMarkers();
+		panelGraph.addClickListener(this);
 		background.add(BorderLayout.CENTER, panelGraph);
 
 		Box boxSouth = new Box(BoxLayout.X_AXIS);
@@ -341,7 +341,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageListener 
 						double higherMass = Double.parseDouble(strHigherMass);
 
 						double[][] intensity = loadMZXML.getReduceSpec(lowerMass, higherMass);
-						imgGenerated = panelGraph.getImage(intensity);
+						imgGenerated = panelGraph.calculateImage(intensity);
 						state = State.GENERATED;
 						panelGraph.draw(imgGenerated, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
 
@@ -383,7 +383,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageListener 
 					if (!file.getName().endsWith(".png"))
 						file = new File(file.getAbsolutePath() + ".png");
 					// save to file
-					ImageIO.write(rescaleTemplate(), "PNG", file);
+					ImageIO.write(getTemplateOverlay(), "PNG", file);
 				}
 			}
 		} catch (Exception ex) {
@@ -403,7 +403,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageListener 
 				return;
 			}
 
-			ICheckLetter isLetter = new IsLetterV2(rescaleTemplate());
+			ICheckLetter isLetter = new IsLetterV2(getTemplateOverlay(), Color.BLACK);
 			setVisible(false);
 			dispose();
 			if (ok != null)
@@ -463,9 +463,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageListener 
 					panelGraph.draw(imgGenerated, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
 				}
 			}
-		} catch (IOException ex) {
-			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-		} catch (NumberFormatException ex) {
+		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
@@ -507,7 +505,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageListener 
 
 	}
 
-	private BufferedImage rescaleTemplate() {
+	private BufferedImage getTemplateOverlay() {
 		int tempB = Integer.parseInt(jtemplateB.getText().split(",")[0]);
 		int tempE = Integer.parseInt(jtemplateE.getText().split(",")[0]);
 		int genB = Integer.parseInt(jgeneratedB.getText().split(",")[0]);
@@ -549,19 +547,19 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageListener 
 	}
 
 	@Override
-	public void mouseClicked(PanelGraph.Point p) {
+	public void imageClicked(PanelGraph.Point p) {
 		if (!jcheckEnable.isSelected()) {
 			return;
 		}
 		if (state == State.TEMPLATE) {
 			if (jtemplateB.hasFocus()) {
-				PanelGraphPaint.Marker m = new PanelGraphPaint.Marker(p);
+				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
 				panelGraph.removeMarker(mTemplateB);
 				panelGraph.addMarker(m);
 				mTemplateB = m;
 				jtemplateB.setText(String.format("%d, %d", (int) (p.x * imgTemplate.getWidth()), (int) (p.y * imgTemplate.getHeight())));
 			} else if (jtemplateE.hasFocus()) {
-				PanelGraphPaint.Marker m = new PanelGraphPaint.Marker(p);
+				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
 				panelGraph.removeMarker(mTemplateE);
 				panelGraph.addMarker(m);
 				mTemplateE = m;
@@ -569,13 +567,13 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageListener 
 			}
 		} else if (state == State.GENERATED) {
 			if (jgeneratedB.hasFocus()) {
-				PanelGraphPaint.Marker m = new PanelGraphPaint.Marker(p);
+				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
 				panelGraph.removeMarker(mGeneratedB);
 				panelGraph.addMarker(m);
 				mGeneratedB = m;
 				jgeneratedB.setText(String.format("%d, %d", (int) (p.x * imgGenerated.getWidth()), (int) (p.y * imgGenerated.getHeight())));
 			} else if (jgeneratedE.hasFocus()) {
-				PanelGraphPaint.Marker m = new PanelGraphPaint.Marker(p);
+				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
 				panelGraph.removeMarker(mGeneratedE);
 				panelGraph.addMarker(m);
 				mGeneratedE = m;

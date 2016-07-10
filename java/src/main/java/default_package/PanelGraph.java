@@ -1,4 +1,5 @@
 package default_package;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -7,13 +8,14 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
 
-public class PanelGraph extends JPanel {
+public class PanelGraph extends JPanel implements MouseListener, MouseMotionListener {
 	// CONSTANTS
 	protected final int MARGIN_X_LEFT = 20;
 	protected final int MARGIN_X_RIGHT = 5;
@@ -35,23 +37,43 @@ public class PanelGraph extends JPanel {
 		}
 	}
 
-	public interface ImageListener {
-		public void mouseClicked(Point p);
+	public interface ImageClicked {
+		public void imageClicked(Point p);
 	}
 
-	protected List<ImageListener> mouseListeners = new ArrayList<ImageListener>(1);
+	protected List<ImageClicked> clickListeners = new ArrayList<ImageClicked>(1);
 
-	public void addListener(ImageListener list) {
-		mouseListeners.add(list);
+	public void addClickListener(ImageClicked listener) {
+		clickListeners.add(listener);
 	}
 
-	public void removeListener(ImageListener list) {
-		mouseListeners.remove(list);
+	public void removeClickListener(ImageClicked listener) {
+		clickListeners.remove(listener);
 	}
 
-	protected void triggerMouseListeners(Point p) {
-		for (ImageListener l : mouseListeners) {
-			l.mouseClicked(p);
+	protected void triggerClickListeners(Point p) {
+		for (ImageClicked l : clickListeners) {
+			l.imageClicked(p);
+		}
+	}
+
+	public interface ImageDragged {
+		public void imageDragged(Point p);
+	}
+
+	protected List<ImageDragged> draggedListeners = new ArrayList<ImageDragged>(1);
+
+	public void addDraggedListener(ImageDragged listener) {
+		draggedListeners.add(listener);
+	}
+
+	public void removeDraggedListener(ImageDragged listener) {
+		draggedListeners.remove(listener);
+	}
+
+	protected void triggerDraggedListeners(Point p) {
+		for (ImageDragged l : draggedListeners) {
+			l.imageDragged(p);
 		}
 	}
 
@@ -77,37 +99,8 @@ public class PanelGraph extends JPanel {
 		titleFont = new Font("SansSerif", Font.BOLD, 15);
 		axisFont = new Font("SansSerif", Font.BOLD, 10);
 
-		addMouseListener(new MouseListener() {
-
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				PanelGraph.this.mouseClicked(e);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-		});
+		addMouseListener(this);
+		addMouseMotionListener(this);
 	}
 
 	public void setTitle(String title) {
@@ -123,7 +116,7 @@ public class PanelGraph extends JPanel {
 		this.repaint();
 	}
 
-	public BufferedImage getImage(double[][] intensity) {
+	public BufferedImage calculateImage(double[][] intensity) {
 
 		int height = intensity.length;
 		int width = intensity[0].length;
@@ -154,6 +147,10 @@ public class PanelGraph extends JPanel {
 		return bufferImage;
 	}
 
+	public BufferedImage getImage() {
+		return bufferImage;
+	}
+
 	private int paintTitleHeight(Graphics g) {
 		FontMetrics titleFontMetrics = g.getFontMetrics(titleFont);
 		int titleHeight = (titleFontMetrics.getAscent());
@@ -180,8 +177,10 @@ public class PanelGraph extends JPanel {
 		int height;
 		if (ratio > ratio_) {
 			width = available_width;
+			// Reduce Height
 			height = (int) (available_width / ratio);
 		} else {
+			// Reduce Width
 			width = (int) (available_height * ratio);
 			height = available_height;
 		}
@@ -196,22 +195,18 @@ public class PanelGraph extends JPanel {
 		int height;
 		if (ratio > ratio_) {
 			width = available_width;
-			height = (int) (available_width / ratio);
-			this.margin_y_top = margin_y_top;
-			this.widthDisplayed = width;
-			this.heightDisplayed = height;
 			// Reduce Height
-			g.drawImage(bufferImage, MARGIN_X_LEFT, margin_y_top, width, height, null);
-
+			height = (int) (available_width / ratio);
 		} else {
+			// Reduce Width
 			width = (int) (available_height * ratio);
 			height = available_height;
-			this.margin_y_top = margin_y_top;
-			this.widthDisplayed = width;
-			this.heightDisplayed = height;
-			// Reduce Width
-			g.drawImage(bufferImage, MARGIN_X_LEFT, margin_y_top, width, height, null);
 		}
+
+		this.margin_y_top = margin_y_top;
+		this.widthDisplayed = width;
+		this.heightDisplayed = height;
+		g.drawImage(bufferImage, MARGIN_X_LEFT, margin_y_top, width, height, null);
 		return new int[] { width, height };
 	}
 
@@ -220,8 +215,7 @@ public class PanelGraph extends JPanel {
 		g2d.setColor(Color.BLACK);
 		g2d.setStroke(new BasicStroke(3));
 		// X Axis left -> right
-		g2d.drawLine(MARGIN_X_LEFT - MARGIN_Y_AXIS, margin_y_top + height + MARGIN_X_AXIS,
-				MARGIN_X_LEFT - MARGIN_Y_AXIS + width, margin_y_top + height + MARGIN_X_AXIS);
+		g2d.drawLine(MARGIN_X_LEFT - MARGIN_Y_AXIS, margin_y_top + height + MARGIN_X_AXIS, MARGIN_X_LEFT - MARGIN_Y_AXIS + width, margin_y_top + height + MARGIN_X_AXIS);
 		// Y Axis top -> bottom
 		g2d.drawLine(MARGIN_X_LEFT - MARGIN_Y_AXIS, margin_y_top, MARGIN_X_LEFT - MARGIN_Y_AXIS, margin_y_top + height);
 	}
@@ -315,13 +309,55 @@ public class PanelGraph extends JPanel {
 		this.colormap = hot;
 	}
 
-	private void mouseClicked(MouseEvent e) {
+	@Override
+	public void mouseClicked(MouseEvent e) {
 
 		int x = e.getX() - MARGIN_X_LEFT;
 		int y = e.getY() - margin_y_top;
 		if (x >= 0 && x <= widthDisplayed && y >= 0 && y <= heightDisplayed) {
 			Point p = new Point((double) x / widthDisplayed, (double) y / heightDisplayed);
-			triggerMouseListeners(p);
+			triggerClickListeners(p);
 		}
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+
+		int x = e.getX() - MARGIN_X_LEFT;
+		int y = e.getY() - margin_y_top;
+		if (x >= 0 && x <= widthDisplayed && y >= 0 && y <= heightDisplayed) {
+			Point p = new Point((double) x / widthDisplayed, (double) y / heightDisplayed);
+			triggerDraggedListeners(p);
+		}
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		// TODO Auto-generated method stub
+
 	}
 }

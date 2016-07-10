@@ -1,5 +1,7 @@
 package default_package;
+
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -10,13 +12,21 @@ import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -54,124 +64,210 @@ public class FrameMain extends JFrame {
 	 * Create the frame.
 	 */
 	public FrameMain() {
-		setTitle("MSI");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 800, 400);
+		try {
+			setTitle("MSI");
+			setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			setBounds(100, 100, 800, 400);
 
-		JPanel background = new JPanel();
-		setContentPane(background);
+			JPanel background = new JPanel();
+			setContentPane(background);
 
-		background.setBorder(new EmptyBorder(5, 5, 5, 5));
-		// Border Layout North, South,East,West
-		background.setLayout(new BorderLayout(0, 0));
+			background.setBorder(new EmptyBorder(5, 5, 5, 5));
+			// Border Layout North, South,East,West
+			background.setLayout(new BorderLayout(0, 0));
 
-		progressBar = new JProgressBar(0, 100);
-		progressBar.setValue(0);
-		progressBar.setStringPainted(true);
-		progressBar.setVisible(false);
-		background.add(BorderLayout.NORTH, progressBar);
+			progressBar = new JProgressBar(0, 100);
+			progressBar.setValue(0);
+			progressBar.setStringPainted(true);
+			progressBar.setVisible(false);
+			background.add(BorderLayout.NORTH, progressBar);
 
-		// Create a tabbed pane
-		tabbedPane = new JTabbedPane();
-		background.add(BorderLayout.CENTER, tabbedPane);
+			// Create a tabbed pane
+			tabbedPane = new JTabbedPane();
+			background.add(BorderLayout.CENTER, tabbedPane);
 
-		Box boxSouth = new Box(BoxLayout.X_AXIS);
-		background.add(BorderLayout.SOUTH, boxSouth);
+			Box boxSouth = new Box(BoxLayout.X_AXIS);
+			background.add(BorderLayout.SOUTH, boxSouth);
 
-		JButton btnLoad = new JButton("Load");
-		boxSouth.add(btnLoad);
-		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+			JButton btnLoad = new JButton("Load");
+			boxSouth.add(btnLoad);
+			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		JButton btnGraph = new JButton("Graph");
-		boxSouth.add(btnGraph);
-		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+			JButton btnGraph = new JButton("Graph");
+			boxSouth.add(btnGraph);
+			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		JButton btnOptimalMz = new JButton("OptimalMz");
-		boxSouth.add(btnOptimalMz);
-		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+			JButton btnOptimalMz = new JButton("OptimalMz");
+			boxSouth.add(btnOptimalMz);
+			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		JButton btnOptimalMz2 = new JButton("OptimalMz2");
-		boxSouth.add(btnOptimalMz2);
-		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+			JButton btnOptimalMz2 = new JButton("OptimalMz2");
+			boxSouth.add(btnOptimalMz2);
+			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		JButton btnTemplate = new JButton("Template");
-		boxSouth.add(btnTemplate);
-		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+			JButton btnTemplate = new JButton("Template");
+			boxSouth.add(btnTemplate);
+			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		boxSouth.add(Box.createHorizontalGlue());
-		jcheckRectangle = new JCheckBox("Rectangle");
-		jcheckRectangle.setSelected(true);
-		boxSouth.add(jcheckRectangle);
-		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+			JButton btnDraw = new JButton("Draw");
+			boxSouth.add(btnDraw);
+			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		jCheckTemplate = new JCheckBox("Template");
-		jCheckTemplate.setSelected(false);
-		boxSouth.add(jCheckTemplate);
-		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+			boxSouth.add(Box.createHorizontalGlue());
+			jcheckRectangle = new JCheckBox("Rectangle");
+			jcheckRectangle.setSelected(true);
+			boxSouth.add(jcheckRectangle);
+			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		addWindowListener(new WindowAdapter() {
+			jCheckTemplate = new JCheckBox("Template");
+			jCheckTemplate.setSelected(false);
+			boxSouth.add(jCheckTemplate);
+			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+			addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosing(WindowEvent e) {
+					super.windowClosing(e);
+				}
+
+			});
+
+			btnLoad.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					btnLoad();
+				}
+			});
+
+			btnGraph.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					btnGraph();
+				}
+			});
+
+			btnOptimalMz.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					btnOptimalMz(1);
+				}
+			});
+
+			btnOptimalMz2.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					btnOptimalMz(2);
+				}
+			});
+
+			btnTemplate.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					btnTemplate();
+				}
+			});
+
+			btnDraw.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					btnDraw();
+				}
+			});
+
+			jcheckRectangle.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					jCheckTemplate.setSelected(!jcheckRectangle.isSelected());
+				}
+			});
+
+			jCheckTemplate.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					jcheckRectangle.setSelected(!jCheckTemplate.isSelected());
+				}
+			});
+
+			executorService = Executors.newFixedThreadPool(THREADS);
+			createMenuBar();
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void createMenuBar() throws IOException {
+
+		JMenuBar menubar = new JMenuBar();
+
+		JMenu fileMenu = new JMenu("Tabs");
+
+		JMenuItem jMenuSave = new JMenuItem("Save");
+		int height = (int) jMenuSave.getPreferredSize().getHeight();
+		jMenuSave.setIcon(Startup.loadIcon("save128.png", height, height));
+
+		JMenuItem jMenuClose = new JMenuItem("Close");
+		jMenuClose.setIcon(Startup.loadIcon("closeBlue128.png", height, height));
+		JMenuItem jMenuCloseAll = new JMenuItem("Close All");
+		jMenuCloseAll.setIcon(Startup.loadIcon("closeRed128.png", height, height));
+
+		jMenuSave.addActionListener(new ActionListener() {
 			@Override
-			public void windowClosing(WindowEvent e) {
-				super.windowClosing(e);
+			public void actionPerformed(ActionEvent event) {
+				try {
+					int selected = tabbedPane.getSelectedIndex();
+					if (selected >= 0) {
+						Component component = tabbedPane.getComponentAt(selected);
+						if (component instanceof PanelGraph) {
+							PanelGraph pg = (PanelGraph) component;
+							BufferedImage imgGenerated = pg.getImage();
+							if (imgGenerated != null) {
+								JFileChooser fileChooser = new JFileChooser();
+								if (fileChooser.showSaveDialog(FrameMain.this) == JFileChooser.APPROVE_OPTION) {
+									File file = fileChooser.getSelectedFile();
+									if (!file.getName().endsWith(".png"))
+										file = new File(file.getAbsolutePath() + ".png");
+									// save to file
+									ImageIO.write(imgGenerated, "PNG", file);
+								}
+							}
+						}
+					}
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
 			}
-
 		});
 
-		btnLoad.addActionListener(new ActionListener() {
-
+		jMenuClose.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnLoad();
+			public void actionPerformed(ActionEvent event) {
+				int selected = tabbedPane.getSelectedIndex();
+				if (selected >= 0) {
+					tabbedPane.remove(selected);
+				}
 			}
 		});
 
-		btnGraph.addActionListener(new ActionListener() {
-
+		jMenuCloseAll.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnGraph();
+			public void actionPerformed(ActionEvent event) {
+				tabbedPane.removeAll();
 			}
 		});
 
-		btnOptimalMz.addActionListener(new ActionListener() {
+		fileMenu.add(jMenuSave);
+		fileMenu.add(jMenuClose);
+		fileMenu.add(jMenuCloseAll);
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnOptimalMz(1);
-			}
-		});
+		menubar.add(fileMenu);
 
-		btnOptimalMz2.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnOptimalMz(2);
-			}
-		});
-
-		btnTemplate.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnTemplate();
-			}
-		});
-
-		jcheckRectangle.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				jCheckTemplate.setSelected(!jcheckRectangle.isSelected());
-			}
-		});
-
-		jCheckTemplate.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				jcheckRectangle.setSelected(!jCheckTemplate.isSelected());
-			}
-		});
-
-		executorService = Executors.newFixedThreadPool(THREADS);
+		setJMenuBar(menubar);
 	}
 
 	private void btnLoad() {
@@ -348,6 +444,29 @@ public class FrameMain extends JFrame {
 		}
 	}
 
+	private void btnDraw() {
+		try {
+
+			if (loadMZXML == null) {
+				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			DialogDraw frame = new DialogDraw(loadMZXML, FrameMain.this, true);
+			frame.addOkListener(new DialogDraw.IOkListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
+					templateIsLetter = isLetter;
+					jCheckTemplate.setSelected(true);
+				}
+			});
+			frame.setVisible(true);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
 	private void createGraph(double lowerMass, double higherMass) {
 
 		createGraph(Double.toString(lowerMass), Double.toString(higherMass), lowerMass, higherMass);
@@ -362,7 +481,7 @@ public class FrameMain extends JFrame {
 				PanelGraph panelGraph = new PanelGraph();
 
 				panelGraph.setTitle(String.format("%sm/z - %sm/z", strLowerMass, strHigherMass));
-				BufferedImage image = panelGraph.getImage(intensity);
+				BufferedImage image = panelGraph.calculateImage(intensity);
 				panelGraph.draw(image, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
 
 				updateUI(new Runnable() {

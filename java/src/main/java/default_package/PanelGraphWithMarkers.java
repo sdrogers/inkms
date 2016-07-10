@@ -6,11 +6,11 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PanelGraphPaint extends PanelGraph {
+public class PanelGraphWithMarkers extends PanelGraph {
 
 	protected List<Marker> markers = new ArrayList<Marker>(1);
 
-	public PanelGraphPaint() {
+	public PanelGraphWithMarkers() {
 		super();
 	}
 

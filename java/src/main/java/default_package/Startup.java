@@ -1,6 +1,12 @@
 package default_package;
-import java.awt.EventQueue;
 
+import java.awt.EventQueue;
+import java.awt.Image;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
 import pyhton.IProgress;
@@ -24,7 +30,7 @@ public class Startup {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		
+
 		return null;
 	}
 
@@ -53,5 +59,15 @@ public class Startup {
 	 */
 	public Startup() throws Exception {
 		frame = new FrameMain();
+	}
+
+	public static ImageIcon loadIcon(String name, int width, int height) throws IOException {
+		// Load the file from resource folder
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream is = classloader.getResourceAsStream(name);
+		// Resize
+		Image org = ImageIO.read(is);
+		Image image = org.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+		return new ImageIcon(image);
 	}
 }
