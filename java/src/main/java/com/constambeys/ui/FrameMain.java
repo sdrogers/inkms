@@ -43,6 +43,7 @@ import com.constambeys.python.IsLetterV1;
 import com.constambeys.python.LoadMZXML;
 import com.constambeys.python.OptimalMz;
 import com.constambeys.python.OptimalMzV2;
+import com.constambeys.ui.graph.PanelGraph;
 
 @SuppressWarnings("serial")
 public class FrameMain extends JFrame {
@@ -275,7 +276,7 @@ public class FrameMain extends JFrame {
 			loadMZXML = Startup.loadMZML(progressTracker);
 		} else {
 
-			DialogParameters dialog = new DialogParameters(FrameMain.this, "Set Parameters", true);
+			DialogLoad dialog = new DialogLoad(FrameMain.this, "Set Parameters", true);
 			dialog.pack();
 			dialog.addOkListener(new ActionListener() {
 
@@ -289,18 +290,7 @@ public class FrameMain extends JFrame {
 						param.heightInMM = Integer.parseInt(dialog.jtextHeight.getText());
 						param.downMotionInMM = Float.parseFloat(dialog.jtextDownMotion.getText());
 
-						String stype = (String) dialog.jcomboType.getSelectedItem();
-						LoadMZXML.Type type;
-
-						if (stype.equals("Normal")) {
-							type = LoadMZXML.Type.NORMAL;
-						} else if (stype.equals("Positive")) {
-							type = LoadMZXML.Type.POSITIVE;
-						} else if (stype.equals("Negative")) {
-							type = LoadMZXML.Type.NEGATIVE;
-						} else {
-							throw new Exception("Unsupported scan type: " + stype);
-						}
+						LoadMZXML.Type type = (LoadMZXML.Type) dialog.jcomboType.getSelectedItem();
 
 						loadMZXML = new LoadMZXML(param, type);
 						loadMZXML.setProgressListener(progressTracker);

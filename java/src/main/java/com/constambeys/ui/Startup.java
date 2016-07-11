@@ -14,7 +14,7 @@ import com.constambeys.python.LoadMZXML;
 
 public class Startup {
 
-	public static boolean DEBUG = true;
+	public static boolean DEBUG = false;
 
 	public static LoadMZXML loadMZML(IProgress progressTracker) {
 		LoadMZXML.Param param = new LoadMZXML.Param();
@@ -24,7 +24,7 @@ public class Startup {
 		param.heightInMM = 10;
 		param.downMotionInMM = 1.25f;
 		try {
-			LoadMZXML loadMZXML = new LoadMZXML(param, LoadMZXML.Type.NORMAL);
+			LoadMZXML loadMZXML = new LoadMZXML(param, LoadMZXML.Type.ALL);
 			loadMZXML.setProgressListener(progressTracker);
 			return loadMZXML;
 		} catch (Exception ex) {

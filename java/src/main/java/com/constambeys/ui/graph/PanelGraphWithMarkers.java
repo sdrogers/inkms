@@ -1,4 +1,4 @@
-package com.constambeys.ui;
+package com.constambeys.ui.graph;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;

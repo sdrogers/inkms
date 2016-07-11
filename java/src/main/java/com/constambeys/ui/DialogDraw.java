@@ -19,7 +19,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
@@ -33,7 +32,7 @@ import javax.swing.text.NumberFormatter;
 import com.constambeys.python.ICheckLetter;
 import com.constambeys.python.IsLetterV2;
 import com.constambeys.python.LoadMZXML;
-import com.constambeys.ui.PanelGraph.Point;
+import com.constambeys.ui.graph.PanelGraphDraw;
 
 public class DialogDraw extends JDialog {
 	enum State {
@@ -91,15 +90,26 @@ public class DialogDraw extends JDialog {
 		boxSouth.add(Box.createHorizontalGlue());
 		boxSouth.add(buttonOK);
 
+		JRadioButton radDraw = new JRadioButton("Draw", true);
+		JRadioButton radErase = new JRadioButton("Erase");
+		ButtonGroup group = new ButtonGroup();
+		group.add(radDraw);
+		group.add(radErase);
+		boxEast.add(radDraw);
+		boxEast.add(radErase);
+
 		JButton buttonUp = new JButton(Startup.loadIcon("up128.png", 30, 30));
 		// http://stackoverflow.com/questions/4898584/java-using-an-image-as-a-button
 		buttonUp.setBorder(BorderFactory.createEmptyBorder());
 		buttonUp.setContentAreaFilled(false);
+		boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
+		boxEast.add(buttonUp);
 
 		JButton buttonDown = new JButton(Startup.loadIcon("down128.png", 30, 30));
 		// http://stackoverflow.com/questions/4898584/java-using-an-image-as-a-button
 		buttonDown.setBorder(BorderFactory.createEmptyBorder());
 		buttonDown.setContentAreaFilled(false);
+		boxEast.add(buttonDown);
 
 		JLabel l = new JLabel("Size: ", JLabel.TRAILING);
 		NumberFormat format = NumberFormat.getInstance();
@@ -116,18 +126,6 @@ public class DialogDraw extends JDialog {
 		maxsize.height = prefsize.height;
 		jRectSize.setMaximumSize(maxsize);
 		l.setLabelFor(jRectSize);
-
-		JRadioButton radDraw = new JRadioButton("Draw", true);
-		JRadioButton radErase = new JRadioButton("Erase");
-		ButtonGroup group = new ButtonGroup();
-		group.add(radDraw);
-		group.add(radErase);
-		boxEast.add(radDraw);
-		boxEast.add(radErase);
-
-		boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
-		boxEast.add(buttonUp);
-		boxEast.add(buttonDown);
 		boxEast.add(l);
 		boxEast.add(jRectSize);
 

@@ -43,7 +43,7 @@ public class LoadMZXML {
 			this.scansTotal = (int) Math.floor(scansTotal / 2);
 			this.startIndex = 2;
 			this.step = 2;
-		} else if (type == Type.NORMAL) {
+		} else if (type == Type.ALL) {
 			this.startIndex = 1;
 			this.step = 1;
 		} else {
@@ -154,8 +154,8 @@ public class LoadMZXML {
 		this.p = p;
 	}
 
-	public enum Type {
-		NORMAL, POSITIVE, NEGATIVE
+	public static enum Type {
+		ALL, POSITIVE, NEGATIVE
 	}
 
 	public static class Param {

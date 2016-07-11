@@ -1,4 +1,4 @@
-package com.constambeys.ui;
+package com.constambeys.ui.graph;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -28,8 +28,8 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 	protected final int MARGIN_LABELS = 20;
 
 	public static class Point {
-		double x;
-		double y;
+		public double x;
+		public double y;
 
 		Point(double x, double y) {
 			this.x = x;
@@ -93,9 +93,9 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 	protected Font titleFont;
 	protected Font axisFont;
 
-	PanelGraph() {
+	public PanelGraph() {
 		super();
-		hot(1024);
+		colormap = Colormap.hot;
 		titleFont = new Font("SansSerif", Font.BOLD, 15);
 		axisFont = new Font("SansSerif", Font.BOLD, 10);
 
@@ -273,40 +273,6 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 			System.err.println(ex.getMessage());
 		}
 
-	}
-
-	private void hot(int resolution) {
-		// http://www.codeproject.com/Articles/18150/Create-Custom-Color-Maps-in-C
-		int[] hot = new int[resolution];
-		float r[] = new float[resolution];
-		float g[] = new float[resolution];
-		float b[] = new float[resolution];
-
-		int k = (int) ((float) resolution / 8 * 3);
-
-		for (int i = 0; i < resolution; i++) {
-			if (i < k)
-				r[i] = (float) ((i + 1.0) / k);
-			else
-				r[i] = 1.0f;
-
-			if (i < k)
-				g[i] = 0.0f;
-			else if (i >= k && i < 2 * k)
-				g[i] = (float) ((i + 1.0 - k) / k);
-			else
-				g[i] = 1.0f;
-
-			if (i < 2 * k)
-				b[i] = 0f;
-			else
-				b[i] = (float) ((i + 1.0 - 2 * k) / (resolution - 2 * k));
-		}
-
-		for (int i = 0; i < resolution; i++) {
-			hot[i] = new Color(r[i], g[i], b[i], 1.0f).getRGB();
-		}
-		this.colormap = hot;
 	}
 
 	@Override

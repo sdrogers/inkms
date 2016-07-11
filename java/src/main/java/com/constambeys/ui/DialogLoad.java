@@ -1,4 +1,5 @@
 package com.constambeys.ui;
+
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -18,11 +19,12 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.constambeys.layout.SpringUtilities;
+import com.constambeys.python.LoadMZXML;
 
 import javax.swing.JFileChooser;
 import java.io.File;
 
-public class DialogParameters extends JDialog {
+public class DialogLoad extends JDialog implements MouseListener {
 
 	/**
 	 * Create the dialog.
@@ -34,13 +36,17 @@ public class DialogParameters extends JDialog {
 	JPanel panelSouth = new JPanel();
 	JButton buttonOK = new JButton("OK");
 
-	JTextField jFilePath = new JTextField(10);
-	JTextField jtextLines = new JTextField(10);
-	JTextField jtextWidth = new JTextField(10);
-	JTextField jtextHeight = new JTextField(10);
-	JTextField jtextDownMotion = new JTextField(10);
-	String[] types = new String[] { "Normal", "Positive", "Negative" };
-	JComboBox<String> jcomboType = new JComboBox<String>(types);
+	JTextField jFilePath;
+	JTextField jtextLines;
+	JTextField jtextWidth;
+	JTextField jtextHeight;
+	JTextField jtextDownMotion;
+	JComboBox<LoadMZXML.Type> jcomboType;
+
+	public DialogLoad(FrameMain mainFrame, String title, boolean modal) {
+		super(mainFrame, title, modal);
+		setupUI();
+	}
 
 	private void setupUI() {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -54,70 +60,39 @@ public class DialogParameters extends JDialog {
 
 		l = new JLabel("File", JLabel.TRAILING);
 		panelCenter.add(l);
+		jFilePath = new JTextField(10);
 		jFilePath.setEditable(false);
-		jFilePath.addMouseListener(new MouseListener() {
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
-				FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML files", "mzML");
-				fileChooser.setFileFilter(filter);
-				int result = fileChooser.showOpenDialog(DialogParameters.this);
-				if (result == JFileChooser.APPROVE_OPTION) {
-					File selectedFile = fileChooser.getSelectedFile();
-					jFilePath.setText(selectedFile.getAbsolutePath());
-				}
-			}
-		});
+		jFilePath.addMouseListener(this);
 		l.setLabelFor(jFilePath);
 		panelCenter.add(jFilePath);
 
 		l = new JLabel("Lines", JLabel.TRAILING);
 		panelCenter.add(l);
+		jtextLines = new JTextField(10);
 		l.setLabelFor(jtextLines);
 		panelCenter.add(jtextLines);
 
-		l = new JLabel("Width", JLabel.TRAILING);
+		l = new JLabel("Width (mm)", JLabel.TRAILING);
 		panelCenter.add(l);
+		jtextWidth = new JTextField(10);
 		l.setLabelFor(jtextWidth);
 		panelCenter.add(jtextWidth);
 
-		l = new JLabel("Height", JLabel.TRAILING);
+		l = new JLabel("Height (mm)", JLabel.TRAILING);
 		panelCenter.add(l);
+		jtextHeight = new JTextField(10);
 		l.setLabelFor(jtextHeight);
 		panelCenter.add(jtextHeight);
 
-		l = new JLabel("Down", JLabel.TRAILING);
+		l = new JLabel("Down (mm)", JLabel.TRAILING);
 		panelCenter.add(l);
+		jtextDownMotion = new JTextField(10);
 		l.setLabelFor(jtextDownMotion);
 		panelCenter.add(jtextDownMotion);
 
 		l = new JLabel("Type", JLabel.TRAILING);
 		panelCenter.add(l);
+		jcomboType = new JComboBox<LoadMZXML.Type>(LoadMZXML.Type.values());
 		l.setLabelFor(jcomboType);
 		panelCenter.add(jcomboType);
 
@@ -162,12 +137,43 @@ public class DialogParameters extends JDialog {
 		getContentPane().add(panelSouth, BorderLayout.SOUTH);
 	}
 
-	public DialogParameters(FrameMain mainFrame, String title, boolean modal) {
-		super(mainFrame, title, modal);
-		setupUI();
-	}
-
 	public void addOkListener(ActionListener l) {
 		ok = l;
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		JFileChooser fileChooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML files", "mzML");
+		fileChooser.setFileFilter(filter);
+		int result = fileChooser.showOpenDialog(DialogLoad.this);
+		if (result == JFileChooser.APPROVE_OPTION) {
+			File selectedFile = fileChooser.getSelectedFile();
+			jFilePath.setText(selectedFile.getAbsolutePath());
+		}
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+
 	}
 }

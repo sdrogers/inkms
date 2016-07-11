@@ -35,6 +35,8 @@ import javax.swing.text.NumberFormatter;
 import com.constambeys.python.ICheckLetter;
 import com.constambeys.python.IsLetterV2;
 import com.constambeys.python.LoadMZXML;
+import com.constambeys.ui.graph.PanelGraph;
+import com.constambeys.ui.graph.PanelGraphWithMarkers;
 
 public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	enum State {
@@ -132,30 +134,30 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 		l = new JLabel("Template B (x,y): ", JLabel.TRAILING);
 		boxEast.add(l);
-		l.setLabelFor(jtemplateB);
 		jtemplateB = new JFormattedTextField();
 		jtemplateB.setText("0,0");
+		l.setLabelFor(jtemplateB);
 		boxEast.add(jtemplateB);
 
 		l = new JLabel("Template E (x,y): ", JLabel.TRAILING);
 		boxEast.add(l);
-		l.setLabelFor(jtemplateE);
 		jtemplateE = new JFormattedTextField();
 		jtemplateE.setText("0,0");
+		l.setLabelFor(jtemplateE);
 		boxEast.add(jtemplateE);
 
 		l = new JLabel("Generated B (x,y): ", JLabel.TRAILING);
 		boxEast.add(l);
-		l.setLabelFor(jgeneratedB);
 		jgeneratedB = new JFormattedTextField();
 		jgeneratedB.setText("0,0");
+		l.setLabelFor(jgeneratedB);
 		boxEast.add(jgeneratedB);
 
 		l = new JLabel("Generated E (x,y): ", JLabel.TRAILING);
 		boxEast.add(l);
-		l.setLabelFor(jgeneratedE);
 		jgeneratedE = new JFormattedTextField();
 		jgeneratedE.setText("0,0");
+		l.setLabelFor(jgeneratedE);
 		boxEast.add(jgeneratedE);
 
 		boxEast.add(jCheckTemplate);
