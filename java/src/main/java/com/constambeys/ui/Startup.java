@@ -14,11 +14,11 @@ import com.constambeys.python.LoadMZXML;
 
 public class Startup {
 
-	public static boolean DEBUG = false;
+	public static boolean DEBUG = true;
 
 	public static LoadMZXML loadMZML(IProgress progressTracker) {
 		LoadMZXML.Param param = new LoadMZXML.Param();
-		param.filepath = "E:\\Enironments\\data\\abcdefgh_1.mzXML";
+		param.filepath = "E:\\Enironments\\data\\abcdefgh_1.mzML";
 		param.lines = 8;
 		param.widthInMM = 62;
 		param.heightInMM = 10;

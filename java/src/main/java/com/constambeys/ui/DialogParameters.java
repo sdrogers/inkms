@@ -84,7 +84,7 @@ public class DialogParameters extends JDialog {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
-				FileNameExtensionFilter filter = new FileNameExtensionFilter("mzXML files", "mzXML");
+				FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML files", "mzML");
 				fileChooser.setFileFilter(filter);
 				int result = fileChooser.showOpenDialog(DialogParameters.this);
 				if (result == JFileChooser.APPROVE_OPTION) {

@@ -4,11 +4,10 @@ import java.io.File;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.constambeys.readers_jmz.MzXMLFile_;
-
 import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
 import uk.ac.ebi.pride.tools.jmzreader.JMzReaderException;
 import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
+import uk.ac.ebi.pride.tools.mzml_wrapper.MzMlWrapper;
 
 public class LoadMZXML {
 
@@ -29,7 +28,7 @@ public class LoadMZXML {
 
 		long startTime = System.nanoTime();
 
-		run = new MzXMLFile_(new File(param.filepath));
+		run = new MzMlWrapper(new File(param.filepath));
 
 		long estimatedTime = System.nanoTime() - startTime;
 		System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
