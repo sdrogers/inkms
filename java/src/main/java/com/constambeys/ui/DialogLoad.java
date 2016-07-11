@@ -19,10 +19,12 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.constambeys.layout.SpringUtilities;
-import com.constambeys.python.LoadMZXML;
+import com.constambeys.load.LoadPattern;
+import com.constambeys.load.MSIImage;
 
 import javax.swing.JFileChooser;
 import java.io.File;
+import java.io.IOException;
 
 public class DialogLoad extends JDialog implements MouseListener {
 
@@ -41,7 +43,7 @@ public class DialogLoad extends JDialog implements MouseListener {
 	JTextField jtextWidth;
 	JTextField jtextHeight;
 	JTextField jtextDownMotion;
-	JComboBox<LoadMZXML.Type> jcomboType;
+	JComboBox<LoadPattern.Type> jcomboType;
 
 	public DialogLoad(FrameMain mainFrame, String title, boolean modal) {
 		super(mainFrame, title, modal);
@@ -90,9 +92,9 @@ public class DialogLoad extends JDialog implements MouseListener {
 		l.setLabelFor(jtextDownMotion);
 		panelCenter.add(jtextDownMotion);
 
-		l = new JLabel("Type", JLabel.TRAILING);
+		l = new JLabel("Indexes:", JLabel.TRAILING);
 		panelCenter.add(l);
-		jcomboType = new JComboBox<LoadMZXML.Type>(LoadMZXML.Type.values());
+		jcomboType = new JComboBox<LoadPattern.Type>(LoadPattern.Type.values());
 		l.setLabelFor(jcomboType);
 		panelCenter.add(jcomboType);
 
@@ -143,13 +145,24 @@ public class DialogLoad extends JDialog implements MouseListener {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		Settings settings = Settings.getAppSettings();
+
 		JFileChooser fileChooser = new JFileChooser();
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML files", "mzML");
 		fileChooser.setFileFilter(filter);
+		if (settings.get("load_dir") != null) {
+			fileChooser.setCurrentDirectory(new File(settings.get("load_dir")));
+		}
 		int result = fileChooser.showOpenDialog(DialogLoad.this);
 		if (result == JFileChooser.APPROVE_OPTION) {
 			File selectedFile = fileChooser.getSelectedFile();
 			jFilePath.setText(selectedFile.getAbsolutePath());
+			settings.put("load_dir", fileChooser.getCurrentDirectory().getAbsolutePath());
+			try {
+				settings.save();
+			} catch (IOException e1) {
+				System.err.println("Error saving");
+			}
 		}
 	}
 

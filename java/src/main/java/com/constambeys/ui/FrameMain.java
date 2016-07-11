@@ -36,14 +36,18 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 
+import com.constambeys.load.LoadPattern;
+import com.constambeys.load.MSIImage;
 import com.constambeys.python.ICheckLetter;
 import com.constambeys.python.IOptimalMz;
 import com.constambeys.python.IProgress;
 import com.constambeys.python.IsLetterV1;
-import com.constambeys.python.LoadMZXML;
 import com.constambeys.python.OptimalMz;
 import com.constambeys.python.OptimalMzV2;
 import com.constambeys.ui.graph.PanelGraph;
+
+import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
+import uk.ac.ebi.pride.tools.mzml_wrapper.MzMlWrapper;
 
 @SuppressWarnings("serial")
 public class FrameMain extends JFrame {
@@ -51,7 +55,7 @@ public class FrameMain extends JFrame {
 	private static int THREADS = 1;
 	private static int GRAPHS = 5;
 
-	private LoadMZXML loadMZXML;
+	private MSIImage msiimage;
 	private JProgressBar progressBar;
 	private JTabbedPane tabbedPane;
 
@@ -272,40 +276,48 @@ public class FrameMain extends JFrame {
 	}
 
 	private void btnLoad() {
-		if (Startup.DEBUG) {
-			loadMZXML = Startup.loadMZML(progressTracker);
-		} else {
 
-			DialogLoad dialog = new DialogLoad(FrameMain.this, "Set Parameters", true);
-			dialog.pack();
-			dialog.addOkListener(new ActionListener() {
+		DialogLoad dialog = new DialogLoad(FrameMain.this, "Set Parameters", true);
+		dialog.pack();
+		dialog.addOkListener(new ActionListener() {
 
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try {
-						LoadMZXML.Param param = new LoadMZXML.Param();
-						param.filepath = dialog.jFilePath.getText();
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+
+					if (Startup.DEBUG) {
+						msiimage = Startup.loadMZML();
+					} else {
+
+						long startTime = System.nanoTime();
+						JMzReader run = new MzMlWrapper(new File(dialog.jFilePath.getText()));
+						long estimatedTime = System.nanoTime() - startTime;
+						System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
+
+						LoadPattern.Param param = new LoadPattern.Param();
 						param.lines = Integer.parseInt(dialog.jtextLines.getText());
 						param.widthInMM = Integer.parseInt(dialog.jtextWidth.getText());
 						param.heightInMM = Integer.parseInt(dialog.jtextHeight.getText());
 						param.downMotionInMM = Float.parseFloat(dialog.jtextDownMotion.getText());
 
-						LoadMZXML.Type type = (LoadMZXML.Type) dialog.jcomboType.getSelectedItem();
+						LoadPattern.Type type = (LoadPattern.Type) dialog.jcomboType.getSelectedItem();
 
-						loadMZXML = new LoadMZXML(param, type);
-						loadMZXML.setProgressListener(progressTracker);
-					} catch (Exception ex) {
-						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+						LoadPattern pattern = new LoadPattern(run, param, type);
+						msiimage = new MSIImage(run, pattern);
 					}
+					msiimage.setProgressListener(progressTracker);
+
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 				}
-			});
-			dialog.setVisible(true);
-		}
+			}
+		});
+		dialog.setVisible(true);
 	}
 
 	private void btnGraph() {
 		try {
-			if (loadMZXML == null) {
+			if (msiimage == null) {
 				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -338,7 +350,7 @@ public class FrameMain extends JFrame {
 
 	private void btnOptimalMz(int version) {
 		try {
-			if (loadMZXML == null) {
+			if (msiimage == null) {
 				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -367,7 +379,7 @@ public class FrameMain extends JFrame {
 							double y_start = Double.parseDouble(dialog.jyStart.getText());// 0
 							double y_stop = Double.parseDouble(dialog.jyStop.getText());// 10
 
-							isLetter = new IsLetterV1(loadMZXML, x_start, x_stop, y_start, y_stop);
+							isLetter = new IsLetterV1(msiimage, x_start, x_stop, y_start, y_stop);
 						} else {
 							isLetter = templateIsLetter;
 						}
@@ -380,12 +392,12 @@ public class FrameMain extends JFrame {
 								if (version == 1) {
 									OptimalMz optimalMzV1 = new OptimalMz();
 									optimalMzV1.setProgressListener(progressTracker);
-									optimalMzV1.run(isLetter, loadMZXML, lowerMass, higherMass, resolution);
+									optimalMzV1.run(isLetter, msiimage, lowerMass, higherMass, resolution);
 									optimalMz = optimalMzV1;
 								} else {
 									OptimalMzV2 optimalMzV2 = new OptimalMzV2();
 									optimalMzV2.setProgressListener(progressTracker);
-									optimalMzV2.run(isLetter, loadMZXML, lowerMass, higherMass, resolution);
+									optimalMzV2.run(isLetter, msiimage, lowerMass, higherMass, resolution);
 									optimalMz = optimalMzV2;
 								}
 
@@ -414,12 +426,12 @@ public class FrameMain extends JFrame {
 	private void btnTemplate() {
 		try {
 
-			if (loadMZXML == null) {
+			if (msiimage == null) {
 				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
 
-			DialogTemplate frame = new DialogTemplate(loadMZXML, FrameMain.this, true);
+			DialogTemplate frame = new DialogTemplate(msiimage, FrameMain.this, true);
 			frame.addOkListener(new DialogTemplate.IOkListener() {
 
 				@Override
@@ -437,12 +449,12 @@ public class FrameMain extends JFrame {
 	private void btnDraw() {
 		try {
 
-			if (loadMZXML == null) {
+			if (msiimage == null) {
 				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
 
-			DialogDraw frame = new DialogDraw(loadMZXML, FrameMain.this, true);
+			DialogDraw frame = new DialogDraw(msiimage, FrameMain.this, true);
 			frame.addOkListener(new DialogDraw.IOkListener() {
 
 				@Override
@@ -467,12 +479,12 @@ public class FrameMain extends JFrame {
 
 			@Override
 			public void run() throws Exception {
-				double[][] intensity = loadMZXML.getReduceSpec(lowerMass, higherMass);
+				double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass);
 				PanelGraph panelGraph = new PanelGraph();
 
 				panelGraph.setTitle(String.format("%sm/z - %sm/z", strLowerMass, strHigherMass));
 				BufferedImage image = panelGraph.calculateImage(intensity);
-				panelGraph.draw(image, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+				panelGraph.draw(image, msiimage.getWidthMM(), msiimage.getHeightMM());
 
 				updateUI(new Runnable() {
 					@Override

@@ -53,22 +53,22 @@ public class DialogOptimalMz extends JDialog {
 		JLabel l;
 
 		if (showAdditionalSettings) {
-			l = new JLabel("x start", JLabel.TRAILING);
+			l = new JLabel("x start (mm)", JLabel.TRAILING);
 			panelCenter.add(l);
 			l.setLabelFor(jxStart);
 			panelCenter.add(jxStart);
 
-			l = new JLabel("x stop", JLabel.TRAILING);
+			l = new JLabel("x stop (mm)", JLabel.TRAILING);
 			panelCenter.add(l);
 			l.setLabelFor(jxStop);
 			panelCenter.add(jxStop);
 
-			l = new JLabel("y start", JLabel.TRAILING);
+			l = new JLabel("y start (mm)", JLabel.TRAILING);
 			panelCenter.add(l);
 			l.setLabelFor(jyStart);
 			panelCenter.add(jyStart);
 
-			l = new JLabel("y stop", JLabel.TRAILING);
+			l = new JLabel("y stop (mm)", JLabel.TRAILING);
 			panelCenter.add(l);
 			l.setLabelFor(jyStop);
 			panelCenter.add(jyStop);

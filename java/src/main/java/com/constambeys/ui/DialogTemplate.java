@@ -32,9 +32,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
+import com.constambeys.load.MSIImage;
 import com.constambeys.python.ICheckLetter;
 import com.constambeys.python.IsLetterV2;
-import com.constambeys.python.LoadMZXML;
 import com.constambeys.ui.graph.PanelGraph;
 import com.constambeys.ui.graph.PanelGraphWithMarkers;
 
@@ -48,7 +48,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	}
 
 	private IOkListener ok;
-	private LoadMZXML loadMZXML;
+	private MSIImage msiimage;
 	private State state = State.NONE;
 	private PanelGraphWithMarkers panelGraph;
 
@@ -75,17 +75,17 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 	public DialogTemplate(Frame owner, boolean modal) throws Exception {
 		super(owner, modal);
-		init(Startup.loadMZML(null));
+		init(Startup.loadMZML());
 	}
 
-	public DialogTemplate(LoadMZXML loadMZXML, Frame owner, boolean modal) throws Exception {
+	public DialogTemplate(MSIImage loadMZXML, Frame owner, boolean modal) throws Exception {
 		super(owner, modal);
 		init(loadMZXML);
 	}
 
-	public void init(LoadMZXML loadMZXML) throws ParseException {
+	public void init(MSIImage loadMZXML) throws ParseException {
 
-		this.loadMZXML = loadMZXML;
+		this.msiimage = loadMZXML;
 		setTitle("JavaBall");
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 800, 400);
@@ -297,7 +297,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 			imgTemplateBW = loadBW();
 
 			state = State.TEMPLATE;
-			panelGraph.draw(imgTemplate, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+			panelGraph.draw(imgTemplate, msiimage.getWidthMM(), msiimage.getHeightMM());
 
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -324,7 +324,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 	private void btnGraph() {
 		try {
-			if (loadMZXML == null) {
+			if (msiimage == null) {
 				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -342,10 +342,10 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 						double lowerMass = Double.parseDouble(strLowerMass);
 						double higherMass = Double.parseDouble(strHigherMass);
 
-						double[][] intensity = loadMZXML.getReduceSpec(lowerMass, higherMass);
+						double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass);
 						imgGenerated = panelGraph.calculateImage(intensity);
 						state = State.GENERATED;
-						panelGraph.draw(imgGenerated, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+						panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
 
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -451,18 +451,18 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 					state = State.TEMPLATE;
 					showMarkers(true, false);
 					updateMarkersTemp(genB, genE, tempB, tempE);
-					panelGraph.draw(imgTemplate, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+					panelGraph.draw(imgTemplate, msiimage.getWidthMM(), msiimage.getHeightMM());
 				} else if (imgTemplateBW != null && jCheckBlackWhite.isSelected()) {
 					jCheckTemplate.setSelected(false);
 					state = State.TEMPLATE;
 					showMarkers(true, false);
 					updateMarkersTemp(genB, genE, tempB, tempE);
-					panelGraph.draw(imgTemplateBW, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+					panelGraph.draw(imgTemplateBW, msiimage.getWidthMM(), msiimage.getHeightMM());
 				} else if (imgGenerated != null && jCheckGenerated.isSelected()) {
 					state = State.GENERATED;
 					showMarkers(false, true);
 					updateMarkersGen(genB, genE, tempB, tempE);
-					panelGraph.draw(imgGenerated, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+					panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
 				}
 			}
 		} catch (Exception ex) {
@@ -503,7 +503,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 		// Save as new image
 		// ImageIO.write(combined, "PNG", new File("combined.png"));
-		panelGraph.draw(combined, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+		panelGraph.draw(combined, msiimage.getWidthMM(), msiimage.getHeightMM());
 
 	}
 

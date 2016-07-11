@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constambeys.load.MSIImage;
+
 import uk.ac.ebi.pride.tools.jmzreader.JMzReaderException;
 import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
 
@@ -40,7 +42,7 @@ public class OptimalMzV2 implements IOptimalMz {
 
 	}
 
-	public void run(ICheckLetter isLetter, LoadMZXML loadMZML, double mzRangeLower, double mzRangeHighest,
+	public void run(ICheckLetter isLetter, MSIImage loadMZML, double mzRangeLower, double mzRangeHighest,
 			int resolution) throws JMzReaderException {
 
 		this.isLetter = isLetter;

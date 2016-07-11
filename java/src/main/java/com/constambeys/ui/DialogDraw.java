@@ -29,9 +29,9 @@ import javax.swing.JRadioButton;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
+import com.constambeys.load.MSIImage;
 import com.constambeys.python.ICheckLetter;
 import com.constambeys.python.IsLetterV2;
-import com.constambeys.python.LoadMZXML;
 import com.constambeys.ui.graph.PanelGraphDraw;
 
 public class DialogDraw extends JDialog {
@@ -44,23 +44,23 @@ public class DialogDraw extends JDialog {
 	}
 
 	private IOkListener ok;
-	private LoadMZXML loadMZXML;
+	private MSIImage msiimage;
 	private PanelGraphDraw panelGraph;
 	private JFormattedTextField jRectSize;
 
 	public DialogDraw(Frame owner, boolean modal) throws Exception {
 		super(owner, modal);
-		init(Startup.loadMZML(null));
+		init(Startup.loadMZML());
 	}
 
-	public DialogDraw(LoadMZXML loadMZXML, Frame owner, boolean modal) throws Exception {
+	public DialogDraw(MSIImage loadMZXML, Frame owner, boolean modal) throws Exception {
 		super(owner, modal);
 		init(loadMZXML);
 	}
 
-	public void init(LoadMZXML loadMZXML) throws ParseException, IOException {
+	public void init(MSIImage loadMZXML) throws ParseException, IOException {
 
-		this.loadMZXML = loadMZXML;
+		this.msiimage = loadMZXML;
 		setTitle("JavaBall");
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 800, 400);
@@ -183,7 +183,7 @@ public class DialogDraw extends JDialog {
 
 	private void btnGraph() {
 		try {
-			if (loadMZXML == null) {
+			if (msiimage == null) {
 				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -201,9 +201,9 @@ public class DialogDraw extends JDialog {
 						double lowerMass = Double.parseDouble(strLowerMass);
 						double higherMass = Double.parseDouble(strHigherMass);
 
-						double[][] intensity = loadMZXML.getReduceSpec(lowerMass, higherMass);
+						double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass);
 						BufferedImage imgGenerated = panelGraph.calculateImage(intensity);
-						panelGraph.draw(imgGenerated, loadMZXML.getWidthMM(), loadMZXML.getHeightMM());
+						panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
 
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
