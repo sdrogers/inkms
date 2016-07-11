@@ -1,10 +1,11 @@
-package pyhton;
+package com.constambeys.python;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import readers_jmz.MzXMLFile_;
+import com.constambeys.readers_jmz.MzXMLFile_;
+
 import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
 import uk.ac.ebi.pride.tools.jmzreader.JMzReaderException;
 import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;

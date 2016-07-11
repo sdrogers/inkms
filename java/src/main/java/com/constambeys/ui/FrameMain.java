@@ -1,4 +1,4 @@
-package default_package;
+package com.constambeys.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -36,13 +36,13 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 
-import pyhton.LoadMZXML;
-import pyhton.OptimalMz;
-import pyhton.OptimalMzV2;
-import pyhton.ICheckLetter;
-import pyhton.IOptimalMz;
-import pyhton.IProgress;
-import pyhton.IsLetterV1;
+import com.constambeys.python.ICheckLetter;
+import com.constambeys.python.IOptimalMz;
+import com.constambeys.python.IProgress;
+import com.constambeys.python.IsLetterV1;
+import com.constambeys.python.LoadMZXML;
+import com.constambeys.python.OptimalMz;
+import com.constambeys.python.OptimalMzV2;
 
 @SuppressWarnings("serial")
 public class FrameMain extends JFrame {

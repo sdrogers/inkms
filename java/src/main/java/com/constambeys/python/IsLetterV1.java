@@ -1,4 +1,4 @@
-package pyhton;
+package com.constambeys.python;
 
 public class IsLetterV1 implements ICheckLetter {
 

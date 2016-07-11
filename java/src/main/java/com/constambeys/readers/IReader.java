@@ -1,4 +1,4 @@
-package readers;
+package com.constambeys.readers;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package pyhton;
+package com.constambeys.python;
 
 public interface IOptimalMz {
 	public double getRange();

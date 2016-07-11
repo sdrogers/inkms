@@ -1,4 +1,4 @@
-package default_package;
+package com.constambeys.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -32,9 +32,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
-import pyhton.ICheckLetter;
-import pyhton.IsLetterV2;
-import pyhton.LoadMZXML;
+import com.constambeys.python.ICheckLetter;
+import com.constambeys.python.IsLetterV2;
+import com.constambeys.python.LoadMZXML;
 
 public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	enum State {

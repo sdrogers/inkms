@@ -1,4 +1,4 @@
-package readers;
+package com.constambeys.readers;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;

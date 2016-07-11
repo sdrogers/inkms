@@ -1,4 +1,4 @@
-package default_package;
+package com.constambeys.ui;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;

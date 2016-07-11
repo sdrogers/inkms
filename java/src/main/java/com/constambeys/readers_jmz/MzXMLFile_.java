@@ -1,4 +1,4 @@
-package readers_jmz;
+package com.constambeys.readers_jmz;
 
 import java.io.File;
 import java.io.FileNotFoundException;

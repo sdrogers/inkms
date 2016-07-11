@@ -1,4 +1,4 @@
-package default_package;
+package com.constambeys.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -30,10 +30,10 @@ import javax.swing.JRadioButton;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
-import default_package.PanelGraph.Point;
-import pyhton.ICheckLetter;
-import pyhton.IsLetterV2;
-import pyhton.LoadMZXML;
+import com.constambeys.python.ICheckLetter;
+import com.constambeys.python.IsLetterV2;
+import com.constambeys.python.LoadMZXML;
+import com.constambeys.ui.PanelGraph.Point;
 
 public class DialogDraw extends JDialog {
 	enum State {

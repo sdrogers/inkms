@@ -1,4 +1,4 @@
-package default_package;
+package com.constambeys.ui;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -16,10 +16,11 @@ import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import com.constambeys.layout.SpringUtilities;
+
 import javax.swing.JFileChooser;
 import java.io.File;
-
-import layout.SpringUtilities;
 
 public class DialogParameters extends JDialog {
 

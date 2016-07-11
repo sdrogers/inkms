@@ -1,5 +1,5 @@
-package default_package;
-import pyhton.LoadMZXML;
+package com.constambeys.ui;
+import com.constambeys.python.LoadMZXML;
 
 public class Console {
 

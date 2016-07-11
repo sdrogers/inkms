@@ -1,4 +1,4 @@
-package default_package;
+package com.constambeys.ui;
 
 import java.awt.EventQueue;
 import java.awt.Image;
@@ -9,8 +9,8 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
-import pyhton.IProgress;
-import pyhton.LoadMZXML;
+import com.constambeys.python.IProgress;
+import com.constambeys.python.LoadMZXML;
 
 public class Startup {
 

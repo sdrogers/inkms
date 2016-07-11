@@ -1,8 +1,6 @@
-package default_package;
+package com.constambeys.ui;
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
@@ -13,9 +11,10 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.border.EmptyBorder;
-import layout.SpringUtilities;
 
-public class DialogGraph extends JDialog {
+import com.constambeys.layout.SpringUtilities;
+
+public class DialogOptimalMz extends JDialog {
 
 	/**
 	 * Create the dialog.
@@ -27,16 +26,19 @@ public class DialogGraph extends JDialog {
 	JPanel panelSouth = new JPanel();
 	JButton buttonOK = new JButton("OK");
 
+	boolean showAdditionalSettings;
+	JTextField jxStart = new JTextField(10);
+	JTextField jxStop = new JTextField(10);
+	JTextField jyStart = new JTextField(10);
+	JTextField jyStop = new JTextField(10);
+
 	JTextField jLowerMass = new JTextField(10);
 	JTextField jHigherMass = new JTextField(10);
+	JTextField jResolution = new JTextField(10);
 
-	public DialogGraph(Frame frame, String title, boolean modal) {
-		super(frame, title, modal);
-		setupUI();
-	}
-
-	public DialogGraph(Dialog dialog, String title, boolean modal) {
-		super(dialog, title, modal);
+	public DialogOptimalMz(FrameMain mainFrame, String title, boolean modal, boolean additionalSettings) {
+		super(mainFrame, title, modal);
+		this.showAdditionalSettings = additionalSettings;
 		setupUI();
 	}
 
@@ -50,6 +52,28 @@ public class DialogGraph extends JDialog {
 		JPanel panelCenter = new JPanel(new SpringLayout());
 		JLabel l;
 
+		if (showAdditionalSettings) {
+			l = new JLabel("x start", JLabel.TRAILING);
+			panelCenter.add(l);
+			l.setLabelFor(jxStart);
+			panelCenter.add(jxStart);
+
+			l = new JLabel("x stop", JLabel.TRAILING);
+			panelCenter.add(l);
+			l.setLabelFor(jxStop);
+			panelCenter.add(jxStop);
+
+			l = new JLabel("y start", JLabel.TRAILING);
+			panelCenter.add(l);
+			l.setLabelFor(jyStart);
+			panelCenter.add(jyStart);
+
+			l = new JLabel("y stop", JLabel.TRAILING);
+			panelCenter.add(l);
+			l.setLabelFor(jyStop);
+			panelCenter.add(jyStop);
+		}
+
 		l = new JLabel("Lower Mass", JLabel.TRAILING);
 		panelCenter.add(l);
 		l.setLabelFor(jLowerMass);
@@ -60,8 +84,19 @@ public class DialogGraph extends JDialog {
 		l.setLabelFor(jHigherMass);
 		panelCenter.add(jHigherMass);
 
+		l = new JLabel("Resolution", JLabel.TRAILING);
+		panelCenter.add(l);
+		l.setLabelFor(jResolution);
+		panelCenter.add(jResolution);
+
+		int rows;
+		if (showAdditionalSettings) {
+			rows = 7;
+		} else {
+			rows = 3;
+		}
 		// Lay out the panel.
-		SpringUtilities.makeCompactGrid(panelCenter, 2, 2, // rows, cols
+		SpringUtilities.makeCompactGrid(panelCenter, rows, 2, // rows, cols
 				6, 6, // initX, initY
 				6, 6); // xPad, yPad
 

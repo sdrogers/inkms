@@ -1,4 +1,4 @@
-package pyhton;
+package com.constambeys.python;
 
 import java.util.Arrays;
 import java.util.Map;
