@@ -22,8 +22,10 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -34,6 +36,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import com.constambeys.load.LoadPattern;
@@ -287,25 +290,45 @@ public class FrameMain extends JFrame {
 
 					if (Startup.DEBUG) {
 						msiimage = Startup.loadMZML();
+						msiimage.setProgressListener(progressTracker);
 					} else {
+						JDialog wait = showWaitDialog();
+						ITask task = new ITask() {
 
-						long startTime = System.nanoTime();
-						JMzReader run = new MzMlWrapper(new File(dialog.jFilePath.getText()));
-						long estimatedTime = System.nanoTime() - startTime;
-						System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
+							@Override
+							public void run() throws Exception {
+								try {
+									long startTime = System.nanoTime();
+									JMzReader run = new MzMlWrapper(new File(dialog.jFilePath.getText()));
+									long estimatedTime = System.nanoTime() - startTime;
+									System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
 
-						LoadPattern.Param param = new LoadPattern.Param();
-						param.lines = Integer.parseInt(dialog.jtextLines.getText());
-						param.widthInMM = Integer.parseInt(dialog.jtextWidth.getText());
-						param.heightInMM = Integer.parseInt(dialog.jtextHeight.getText());
-						param.downMotionInMM = Float.parseFloat(dialog.jtextDownMotion.getText());
+									LoadPattern.Param param = new LoadPattern.Param();
+									param.lines = Integer.parseInt(dialog.jtextLines.getText());
+									param.widthInMM = Integer.parseInt(dialog.jtextWidth.getText());
+									param.heightInMM = Integer.parseInt(dialog.jtextHeight.getText());
+									param.downMotionInMM = Float.parseFloat(dialog.jtextDownMotion.getText());
 
-						LoadPattern.Type type = (LoadPattern.Type) dialog.jcomboType.getSelectedItem();
+									LoadPattern.Type type = (LoadPattern.Type) dialog.jcomboType.getSelectedItem();
 
-						LoadPattern pattern = new LoadPattern(run, param, type);
-						msiimage = new MSIImage(run, pattern);
+									LoadPattern pattern = new LoadPattern(run, param, type);
+									msiimage = new MSIImage(run, pattern);
+									msiimage.setProgressListener(progressTracker);
+								} finally {
+									updateUI(new Runnable() {
+
+										@Override
+										public void run() {
+											wait.setVisible(false);
+											wait.dispose();
+										}
+									});
+								}
+							}
+						};
+						submitTask(task);
+						wait.setVisible(true);
 					}
-					msiimage.setProgressListener(progressTracker);
 
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -323,6 +346,7 @@ public class FrameMain extends JFrame {
 			}
 
 			DialogGraph dialog = new DialogGraph(FrameMain.this, "Set Parameters", true);
+			dialog.setLocationRelativeTo(this);
 			dialog.pack();
 			dialog.addOkListener(new ActionListener() {
 
@@ -522,6 +546,16 @@ public class FrameMain extends JFrame {
 		});
 	}
 
+	private JDialog showWaitDialog() {
+		JDialog loading = new JDialog(this, true);
+		loading.setLayout(new BorderLayout());
+		loading.add(new JLabel("Please wait..."), BorderLayout.CENTER);
+		loading.setLocationRelativeTo(this);
+		loading.setUndecorated(true);
+		loading.pack();
+		return loading;
+	}
+
 	private void submitTask(ITask task) {
 
 		executorService.submit(new Runnable() {
@@ -538,7 +572,7 @@ public class FrameMain extends JFrame {
 	}
 
 	private void updateUI(Runnable task) {
-		EventQueue.invokeLater(new Runnable() {
+		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					task.run();
