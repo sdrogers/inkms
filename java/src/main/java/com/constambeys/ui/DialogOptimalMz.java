@@ -1,8 +1,12 @@
 package com.constambeys.ui;
+
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -26,19 +30,11 @@ public class DialogOptimalMz extends JDialog {
 	JPanel panelSouth = new JPanel();
 	JButton buttonOK = new JButton("OK");
 
-	boolean showAdditionalSettings;
-	JTextField jxStart = new JTextField(10);
-	JTextField jxStop = new JTextField(10);
-	JTextField jyStart = new JTextField(10);
-	JTextField jyStop = new JTextField(10);
+	JPanel panelCenter;
+	Map<String, JTextField> map = new HashMap<String, JTextField>();
 
-	JTextField jLowerMass = new JTextField(10);
-	JTextField jHigherMass = new JTextField(10);
-	JTextField jResolution = new JTextField(10);
-
-	public DialogOptimalMz(FrameMain mainFrame, String title, boolean modal, boolean additionalSettings) {
+	public DialogOptimalMz(FrameMain mainFrame, String title, boolean modal) {
 		super(mainFrame, title, modal);
-		this.showAdditionalSettings = additionalSettings;
 		setupUI();
 	}
 
@@ -49,57 +45,7 @@ public class DialogOptimalMz extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 
 		// Create and populate the panel.
-		JPanel panelCenter = new JPanel(new SpringLayout());
-		JLabel l;
-
-		if (showAdditionalSettings) {
-			l = new JLabel("x start (mm)", JLabel.TRAILING);
-			panelCenter.add(l);
-			l.setLabelFor(jxStart);
-			panelCenter.add(jxStart);
-
-			l = new JLabel("x stop (mm)", JLabel.TRAILING);
-			panelCenter.add(l);
-			l.setLabelFor(jxStop);
-			panelCenter.add(jxStop);
-
-			l = new JLabel("y start (mm)", JLabel.TRAILING);
-			panelCenter.add(l);
-			l.setLabelFor(jyStart);
-			panelCenter.add(jyStart);
-
-			l = new JLabel("y stop (mm)", JLabel.TRAILING);
-			panelCenter.add(l);
-			l.setLabelFor(jyStop);
-			panelCenter.add(jyStop);
-		}
-
-		l = new JLabel("Lower Mass", JLabel.TRAILING);
-		panelCenter.add(l);
-		l.setLabelFor(jLowerMass);
-		panelCenter.add(jLowerMass);
-
-		l = new JLabel("Higher Mass", JLabel.TRAILING);
-		panelCenter.add(l);
-		l.setLabelFor(jHigherMass);
-		panelCenter.add(jHigherMass);
-
-		l = new JLabel("Resolution", JLabel.TRAILING);
-		panelCenter.add(l);
-		l.setLabelFor(jResolution);
-		panelCenter.add(jResolution);
-
-		int rows;
-		if (showAdditionalSettings) {
-			rows = 7;
-		} else {
-			rows = 3;
-		}
-		// Lay out the panel.
-		SpringUtilities.makeCompactGrid(panelCenter, rows, 2, // rows, cols
-				6, 6, // initX, initY
-				6, 6); // xPad, yPad
-
+		panelCenter = new JPanel(new SpringLayout());
 		getContentPane().add(panelCenter, BorderLayout.CENTER);
 
 		panelSouth.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -138,5 +84,24 @@ public class DialogOptimalMz extends JDialog {
 
 	public void addOkListener(ActionListener l) {
 		ok = l;
+	}
+
+	public void addTextBox(String name, String title) {
+		JTextField jtextField = new JTextField(10);
+		JLabel l = new JLabel(title, JLabel.TRAILING);
+		panelCenter.add(l);
+		l.setLabelFor(jtextField);
+		panelCenter.add(jtextField);
+
+		map.put(name, jtextField);
+
+		// Lay out the panel.
+		SpringUtilities.makeCompactGrid(panelCenter, map.size(), 2, // rows, cols
+				6, 6, // initX, initY
+				6, 6); // xPad, yPad
+	}
+
+	public String getText(String name) {
+		return map.get(name).getText();
 	}
 }

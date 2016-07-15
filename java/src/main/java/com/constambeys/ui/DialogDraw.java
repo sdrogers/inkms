@@ -25,13 +25,17 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
 import com.constambeys.load.MSIImage;
 import com.constambeys.python.ICheckLetter;
+import com.constambeys.python.IProgress;
 import com.constambeys.python.IsLetterV2;
+import com.constambeys.ui.DialogTemplate.State;
 import com.constambeys.ui.graph.PanelGraphDraw;
 
 public class DialogDraw extends JDialog {
@@ -42,6 +46,8 @@ public class DialogDraw extends JDialog {
 	interface IOkListener {
 		public void actionPerformed(ActionEvent e, ICheckLetter isLetter);
 	}
+
+	private JProgressBar progressBar;
 
 	private IOkListener ok;
 	private MSIImage msiimage;
@@ -71,6 +77,12 @@ public class DialogDraw extends JDialog {
 		background.setBorder(new EmptyBorder(5, 5, 5, 5));
 		// Border Layout North, South,East,West
 		background.setLayout(new BorderLayout(0, 0));
+
+		progressBar = new JProgressBar(0, 100);
+		progressBar.setValue(0);
+		progressBar.setStringPainted(true);
+		progressBar.setVisible(false);
+		background.add(BorderLayout.NORTH, progressBar);
 
 		panelGraph = new PanelGraphDraw();
 		background.add(BorderLayout.CENTER, panelGraph);
@@ -201,9 +213,31 @@ public class DialogDraw extends JDialog {
 						double lowerMass = Double.parseDouble(strLowerMass);
 						double higherMass = Double.parseDouble(strHigherMass);
 
-						double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass);
-						BufferedImage imgGenerated = panelGraph.calculateImage(intensity);
-						panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
+						JDialog wait = showWaitDialog();
+						Thread t = new Thread(new Runnable() {
+
+							@Override
+							public void run() {
+								try {
+									double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass, progressTracker);
+									BufferedImage imgGenerated = panelGraph.calculateImage(intensity);
+									panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
+								} catch (Exception ex) {
+									JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+								} finally {
+									updateUI(new Runnable() {
+
+										@Override
+										public void run() {
+											wait.setVisible(false);
+											wait.dispose();
+										}
+									});
+								}
+							}
+						});
+						t.start();
+						wait.setVisible(true);
 
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -231,6 +265,41 @@ public class DialogDraw extends JDialog {
 			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
+
+	private JDialog showWaitDialog() {
+		JDialog loading = new JDialog(this, true);
+		loading.setLayout(new BorderLayout());
+		loading.add(new JLabel("Please wait..."), BorderLayout.CENTER);
+		loading.setLocationRelativeTo(this);
+		loading.setUndecorated(true);
+		loading.pack();
+		return loading;
+	}
+
+	private void updateUI(Runnable task) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					task.run();
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(null, "Task Failed", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+	}
+
+	IProgress progressTracker = new IProgress() {
+
+		@Override
+		public void update(int value) {
+			if (value == 0) {
+				progressBar.setVisible(true);
+			} else if (value == 100) {
+				progressBar.setVisible(false);
+			}
+			progressBar.setValue(value);
+		}
+	};
 
 	public void addOkListener(IOkListener l) {
 		ok = l;

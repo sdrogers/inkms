@@ -28,12 +28,15 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
 import com.constambeys.load.MSIImage;
 import com.constambeys.python.ICheckLetter;
+import com.constambeys.python.IProgress;
 import com.constambeys.python.IsLetterV2;
 import com.constambeys.ui.graph.PanelGraph;
 import com.constambeys.ui.graph.PanelGraphWithMarkers;
@@ -47,6 +50,8 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		public void actionPerformed(ActionEvent e, ICheckLetter isLetter);
 	}
 
+	private JProgressBar progressBar;
+
 	private IOkListener ok;
 	private MSIImage msiimage;
 	private State state = State.NONE;
@@ -57,15 +62,15 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	private BufferedImage imgTemplateBW;
 	private BufferedImage imgTemplateApha;
 
-	private PanelGraphWithMarkers.Marker mTemplateB = new PanelGraphWithMarkers.Marker();
-	private PanelGraphWithMarkers.Marker mTemplateE = new PanelGraphWithMarkers.Marker();
-	private PanelGraphWithMarkers.Marker mGeneratedB = new PanelGraphWithMarkers.Marker();
-	private PanelGraphWithMarkers.Marker mGeneratedE = new PanelGraphWithMarkers.Marker();
+	private PanelGraphWithMarkers.Marker mTemplateP1 = new PanelGraphWithMarkers.Marker();
+	private PanelGraphWithMarkers.Marker mTemplateP2 = new PanelGraphWithMarkers.Marker();
+	private PanelGraphWithMarkers.Marker mGeneratedP1 = new PanelGraphWithMarkers.Marker();
+	private PanelGraphWithMarkers.Marker mGeneratedP2 = new PanelGraphWithMarkers.Marker();
 
-	private JFormattedTextField jtemplateB;
-	private JFormattedTextField jtemplateE;
-	private JFormattedTextField jgeneratedB;
-	private JFormattedTextField jgeneratedE;
+	private JFormattedTextField jtemplateP1;
+	private JFormattedTextField jtemplateP2;
+	private JFormattedTextField jgeneratedP1;
+	private JFormattedTextField jgeneratedP2;
 	private JFormattedTextField jTransparency;
 
 	private JCheckBox jcheckEnable = new JCheckBox("Enable:");
@@ -96,6 +101,12 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		background.setBorder(new EmptyBorder(5, 5, 5, 5));
 		// Border Layout North, South,East,West
 		background.setLayout(new BorderLayout(0, 0));
+
+		progressBar = new JProgressBar(0, 100);
+		progressBar.setValue(0);
+		progressBar.setStringPainted(true);
+		progressBar.setVisible(false);
+		background.add(BorderLayout.NORTH, progressBar);
 
 		panelGraph = new PanelGraphWithMarkers();
 		panelGraph.addClickListener(this);
@@ -132,33 +143,33 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 		boxEast.add(jcheckEnable);
 
-		l = new JLabel("Template B (x,y): ", JLabel.TRAILING);
+		l = new JLabel("Template P1 (x,y): ", JLabel.TRAILING);
 		boxEast.add(l);
-		jtemplateB = new JFormattedTextField();
-		jtemplateB.setText("0,0");
-		l.setLabelFor(jtemplateB);
-		boxEast.add(jtemplateB);
+		jtemplateP1 = new JFormattedTextField();
+		jtemplateP1.setText("0,0");
+		l.setLabelFor(jtemplateP1);
+		boxEast.add(jtemplateP1);
 
-		l = new JLabel("Template E (x,y): ", JLabel.TRAILING);
+		l = new JLabel("Template P2 (x,y): ", JLabel.TRAILING);
 		boxEast.add(l);
-		jtemplateE = new JFormattedTextField();
-		jtemplateE.setText("0,0");
-		l.setLabelFor(jtemplateE);
-		boxEast.add(jtemplateE);
+		jtemplateP2 = new JFormattedTextField();
+		jtemplateP2.setText("0,0");
+		l.setLabelFor(jtemplateP2);
+		boxEast.add(jtemplateP2);
 
-		l = new JLabel("Generated B (x,y): ", JLabel.TRAILING);
+		l = new JLabel("Generated P1 (x,y): ", JLabel.TRAILING);
 		boxEast.add(l);
-		jgeneratedB = new JFormattedTextField();
-		jgeneratedB.setText("0,0");
-		l.setLabelFor(jgeneratedB);
-		boxEast.add(jgeneratedB);
+		jgeneratedP1 = new JFormattedTextField();
+		jgeneratedP1.setText("0,0");
+		l.setLabelFor(jgeneratedP1);
+		boxEast.add(jgeneratedP1);
 
-		l = new JLabel("Generated E (x,y): ", JLabel.TRAILING);
+		l = new JLabel("Generated P2 (x,y): ", JLabel.TRAILING);
 		boxEast.add(l);
-		jgeneratedE = new JFormattedTextField();
-		jgeneratedE.setText("0,0");
-		l.setLabelFor(jgeneratedE);
-		boxEast.add(jgeneratedE);
+		jgeneratedP2 = new JFormattedTextField();
+		jgeneratedP2.setText("0,0");
+		l.setLabelFor(jgeneratedP2);
+		boxEast.add(jgeneratedP2);
 
 		boxEast.add(jCheckTemplate);
 		boxEast.add(jCheckGenerated);
@@ -176,8 +187,8 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		formatter.setCommitsOnValidEdit(true);
 		jTransparency = new JFormattedTextField(formatter);
 		jTransparency.setText("100");
-		boxEast.add(l);
 		l.setLabelFor(jTransparency);
+		boxEast.add(l);
 		boxEast.add(jTransparency);
 
 		btnLoad.addActionListener(new ActionListener() {
@@ -267,10 +278,10 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		};
 
 		jenable(false);
-		jtemplateB.addPropertyChangeListener("value", callSyncUI);
-		jtemplateE.addPropertyChangeListener("value", callSyncUI);
-		jgeneratedB.addPropertyChangeListener("value", callSyncUI);
-		jgeneratedE.addPropertyChangeListener("value", callSyncUI);
+		jtemplateP1.addPropertyChangeListener("value", callSyncUI);
+		jtemplateP2.addPropertyChangeListener("value", callSyncUI);
+		jgeneratedP1.addPropertyChangeListener("value", callSyncUI);
+		jgeneratedP2.addPropertyChangeListener("value", callSyncUI);
 		jTransparency.addPropertyChangeListener("value", callSyncUI);
 	}
 
@@ -338,14 +349,36 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 					try {
 						String strLowerMass = dialog.jLowerMass.getText();
 						String strHigherMass = dialog.jHigherMass.getText();
-
 						double lowerMass = Double.parseDouble(strLowerMass);
 						double higherMass = Double.parseDouble(strHigherMass);
 
-						double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass);
-						imgGenerated = panelGraph.calculateImage(intensity);
-						state = State.GENERATED;
-						panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
+						JDialog wait = showWaitDialog();
+						Thread t = new Thread(new Runnable() {
+
+							@Override
+							public void run() {
+								try {
+									double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass, progressTracker);
+									imgGenerated = panelGraph.calculateImage(intensity);
+									state = State.GENERATED;
+									panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
+
+								} catch (Exception ex) {
+									JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+								} finally {
+									updateUI(new Runnable() {
+
+										@Override
+										public void run() {
+											wait.setVisible(false);
+											wait.dispose();
+										}
+									});
+								}
+							}
+						});
+						t.start();
+						wait.setVisible(true);
 
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -423,13 +456,13 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 			int genE = 0;
 
 			if (imgTemplate != null) {
-				tempB = Integer.parseInt(jtemplateB.getText().split(",")[0]);
-				tempE = Integer.parseInt(jtemplateE.getText().split(",")[0]);
+				tempB = Integer.parseInt(jtemplateP1.getText().split(",")[0]);
+				tempE = Integer.parseInt(jtemplateP2.getText().split(",")[0]);
 			}
 
 			if (imgGenerated != null) {
-				genB = Integer.parseInt(jgeneratedB.getText().split(",")[0]);
-				genE = Integer.parseInt(jgeneratedE.getText().split(",")[0]);
+				genB = Integer.parseInt(jgeneratedP1.getText().split(",")[0]);
+				genE = Integer.parseInt(jgeneratedP2.getText().split(",")[0]);
 			}
 
 			if (imgGenerated != null && jCheckGenerated.isSelected() && ((imgTemplate != null && jCheckTemplate.isSelected()) || (imgTemplateBW != null && jCheckBlackWhite.isSelected()))) {
@@ -508,10 +541,10 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	}
 
 	private BufferedImage getTemplateOverlay() {
-		int tempB = Integer.parseInt(jtemplateB.getText().split(",")[0]);
-		int tempE = Integer.parseInt(jtemplateE.getText().split(",")[0]);
-		int genB = Integer.parseInt(jgeneratedB.getText().split(",")[0]);
-		int genE = Integer.parseInt(jgeneratedE.getText().split(",")[0]);
+		int tempB = Integer.parseInt(jtemplateP1.getText().split(",")[0]);
+		int tempE = Integer.parseInt(jtemplateP2.getText().split(",")[0]);
+		int genB = Integer.parseInt(jgeneratedP1.getText().split(",")[0]);
+		int genE = Integer.parseInt(jgeneratedP2.getText().split(",")[0]);
 
 		double ratio = (double) (genE - genB) / (tempE - tempB);
 		// Generated is offsetX pixels to the right
@@ -529,22 +562,22 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	}
 
 	private void updateMarkersGen(int genB, int genE, int tempB, int tempE) {
-		mGeneratedB.x = (double) genB / imgGenerated.getWidth();
-		mGeneratedE.x = (double) genE / imgGenerated.getWidth();
+		mGeneratedP1.x = (double) genB / imgGenerated.getWidth();
+		mGeneratedP2.x = (double) genE / imgGenerated.getWidth();
 		panelGraph.repaint();
 	}
 
 	private void updateMarkersTemp(int genB, int genE, int tempB, int tempE) {
-		mTemplateB.x = (double) tempB / imgTemplate.getWidth();
-		mTemplateE.x = (double) tempE / imgTemplate.getWidth();
+		mTemplateP1.x = (double) tempB / imgTemplate.getWidth();
+		mTemplateP2.x = (double) tempE / imgTemplate.getWidth();
 		panelGraph.repaint();
 	}
 
 	private void showMarkers(boolean temp, boolean gen) {
-		mTemplateB.setVisible(temp);
-		mTemplateE.setVisible(temp);
-		mGeneratedB.setVisible(gen);
-		mGeneratedE.setVisible(gen);
+		mTemplateP1.setVisible(temp);
+		mTemplateP2.setVisible(temp);
+		mGeneratedP1.setVisible(gen);
+		mGeneratedP2.setVisible(gen);
 		panelGraph.repaint();
 	}
 
@@ -554,42 +587,77 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 			return;
 		}
 		if (state == State.TEMPLATE) {
-			if (jtemplateB.hasFocus()) {
+			if (jtemplateP1.hasFocus()) {
 				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
-				panelGraph.removeMarker(mTemplateB);
+				panelGraph.removeMarker(mTemplateP1);
 				panelGraph.addMarker(m);
-				mTemplateB = m;
-				jtemplateB.setText(String.format("%d, %d", (int) (p.x * imgTemplate.getWidth()), (int) (p.y * imgTemplate.getHeight())));
-			} else if (jtemplateE.hasFocus()) {
+				mTemplateP1 = m;
+				jtemplateP1.setText(String.format("%d, %d", (int) (p.x * imgTemplate.getWidth()), (int) (p.y * imgTemplate.getHeight())));
+			} else if (jtemplateP2.hasFocus()) {
 				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
-				panelGraph.removeMarker(mTemplateE);
+				panelGraph.removeMarker(mTemplateP2);
 				panelGraph.addMarker(m);
-				mTemplateE = m;
-				jtemplateE.setText(String.format("%d, %d", (int) (p.x * imgTemplate.getWidth()), (int) (p.y * imgTemplate.getHeight())));
+				mTemplateP2 = m;
+				jtemplateP2.setText(String.format("%d, %d", (int) (p.x * imgTemplate.getWidth()), (int) (p.y * imgTemplate.getHeight())));
 			}
 		} else if (state == State.GENERATED) {
-			if (jgeneratedB.hasFocus()) {
+			if (jgeneratedP1.hasFocus()) {
 				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
-				panelGraph.removeMarker(mGeneratedB);
+				panelGraph.removeMarker(mGeneratedP1);
 				panelGraph.addMarker(m);
-				mGeneratedB = m;
-				jgeneratedB.setText(String.format("%d, %d", (int) (p.x * imgGenerated.getWidth()), (int) (p.y * imgGenerated.getHeight())));
-			} else if (jgeneratedE.hasFocus()) {
+				mGeneratedP1 = m;
+				jgeneratedP1.setText(String.format("%d, %d", (int) (p.x * imgGenerated.getWidth()), (int) (p.y * imgGenerated.getHeight())));
+			} else if (jgeneratedP2.hasFocus()) {
 				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
-				panelGraph.removeMarker(mGeneratedE);
+				panelGraph.removeMarker(mGeneratedP2);
 				panelGraph.addMarker(m);
-				mGeneratedE = m;
-				jgeneratedE.setText(String.format("%d, %d", (int) (p.x * imgGenerated.getWidth()), (int) (p.y * imgGenerated.getHeight())));
+				mGeneratedP2 = m;
+				jgeneratedP2.setText(String.format("%d, %d", (int) (p.x * imgGenerated.getWidth()), (int) (p.y * imgGenerated.getHeight())));
 			}
 		}
 		panelGraph.repaint();
 	}
 
+	private JDialog showWaitDialog() {
+		JDialog loading = new JDialog(this, true);
+		loading.setLayout(new BorderLayout());
+		loading.add(new JLabel("Please wait..."), BorderLayout.CENTER);
+		loading.setLocationRelativeTo(this);
+		loading.setUndecorated(true);
+		loading.pack();
+		return loading;
+	}
+
+	private void updateUI(Runnable task) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					task.run();
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(null, "Task Failed", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+	}
+
+	IProgress progressTracker = new IProgress() {
+
+		@Override
+		public void update(int value) {
+			if (value == 0) {
+				progressBar.setVisible(true);
+			} else if (value == 100) {
+				progressBar.setVisible(false);
+			}
+			progressBar.setValue(value);
+		}
+	};
+
 	public void jenable(boolean enabled) {
-		jtemplateB.setEnabled(enabled);
-		jtemplateE.setEnabled(enabled);
-		jgeneratedB.setEnabled(enabled);
-		jgeneratedE.setEnabled(enabled);
+		jtemplateP1.setEnabled(enabled);
+		jtemplateP2.setEnabled(enabled);
+		jgeneratedP1.setEnabled(enabled);
+		jgeneratedP2.setEnabled(enabled);
 	}
 
 	public void addOkListener(IOkListener l) {

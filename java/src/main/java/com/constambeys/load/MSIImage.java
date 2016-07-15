@@ -11,7 +11,6 @@ import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
 
 public class MSIImage {
 
-	private IProgress p;
 	private JMzReader run;
 	private int lines;
 	private int columns;
@@ -38,7 +37,7 @@ public class MSIImage {
 		return spectrum;
 	}
 
-	public double[][] getReduceSpec(double mzRangeLower, double mzRangeHighest) throws JMzReaderException {
+	public double[][] getReduceSpec(double mzRangeLower, double mzRangeHighest, IProgress p) throws JMzReaderException {
 
 		long start = System.nanoTime();
 
@@ -85,9 +84,5 @@ public class MSIImage {
 
 	public int getHeightMM() {
 		return heightInMM;
-	}
-
-	public void setProgressListener(IProgress p) {
-		this.p = p;
 	}
 }

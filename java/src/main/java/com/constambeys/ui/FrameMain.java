@@ -3,7 +3,6 @@ package com.constambeys.ui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,16 +13,19 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -32,25 +34,31 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.NumberFormatter;
 
 import com.constambeys.load.LoadPattern;
 import com.constambeys.load.MSIImage;
+import com.constambeys.python.BinEventlyDistributed;
+import com.constambeys.python.BinsPartsPerMillion;
+import com.constambeys.python.IBinResolution;
 import com.constambeys.python.ICheckLetter;
-import com.constambeys.python.IOptimalMz;
 import com.constambeys.python.IProgress;
 import com.constambeys.python.IsLetterV1;
 import com.constambeys.python.OptimalMz;
+import com.constambeys.python.OptimalMzV1;
 import com.constambeys.python.OptimalMzV2;
 import com.constambeys.ui.graph.PanelGraph;
 
 import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
 import uk.ac.ebi.pride.tools.mzml_wrapper.MzMlWrapper;
+import uk.ac.ebi.pride.tools.mzxml_parser.MzXMLFile;
 
 @SuppressWarnings("serial")
 public class FrameMain extends JFrame {
@@ -62,9 +70,17 @@ public class FrameMain extends JFrame {
 	private JProgressBar progressBar;
 	private JTabbedPane tabbedPane;
 
-	private JCheckBox jcheckRectangle;
-	private JCheckBox jCheckTemplate;
-	private ICheckLetter templateIsLetter;
+	private JCheckBox jcheckSettings;
+	private ICheckLetter isLetterTemplate;
+	private ICheckLetter isLetterDraw;
+
+	private JRadioButton jradRect;
+	private JRadioButton jradTempl;
+	private JRadioButton jradDraw;
+	private JRadioButton jradEvently;
+	private JRadioButton jradPPM;
+	private JFormattedTextField jnumGraphs;
+	private JFormattedTextField jV2PixelsWeight;
 
 	private ExecutorService executorService;
 
@@ -97,6 +113,9 @@ public class FrameMain extends JFrame {
 			Box boxSouth = new Box(BoxLayout.X_AXIS);
 			background.add(BorderLayout.SOUTH, boxSouth);
 
+			Box boxEast = new Box(BoxLayout.Y_AXIS);
+			background.add(BorderLayout.EAST, boxEast);
+
 			JButton btnLoad = new JButton("Load");
 			boxSouth.add(btnLoad);
 			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
@@ -122,15 +141,71 @@ public class FrameMain extends JFrame {
 			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 			boxSouth.add(Box.createHorizontalGlue());
-			jcheckRectangle = new JCheckBox("Rectangle");
-			jcheckRectangle.setSelected(true);
-			boxSouth.add(jcheckRectangle);
+			jcheckSettings = new JCheckBox("Settings");
+			jcheckSettings.setSelected(true);
+			boxSouth.add(jcheckSettings);
 			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-			jCheckTemplate = new JCheckBox("Template");
-			jCheckTemplate.setSelected(false);
-			boxSouth.add(jCheckTemplate);
-			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+			JLabel l;
+
+			jradRect = new JRadioButton("Rectangle", true);
+			jradTempl = new JRadioButton("Template");
+			jradDraw = new JRadioButton("Draw");
+			ButtonGroup group1 = new ButtonGroup();
+			group1.add(jradRect);
+			group1.add(jradTempl);
+			group1.add(jradDraw);
+			boxEast.add(jradRect);
+			boxEast.add(jradTempl);
+			boxEast.add(jradDraw);
+			boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
+
+			jradEvently = new JRadioButton("Evently", true);
+			jradPPM = new JRadioButton("PPM");
+			ButtonGroup group2 = new ButtonGroup();
+			group2.add(jradEvently);
+			group2.add(jradPPM);
+			boxEast.add(jradEvently);
+			boxEast.add(jradPPM);
+			boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
+
+			l = new JLabel("Graphs: ", JLabel.TRAILING);
+			NumberFormat format1 = NumberFormat.getInstance();
+			NumberFormatter formatter1 = new NumberFormatter(format1);
+			formatter1.setValueClass(Integer.class);
+			formatter1.setMinimum(0);
+			formatter1.setAllowsInvalid(true);
+			// If you want the value to be committed on each keystroke instead of
+			// focus lost
+			formatter1.setCommitsOnValidEdit(true);
+			jnumGraphs = new JFormattedTextField(formatter1);
+			jnumGraphs.setValue(GRAPHS);
+			Dimension maxsize1 = jnumGraphs.getMaximumSize();
+			Dimension prefsize1 = jnumGraphs.getPreferredSize();
+			maxsize1.height = prefsize1.height;
+			jnumGraphs.setMaximumSize(maxsize1);
+			l.setLabelFor(jnumGraphs);
+			boxEast.add(l);
+			boxEast.add(jnumGraphs);
+
+			l = new JLabel("OptMz2 Weight: ", JLabel.TRAILING);
+			NumberFormat format2 = NumberFormat.getInstance();
+			NumberFormatter formatter2 = new NumberFormatter(format2);
+			formatter2.setValueClass(Integer.class);
+			formatter2.setMinimum(0);
+			formatter2.setAllowsInvalid(true);
+			// If you want the value to be committed on each keystroke instead of
+			// focus lost
+			formatter2.setCommitsOnValidEdit(true);
+			jV2PixelsWeight = new JFormattedTextField(formatter2);
+			jV2PixelsWeight.setValue(2);
+			Dimension maxsize2 = jnumGraphs.getMaximumSize();
+			Dimension prefsize2 = jnumGraphs.getPreferredSize();
+			maxsize2.height = prefsize2.height;
+			jV2PixelsWeight.setMaximumSize(maxsize2);
+			l.setLabelFor(jV2PixelsWeight);
+			boxEast.add(l);
+			boxEast.add(jV2PixelsWeight);
 
 			addWindowListener(new WindowAdapter() {
 				@Override
@@ -188,17 +263,10 @@ public class FrameMain extends JFrame {
 				}
 			});
 
-			jcheckRectangle.addItemListener(new ItemListener() {
+			jcheckSettings.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent e) {
-					jCheckTemplate.setSelected(!jcheckRectangle.isSelected());
-				}
-			});
-
-			jCheckTemplate.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					jcheckRectangle.setSelected(!jCheckTemplate.isSelected());
+					boxEast.setVisible(jcheckSettings.isSelected());
 				}
 			});
 
@@ -290,7 +358,6 @@ public class FrameMain extends JFrame {
 
 					if (Startup.DEBUG) {
 						msiimage = Startup.loadMZML();
-						msiimage.setProgressListener(progressTracker);
 					} else {
 						JDialog wait = showWaitDialog();
 						ITask task = new ITask() {
@@ -299,7 +366,13 @@ public class FrameMain extends JFrame {
 							public void run() throws Exception {
 								try {
 									long startTime = System.nanoTime();
-									JMzReader run = new MzMlWrapper(new File(dialog.jFilePath.getText()));
+									String filepath = dialog.jFilePath.getText();
+									JMzReader run;
+									if (filepath.toLowerCase().endsWith("mzxml")) {
+										run = new MzXMLFile(new File(filepath));
+									} else {
+										run = new MzMlWrapper(new File(filepath));
+									}
 									long estimatedTime = System.nanoTime() - startTime;
 									System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
 
@@ -313,7 +386,6 @@ public class FrameMain extends JFrame {
 
 									LoadPattern pattern = new LoadPattern(run, param, type);
 									msiimage = new MSIImage(run, pattern);
-									msiimage.setProgressListener(progressTracker);
 								} finally {
 									updateUI(new Runnable() {
 
@@ -379,13 +451,30 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
-			boolean rectangle = jcheckRectangle.isSelected();
-			if (!rectangle) {
-				if (templateIsLetter == null)
-					throw new Exception("Template Settings not loaded");
+			if (jradTempl.isSelected() && isLetterTemplate == null) {
+				throw new Exception("Template Settings not loaded");
 			}
 
-			DialogOptimalMz dialog = new DialogOptimalMz(FrameMain.this, "Set Parameters", true, rectangle);
+			if (jradDraw.isSelected() && isLetterDraw == null) {
+				throw new Exception("Template Settings not loaded");
+			}
+
+			DialogOptimalMz dialog = new DialogOptimalMz(FrameMain.this, "Set Parameters", true);
+			if (jradRect.isSelected()) {
+				dialog.addTextBox("xstart", "x start (mm)");
+				dialog.addTextBox("xstop", "x stop (mm)");
+				dialog.addTextBox("ystart", "y start (mm)");
+				dialog.addTextBox("ystop", "y stop (mm)");
+			}
+			dialog.addTextBox("lmass", "Lower Mass");
+			dialog.addTextBox("hmass", "Higher Mass");
+
+			if (jradEvently.isSelected()) {
+				dialog.addTextBox("resolution", "Resolution"); // 200
+			} else {
+				dialog.addTextBox("ppm", "Parts Per Million"); // 1000
+			}
+
 			dialog.pack();
 			dialog.addOkListener(new ActionListener() {
 
@@ -393,44 +482,52 @@ public class FrameMain extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					try {
 						ICheckLetter isLetter;
-						double lowerMass = Double.parseDouble(dialog.jLowerMass.getText()); // 300
-						double higherMass = Double.parseDouble(dialog.jHigherMass.getText());// 500
-						int resolution = Integer.parseInt(dialog.jResolution.getText());// 200
 
-						if (rectangle) {
-							double x_start = Double.parseDouble(dialog.jxStart.getText()); // 30
-							double x_stop = Double.parseDouble(dialog.jxStop.getText());// 40
-							double y_start = Double.parseDouble(dialog.jyStart.getText());// 0
-							double y_stop = Double.parseDouble(dialog.jyStop.getText());// 10
+						if (jradRect.isSelected()) {
+							double x_start = Double.parseDouble(dialog.getText("xstart")); // 30
+							double x_stop = Double.parseDouble(dialog.getText("xstop"));// 40
+							double y_start = Double.parseDouble(dialog.getText("ystart"));// 0
+							double y_stop = Double.parseDouble(dialog.getText("ystop"));// 10
 
 							isLetter = new IsLetterV1(msiimage, x_start, x_stop, y_start, y_stop);
+						} else if (jradTempl.isSelected()) {
+							isLetter = isLetterTemplate;
 						} else {
-							isLetter = templateIsLetter;
+							isLetter = isLetterDraw;
 						}
 
+						double lowerMass = Double.parseDouble(dialog.getText("lmass")); // 300
+						double higherMass = Double.parseDouble(dialog.getText("hmass"));// 500
+
+						IBinResolution bins;
+						if (jradEvently.isSelected()) {
+							int resolution = Integer.parseInt(dialog.getText("resolution"));
+							bins = new BinEventlyDistributed(lowerMass, higherMass, resolution);
+						} else {
+							int ppm = Integer.parseInt(dialog.getText("ppm"));
+							bins = new BinsPartsPerMillion(lowerMass, higherMass, ppm);
+						}
+
+						OptimalMz optimalMz;
+						if (version == 1) {
+							optimalMz = new OptimalMzV1(msiimage, isLetter, bins);
+						} else {
+							optimalMz = new OptimalMzV2(msiimage, isLetter, bins, (int) jV2PixelsWeight.getValue());
+						}
+						optimalMz.setProgressListener(progressTracker);
+
+						int n = (int) jnumGraphs.getValue();
 						ITask task = new ITask() {
 
 							@Override
 							public void run() throws Exception {
-								IOptimalMz optimalMz;
-								if (version == 1) {
-									OptimalMz optimalMzV1 = new OptimalMz();
-									optimalMzV1.setProgressListener(progressTracker);
-									optimalMzV1.run(isLetter, msiimage, lowerMass, higherMass, resolution);
-									optimalMz = optimalMzV1;
-								} else {
-									OptimalMzV2 optimalMzV2 = new OptimalMzV2();
-									optimalMzV2.setProgressListener(progressTracker);
-									optimalMzV2.run(isLetter, msiimage, lowerMass, higherMass, resolution);
-									optimalMz = optimalMzV2;
-								}
 
-								createTextBox(optimalMz.printN(5));
+								optimalMz.run();
 
-								double range = optimalMz.getRange();
-								for (int index : optimalMz.getIndexesN(GRAPHS)) {
-									double mz = optimalMz.getMz(index);
-									createGraph(mz, mz + range);
+								createTextBox(optimalMz.printN(n));
+
+								for (OptimalMz.Stats r : optimalMz.getIndexesN(n)) {
+									createGraph(bins.getLowerMz(r.index), bins.getHigherMz(r.index));
 								}
 							}
 						};
@@ -460,8 +557,8 @@ public class FrameMain extends JFrame {
 
 				@Override
 				public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
-					templateIsLetter = isLetter;
-					jCheckTemplate.setSelected(true);
+					isLetterTemplate = isLetter;
+					jradTempl.setSelected(true);
 				}
 			});
 			frame.setVisible(true);
@@ -483,8 +580,8 @@ public class FrameMain extends JFrame {
 
 				@Override
 				public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
-					templateIsLetter = isLetter;
-					jCheckTemplate.setSelected(true);
+					isLetterDraw = isLetter;
+					jradDraw.setSelected(true);
 				}
 			});
 			frame.setVisible(true);
@@ -503,7 +600,7 @@ public class FrameMain extends JFrame {
 
 			@Override
 			public void run() throws Exception {
-				double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass);
+				double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass, progressTracker);
 				PanelGraph panelGraph = new PanelGraph();
 
 				panelGraph.setTitle(String.format("%sm/z - %sm/z", strLowerMass, strHigherMass));

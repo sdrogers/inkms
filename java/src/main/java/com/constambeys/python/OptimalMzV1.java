@@ -8,18 +8,11 @@ import com.constambeys.load.MSIImage;
 
 import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
 
-public class OptimalMzV2 extends OptimalMz {
+public class OptimalMzV1 extends OptimalMz  {
 
-	public class Pixel {
-		public double i;
-		public int c;
-	}
 
-	int pixelWeight = 2;
-
-	public OptimalMzV2(MSIImage loadMZML, ICheckLetter isLetter, IBinResolution bins, int pixelWeight) {
+	public OptimalMzV1(MSIImage loadMZML, ICheckLetter isLetter, IBinResolution bins) {
 		super(loadMZML, isLetter, bins);
-		this.pixelWeight = pixelWeight;
 	}
 
 	public void run() throws Exception {
@@ -36,16 +29,11 @@ public class OptimalMzV2 extends OptimalMz {
 		double mzRangeLower = bins.getLowerBound();
 		double mzRangeHighest = bins.getHigherBound();
 
-		Pixel[][][] pixels = new Pixel[loadMZML.getLines()][loadMZML.getWidth()][resolution];
-
 		for (int line = 0; line < loadMZML.getLines(); line++) {
 			if (p != null)
 				p.update((int) ((float) line / loadMZML.getLines() * 100));
 
 			for (int x = 0; x < loadMZML.getWidth(); x++) {
-				for (int i = 0; i < resolution; i++) {
-					pixels[line][x][i] = new Pixel();
-				}
 				Spectrum spectrum = loadMZML.getSpectrum(line, x);
 				boolean isLetterCheck = isLetter.check(x, line);
 
@@ -53,58 +41,36 @@ public class OptimalMzV2 extends OptimalMz {
 				for (Entry<Double, Double> entry : map.entrySet()) {
 					double mz = entry.getKey();
 					double i = entry.getValue();
-					if (mzRangeLower <= mz && mz <= mzRangeHighest) {
-						int indx = bins.getMassIndex(mz);
 
+					if (mzRangeLower <= mz && mz <= mzRangeHighest) {
 						if (isLetterCheck) {
+							int indx = bins.getMassIndex(mz);
 							stats[indx].c += 1;
 							stats[indx].i += i;
 						} else {
+							int indx = bins.getMassIndex(mz);
 							stats[indx].c1 += 1;
 							stats[indx].i1 += i;
 						}
-						pixels[line][x][indx].i += i;
-						pixels[line][x][indx].c += 1;
 					}
 				}
 			}
 		}
-
 		for (int i = 0; i < resolution; i++) {
 			if (stats[i].c != 0)
 				stats[i].i = stats[i].i / stats[i].c;
 			if (stats[i].c1 != 0)
 				stats[i].i1 = stats[i].i1 / stats[i].c1;
-		}
-
-		for (int line = 0; line < loadMZML.getLines(); line++) {
-			if (p != null)
-				p.update((int) ((float) line / loadMZML.getLines() * 100));
-
-			for (int x = 0; x < loadMZML.getWidth(); x++) {
-
-				boolean isLetterCheck = isLetter.check(x, line);
-
-				if (!isLetterCheck)
-					continue;
-
-				for (int i = 0; i < resolution; i++) {
-					if (pixels[line][x][i].c > 0 && pixels[line][x][i].i / pixels[line][x][i].c > stats[i].i1) {
-						stats[i].diff = stats[i].diff + 1;
-					}
-				}
-			}
-		}
-
-		for (int i = 0; i < resolution; i++) {
-			stats[i].diff = -(stats[i].i - stats[i].i1) * Math.pow(stats[i].diff, pixelWeight);
+			stats[i].diff = stats[i].i1 - stats[i].i;
 		}
 
 		if (p != null)
 			p.update(100);
+
 		long end = System.nanoTime() - startTime;
 		System.out.println(String.format("%.2fs", end / 1000000000.0));
 
 		Arrays.sort(stats);
 	}
+
 }

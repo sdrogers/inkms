@@ -148,7 +148,7 @@ public class DialogLoad extends JDialog implements MouseListener {
 		Settings settings = Settings.getAppSettings();
 
 		JFileChooser fileChooser = new JFileChooser();
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML files", "mzML");
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML | mzXML files", "mzML", "mzXML");
 		fileChooser.setFileFilter(filter);
 		if (settings.get("load_dir") != null) {
 			fileChooser.setCurrentDirectory(new File(settings.get("load_dir")));
