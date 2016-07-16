@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -306,9 +307,10 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 			imgTemplate = ImageIO.read(selectedFile);
 			imgTemplateBW = loadBW();
-
-			state = State.TEMPLATE;
 			panelGraph.draw(imgTemplate, msiimage.getWidthMM(), msiimage.getHeightMM());
+			state = State.TEMPLATE;
+			jCheckTemplate.setSelected(true);
+			jCheckGenerated.setSelected(false);
 
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -360,9 +362,10 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 								try {
 									double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass, progressTracker);
 									imgGenerated = panelGraph.calculateImage(intensity);
-									state = State.GENERATED;
 									panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
-
+									state = State.GENERATED;
+									jCheckGenerated.setSelected(true);
+									jCheckTemplate.setSelected(false);
 								} catch (Exception ex) {
 									JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 								} finally {
@@ -450,51 +453,55 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 	private void syncUI() {
 		try {
-			int tempB = 0;
-			int tempE = 0;
-			int genB = 0;
-			int genE = 0;
+			Point t1 = null;
+			Point t2 = null;
+			Point g1 = null;
+			Point g2 = null;
 
 			if (imgTemplate != null) {
-				tempB = Integer.parseInt(jtemplateP1.getText().split(",")[0]);
-				tempE = Integer.parseInt(jtemplateP2.getText().split(",")[0]);
+				String[] p1 = jtemplateP1.getText().split(",");
+				t1 = new Point(Integer.parseInt(p1[0]), Integer.parseInt(p1[1].trim()));
+				String[] p2 = jtemplateP2.getText().split(",");
+				t2 = new Point(Integer.parseInt(p2[0]), Integer.parseInt(p2[1].trim()));
 			}
 
 			if (imgGenerated != null) {
-				genB = Integer.parseInt(jgeneratedP1.getText().split(",")[0]);
-				genE = Integer.parseInt(jgeneratedP2.getText().split(",")[0]);
+				String[] p1 = jgeneratedP1.getText().split(",");
+				g1 = new Point(Integer.parseInt(p1[0]), Integer.parseInt(p1[1].trim()));
+				String[] p2 = jgeneratedP2.getText().split(",");
+				g2 = new Point(Integer.parseInt(p2[0]), Integer.parseInt(p2[1].trim()));
 			}
 
 			if (imgGenerated != null && jCheckGenerated.isSelected() && ((imgTemplate != null && jCheckTemplate.isSelected()) || (imgTemplateBW != null && jCheckBlackWhite.isSelected()))) {
 				state = State.BOTH;
 				showMarkers(false, false);
-				updateMarkersGen(genB, genE, tempB, tempE);
-				updateMarkersTemp(genB, genE, tempB, tempE);
+				updateMarkersGen(g1, g2);
+				updateMarkersTemp(t1, t2);
 
 				if (jCheckTemplate.isSelected())
 					setAlpha(imgTemplate, (Integer) jTransparency.getValue());
 				else
 					setAlpha(imgTemplateBW, (Integer) jTransparency.getValue());
 
-				merge(genB, genE, tempB, tempE);
+				merge(g1, g2, t1, t2);
 
 			} else {
 				if (imgTemplate != null && jCheckTemplate.isSelected()) {
 					jCheckBlackWhite.setSelected(false);
 					state = State.TEMPLATE;
 					showMarkers(true, false);
-					updateMarkersTemp(genB, genE, tempB, tempE);
+					updateMarkersTemp(t1, t2);
 					panelGraph.draw(imgTemplate, msiimage.getWidthMM(), msiimage.getHeightMM());
 				} else if (imgTemplateBW != null && jCheckBlackWhite.isSelected()) {
 					jCheckTemplate.setSelected(false);
 					state = State.TEMPLATE;
 					showMarkers(true, false);
-					updateMarkersTemp(genB, genE, tempB, tempE);
+					updateMarkersTemp(t1, t2);
 					panelGraph.draw(imgTemplateBW, msiimage.getWidthMM(), msiimage.getHeightMM());
 				} else if (imgGenerated != null && jCheckGenerated.isSelected()) {
 					state = State.GENERATED;
 					showMarkers(false, true);
-					updateMarkersGen(genB, genE, tempB, tempE);
+					updateMarkersGen(g1, g2);
 					panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
 				}
 			}
@@ -517,21 +524,23 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	}
 
 	// Merge imgGenerated and imgTemplateApha
-	private void merge(int genB, int genE, int tempB, int tempE) throws IOException {
+	private void merge(Point g1, Point g2, Point t1, Point t2) throws IOException {
 
-		double ratio = (double) (genE - genB) / (tempE - tempB);
+		double ratioX = (double) (g2.x - g1.x) / (t2.x - t1.x);
+		double ratioY = (double) (g2.y - g1.y) / (t2.y - t1.y);
 		// Generated is offsetX pixels to the right
-		int offsetX = (int) (genB - (tempB * ratio));
+		int offsetX = (int) (g1.x - (t1.x * ratioX));
+		int offsetY = (int) (g1.y - (t1.y * ratioY));
 
 		// create the new image, canvas size is the max. of both image sizes
-		int w = Math.max(imgGenerated.getWidth() - offsetX, (int) (imgTemplateApha.getWidth() * ratio));
-		int h = Math.max(imgGenerated.getHeight(), imgTemplateApha.getHeight());
+		int w = Math.max(imgGenerated.getWidth() - offsetX, (int) (imgTemplateApha.getWidth() * ratioX));
+		int h = Math.max(imgGenerated.getHeight() - offsetY, (int) (imgTemplateApha.getHeight() * ratioY));
 
 		BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		// paint both images, preserving the alpha channels
 		Graphics g = combined.getGraphics();
-		g.drawImage(imgGenerated, -offsetX, 0, imgGenerated.getWidth(), h, null);
-		g.drawImage(imgTemplateApha, 0, 0, (int) (imgTemplateApha.getWidth() * ratio), h, null);
+		g.drawImage(imgGenerated, -offsetX, -offsetY, imgGenerated.getWidth(), imgGenerated.getHeight(), null);
+		g.drawImage(imgTemplateApha, 0, 0, (int) (imgTemplateApha.getWidth() * ratioX), (int) (imgTemplateApha.getHeight() * ratioY), null);
 		g.dispose();
 
 		// Save as new image
@@ -541,35 +550,47 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	}
 
 	private BufferedImage getTemplateOverlay() {
-		int tempB = Integer.parseInt(jtemplateP1.getText().split(",")[0]);
-		int tempE = Integer.parseInt(jtemplateP2.getText().split(",")[0]);
-		int genB = Integer.parseInt(jgeneratedP1.getText().split(",")[0]);
-		int genE = Integer.parseInt(jgeneratedP2.getText().split(",")[0]);
+		String[] temp;
+		temp = jtemplateP1.getText().split(",");
+		Point t1 = new Point(Integer.parseInt(temp[0]), Integer.parseInt(temp[1].trim()));
+		temp = jtemplateP2.getText().split(",");
+		Point t2 = new Point(Integer.parseInt(temp[0]), Integer.parseInt(temp[1].trim()));
 
-		double ratio = (double) (genE - genB) / (tempE - tempB);
+		temp = jgeneratedP1.getText().split(",");
+		Point g1 = new Point(Integer.parseInt(temp[0]), Integer.parseInt(temp[1].trim()));
+		temp = jgeneratedP2.getText().split(",");
+		Point g2 = new Point(Integer.parseInt(temp[0]), Integer.parseInt(temp[1].trim()));
+
+		double ratioX = (double) (g2.x - g1.x) / (t2.x - t1.x);
+		double ratioY = (double) (g2.y - g1.y) / (t2.y - t1.y);
 		// Generated is offsetX pixels to the right
-		int offsetX = (int) (genB - (tempB * ratio));
+		int offsetX = (int) (g1.x - (t1.x * ratioX));
+		int offsetY = (int) (g1.y - (t1.y * ratioY));
 
 		// create the new image, canvas size is the max. of both image sizes
-		int w = (int) (imgTemplateBW.getWidth() * ratio);
-		int h = imgGenerated.getHeight();
+		int w = (int) (imgTemplateBW.getWidth() * ratioX);
+		int h = (int) (imgTemplateBW.getHeight() * ratioY);
 
 		BufferedImage imgTemplateBWLowRes = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = imgTemplateBWLowRes.getGraphics();
-		g.drawImage(imgTemplateBW, offsetX, 0, w, h, null);
+		g.drawImage(imgTemplateBW, offsetX, offsetY, w, h, null);
 		g.dispose();
 		return imgTemplateBWLowRes;
 	}
 
-	private void updateMarkersGen(int genB, int genE, int tempB, int tempE) {
-		mGeneratedP1.x = (double) genB / imgGenerated.getWidth();
-		mGeneratedP2.x = (double) genE / imgGenerated.getWidth();
+	private void updateMarkersGen(Point g1, Point g2) {
+		mGeneratedP1.x = (double) g1.x / imgGenerated.getWidth();
+		mGeneratedP1.y = (double) g1.y / imgGenerated.getHeight();
+		mGeneratedP2.x = (double) g2.x / imgGenerated.getWidth();
+		mGeneratedP2.y = (double) g2.y / imgGenerated.getHeight();
 		panelGraph.repaint();
 	}
 
-	private void updateMarkersTemp(int genB, int genE, int tempB, int tempE) {
-		mTemplateP1.x = (double) tempB / imgTemplate.getWidth();
-		mTemplateP2.x = (double) tempE / imgTemplate.getWidth();
+	private void updateMarkersTemp(Point t1, Point t2) {
+		mTemplateP1.x = (double) t1.x / imgTemplate.getWidth();
+		mTemplateP1.y = (double) t1.y / imgTemplate.getHeight();
+		mTemplateP2.x = (double) t2.x / imgTemplate.getWidth();
+		mTemplateP2.y = (double) t2.y / imgTemplate.getHeight();
 		panelGraph.repaint();
 	}
 
