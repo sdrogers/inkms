@@ -8,6 +8,8 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
@@ -56,6 +58,10 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	private IOkListener ok;
 	private MSIImage msiimage;
 	private State state = State.NONE;
+
+	int helpIndex = 0;
+	String help[] = { "Click template to load an image", "Click enable to enable the textboxes", "Click Template P1 textbox", "Select  point 1 on image", "Click Template P2 textbox", "Select point 2 on image", "Click graph to display a given mass range", "Click Generated P1 textbox", "Select the corresponding point 1 on image", "Click Generated P2 textbox", "Select the corresponding point 2 on image", "Check both template and generated checkboxes" };
+	private JLabel jHelp;
 	private PanelGraphWithMarkers panelGraph;
 
 	private BufferedImage imgGenerated;
@@ -67,6 +73,9 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	private PanelGraphWithMarkers.Marker mTemplateP2 = new PanelGraphWithMarkers.Marker();
 	private PanelGraphWithMarkers.Marker mGeneratedP1 = new PanelGraphWithMarkers.Marker();
 	private PanelGraphWithMarkers.Marker mGeneratedP2 = new PanelGraphWithMarkers.Marker();
+
+	private JButton btnSaveGraph;
+	private JButton btnSaveTemp;
 
 	private JFormattedTextField jtemplateP1;
 	private JFormattedTextField jtemplateP2;
@@ -109,9 +118,15 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		progressBar.setVisible(false);
 		background.add(BorderLayout.NORTH, progressBar);
 
+		Box boxCenter = new Box(BoxLayout.Y_AXIS);
+		background.add(BorderLayout.CENTER, boxCenter);
+
+		jHelp = new JLabel("", JLabel.TRAILING);
+		boxCenter.add(jHelp);
+		showHelp(0);
 		panelGraph = new PanelGraphWithMarkers();
 		panelGraph.addClickListener(this);
-		background.add(BorderLayout.CENTER, panelGraph);
+		boxCenter.add(panelGraph);
 
 		Box boxSouth = new Box(BoxLayout.X_AXIS);
 		background.add(BorderLayout.SOUTH, boxSouth);
@@ -127,11 +142,13 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		boxSouth.add(btnGraph);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		JButton btnSaveGraph = new JButton("Save Graph");
+		btnSaveGraph = new JButton("Save Graph");
+		btnSaveGraph.setEnabled(false);
 		boxSouth.add(btnSaveGraph);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-		JButton btnSaveTemp = new JButton("Save Temp");
+		btnSaveTemp = new JButton("Save Temp");
+		btnSaveTemp.setEnabled(false);
 		boxSouth.add(btnSaveTemp);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
@@ -196,7 +213,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				btnLoad();
+				btnTemplate();
 			}
 		});
 
@@ -229,6 +246,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (jcheckEnable.isSelected()) {
+					showHelp(2);
 					jenable(true);
 				} else {
 					jenable(false);
@@ -267,6 +285,32 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 			}
 		});
 
+		FocusListener focus = new FocusListener() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				if (e.getSource() == jtemplateP1)
+					showHelp(3);
+				else if (e.getSource() == jtemplateP2)
+					showHelp(5);
+				else if (e.getSource() == jgeneratedP1)
+					showHelp(8);
+				else if (e.getSource() == jgeneratedP2)
+					showHelp(10);
+			}
+		};
+
+		jtemplateP1.addFocusListener(focus);
+		jtemplateP2.addFocusListener(focus);
+		jgeneratedP1.addFocusListener(focus);
+		jgeneratedP2.addFocusListener(focus);
+
 		PropertyChangeListener callSyncUI = new PropertyChangeListener() {
 
 			@Override
@@ -286,7 +330,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		jTransparency.addPropertyChangeListener("value", callSyncUI);
 	}
 
-	private void btnLoad() {
+	private void btnTemplate() {
 
 		try {
 			File selectedFile;
@@ -309,9 +353,10 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 			imgTemplateBW = loadBW();
 			panelGraph.draw(imgTemplate, msiimage.getWidthMM(), msiimage.getHeightMM());
 			state = State.TEMPLATE;
-			jCheckTemplate.setSelected(true);
 			jCheckGenerated.setSelected(false);
-
+			jCheckTemplate.setSelected(true);
+			btnSaveTemp.setEnabled(true);
+			showHelp(1);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
@@ -364,8 +409,10 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 									imgGenerated = panelGraph.calculateImage(intensity);
 									panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
 									state = State.GENERATED;
-									jCheckGenerated.setSelected(true);
 									jCheckTemplate.setSelected(false);
+									jCheckGenerated.setSelected(true);
+									btnSaveGraph.setEnabled(true);
+									showHelp(7);
 								} catch (Exception ex) {
 									JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 								} finally {
@@ -484,7 +531,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 					setAlpha(imgTemplateBW, (Integer) jTransparency.getValue());
 
 				merge(g1, g2, t1, t2);
-
+				showHelp(12);
 			} else {
 				if (imgTemplate != null && jCheckTemplate.isSelected()) {
 					jCheckBlackWhite.setSelected(false);
@@ -614,12 +661,14 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 				panelGraph.addMarker(m);
 				mTemplateP1 = m;
 				jtemplateP1.setText(String.format("%d, %d", (int) (p.x * imgTemplate.getWidth()), (int) (p.y * imgTemplate.getHeight())));
+				showHelp(4);
 			} else if (jtemplateP2.hasFocus()) {
 				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
 				panelGraph.removeMarker(mTemplateP2);
 				panelGraph.addMarker(m);
 				mTemplateP2 = m;
 				jtemplateP2.setText(String.format("%d, %d", (int) (p.x * imgTemplate.getWidth()), (int) (p.y * imgTemplate.getHeight())));
+				showHelp(6);
 			}
 		} else if (state == State.GENERATED) {
 			if (jgeneratedP1.hasFocus()) {
@@ -628,12 +677,14 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 				panelGraph.addMarker(m);
 				mGeneratedP1 = m;
 				jgeneratedP1.setText(String.format("%d, %d", (int) (p.x * imgGenerated.getWidth()), (int) (p.y * imgGenerated.getHeight())));
+				showHelp(9);
 			} else if (jgeneratedP2.hasFocus()) {
 				PanelGraphWithMarkers.Marker m = new PanelGraphWithMarkers.Marker(p);
 				panelGraph.removeMarker(mGeneratedP2);
 				panelGraph.addMarker(m);
 				mGeneratedP2 = m;
 				jgeneratedP2.setText(String.format("%d, %d", (int) (p.x * imgGenerated.getWidth()), (int) (p.y * imgGenerated.getHeight())));
+				showHelp(11);
 			}
 		}
 		panelGraph.repaint();
@@ -683,5 +734,14 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 	public void addOkListener(IOkListener l) {
 		ok = l;
+	}
+
+	private void showHelp(int index) {
+		if (index == help.length) {
+			jHelp.setVisible(false);
+		} else if (index == helpIndex) {
+			jHelp.setText(help[helpIndex]);
+			helpIndex++;
+		}
 	}
 }
