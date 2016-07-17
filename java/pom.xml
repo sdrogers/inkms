@@ -31,7 +31,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>default_package.Startup</mainClass>
+							<mainClass>com.constambeys.ui.Startup</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
