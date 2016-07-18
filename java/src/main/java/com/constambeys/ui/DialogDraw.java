@@ -11,16 +11,19 @@ import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -49,6 +52,7 @@ public class DialogDraw extends JDialog {
 
 	private JProgressBar progressBar;
 
+	private JButton btnSave;
 	private IOkListener ok;
 	private MSIImage msiimage;
 	private PanelGraphDraw panelGraph;
@@ -95,6 +99,11 @@ public class DialogDraw extends JDialog {
 
 		JButton btnGraph = new JButton("Graph");
 		boxSouth.add(btnGraph);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		btnSave = new JButton("Save");
+		btnSave.setEnabled(false);
+		boxSouth.add(btnSave);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		JButton buttonOK = new JButton("OK");
@@ -146,6 +155,14 @@ public class DialogDraw extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				btnGraph();
+			}
+		});
+
+		btnSave.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnSave();
 			}
 		});
 
@@ -222,6 +239,7 @@ public class DialogDraw extends JDialog {
 									double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass, progressTracker);
 									BufferedImage imgGenerated = panelGraph.calculateImage(intensity);
 									panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
+									btnSave.setEnabled(true);
 								} catch (Exception ex) {
 									JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 								} finally {
@@ -246,6 +264,24 @@ public class DialogDraw extends JDialog {
 			});
 			dialog.setVisible(true);
 
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void btnSave() {
+		try {
+			BufferedImage overlay = panelGraph.getTemplateOverlay();
+			if (overlay != null) {
+				JFileChooser fileChooser = new JFileChooser();
+				if (fileChooser.showSaveDialog(DialogDraw.this) == JFileChooser.APPROVE_OPTION) {
+					File file = fileChooser.getSelectedFile();
+					if (!file.getName().endsWith(".png"))
+						file = new File(file.getAbsolutePath() + ".png");
+					// save to file
+					ImageIO.write(overlay, "PNG", file);
+				}
+			}
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
