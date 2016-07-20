@@ -445,13 +445,24 @@ public class FrameMain extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					try {
-						String strLowerMass = dialog.jLowerMass.getText();
-						String strHigherMass = dialog.jHigherMass.getText();
+						if (dialog.massrange.size() == 0) {
+							return;
+						}
 
-						double lowerMass = Double.parseDouble(strLowerMass);
-						double higherMass = Double.parseDouble(strHigherMass);
+						StringBuilder sb = new StringBuilder();
+						double massrange[] = new double[dialog.massrange.size() * 2];
 
-						addGraphTab(strLowerMass, strHigherMass, lowerMass, higherMass);
+						for (int i = 0; i < dialog.massrange.size(); i++) {
+							massrange[2 * i] = dialog.massrange.get(i).lowerMass;
+							massrange[2 * i + 1] = dialog.massrange.get(i).higherMass;
+							if (i != 0) {
+								sb.append(", ");
+							}
+							sb.append(String.format("%sm/z - %sm/z", dialog.massrange.get(i).strLowerMass, dialog.massrange.get(i).strHigherMass));
+						}
+
+						addGraphTab(sb.toString(), massrange);
+
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 					}
@@ -633,31 +644,28 @@ public class FrameMain extends JFrame {
 	 *            the upper mass per charge value
 	 */
 	private void createGraph(double lowerMass, double higherMass) {
-
-		addGraphTab(Double.toString(lowerMass), Double.toString(higherMass), lowerMass, higherMass);
+		String title = String.format("%sm/z - %sm/z", Double.toString(lowerMass), Double.toString(higherMass));
+		addGraphTab(title, lowerMass, higherMass);
 	}
 
 	/**
 	 * Displays a mass spectrometry image at the given interval with custom title
 	 * 
-	 * @param strLowerMass
-	 *            lower bound displayed in the title
-	 * @param strHigherMass
-	 *            upper bound displayed in the title
-	 * @param lowerMass
-	 *            the lower mass per charge value
-	 * @param higherMass
-	 *            the upper mass per charge value
+	 * @param title
+	 *            sets graph title
+	 * @param mzrange
+	 *            the lower and upper mass per charge value. Arguments must be multiple of 2
 	 */
-	private void addGraphTab(String strLowerMass, String strHigherMass, double lowerMass, double higherMass) {
+	private void addGraphTab(String title, double... massrange) {
+
 		ITask task = new ITask() {
 
 			@Override
 			public void run() throws Exception {
-				double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass, progressTracker);
+				double[][] intensity = msiimage.getReduceSpec(progressTracker, massrange);
 				PanelGraph panelGraph = new PanelGraph();
 
-				panelGraph.setTitle(String.format("%sm/z - %sm/z", strLowerMass, strHigherMass));
+				panelGraph.setTitle(title);
 				BufferedImage image = panelGraph.calculateImage(intensity);
 				panelGraph.draw(image, msiimage.getWidthMM(), msiimage.getHeightMM());
 

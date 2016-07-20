@@ -6,6 +6,8 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -24,13 +26,15 @@ public class DialogGraph extends JDialog {
 	 * 
 	 * @param result
 	 */
-	ActionListener ok;
+	private ActionListener ok;
 
-	JPanel panelSouth = new JPanel();
-	JButton buttonOK = new JButton("OK");
+	private JPanel panelSouth = new JPanel();
+	private JButton buttonOK = new JButton("OK");
 
-	JTextField jLowerMass = new JTextField(10);
-	JTextField jHigherMass = new JTextField(10);
+	private JTextField jLowerMass = new JTextField(10);
+	private JTextField jHigherMass = new JTextField(10);
+
+	ArrayList<MassPerCharge> massrange = new ArrayList<MassPerCharge>();
 
 	/**
 	 * The {@code DialogGraph} class allows the user to draw a mass range
@@ -96,22 +100,28 @@ public class DialogGraph extends JDialog {
 		panelSouth.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		panelSouth.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-		JButton buttonCancel = new JButton("Cancel");
-		buttonCancel.addActionListener(new ActionListener() {
+		JButton buttonSave = new JButton("Save");
+		buttonSave.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				setVisible(false);
-				dispose();
+				try {
+					readValues();
+					jLowerMass.setText("");
+					jHigherMass.setText("");
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
 			}
 		});
-		panelSouth.add(buttonCancel);
+		panelSouth.add(buttonSave);
 
 		buttonOK.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				try {
+					readValues();
 					setVisible(false);
 					dispose();
 					if (ok != null)
@@ -128,6 +138,21 @@ public class DialogGraph extends JDialog {
 	}
 
 	/**
+	 * Reads user interface values and adds them to {@code massrange} array
+	 */
+	private void readValues() {
+		String strLowerMass = jLowerMass.getText().trim();
+		String strHigherMass = jHigherMass.getText().trim();
+		if (strLowerMass.equals("") && strHigherMass.equals("")) {
+			return;
+		}
+		double lowerMass = Double.parseDouble(strLowerMass);
+		double higherMass = Double.parseDouble(strHigherMass);
+		MassPerCharge m = new MassPerCharge(strLowerMass, strHigherMass, lowerMass, higherMass);
+		massrange.add(m);
+	}
+
+	/**
 	 * Set OK button listener
 	 * 
 	 * @param l
@@ -135,5 +160,21 @@ public class DialogGraph extends JDialog {
 	 */
 	public void addOkListener(ActionListener l) {
 		ok = l;
+	}
+
+	class MassPerCharge {
+		String strLowerMass;
+		String strHigherMass;
+		double lowerMass;
+		double higherMass;
+
+		MassPerCharge(String strLowerMass, String strHigherMass, double lowerMass, double higherMass) {
+			this.strLowerMass = strLowerMass;
+			this.strHigherMass = strHigherMass;
+
+			this.lowerMass = lowerMass;
+			this.higherMass = higherMass;
+
+		}
 	}
 }

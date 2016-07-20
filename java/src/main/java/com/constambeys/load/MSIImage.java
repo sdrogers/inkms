@@ -62,18 +62,16 @@ public class MSIImage {
 	}
 
 	/**
-	 * Sums all intensities between {@code mzRangeLower} and {@code mzRangeHighest}
+	 * Sums all intensities between lower and upper mass range
 	 * 
-	 * @param mzRangeLower
-	 *            the mass per charge lower bound
-	 * @param mzRangeHighest
-	 *            the mass per charge upper bound
 	 * @param callback
 	 *            returns progress status
+	 * @param mzrange
+	 *            the lower and upper mass per charge value. Arguments must be multiple of 2
 	 * @return Returns a 2d array
 	 * @throws JMzReaderException
 	 */
-	public double[][] getReduceSpec(double mzRangeLower, double mzRangeHighest, IProgress callback) throws JMzReaderException {
+	public double[][] getReduceSpec(IProgress callback, double... mzrange) throws JMzReaderException {
 
 		long start = System.nanoTime();
 
@@ -90,8 +88,10 @@ public class MSIImage {
 				for (Entry<Double, Double> entry : map.entrySet()) {
 					double mz = entry.getKey();
 					double i = entry.getValue();
-					if (mzRangeLower <= mz && mz <= mzRangeHighest) {
-						intensity = intensity + i;
+					for (int m = 0; m < mzrange.length; m = m + 2) {
+						if (mzrange[m] <= mz && mz <= mzrange[m + 1]) {
+							intensity = intensity + i;
+						}
 					}
 				}
 

@@ -261,19 +261,19 @@ public class DialogDraw extends JDialog {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					try {
-						String strLowerMass = dialog.jLowerMass.getText();
-						String strHigherMass = dialog.jHigherMass.getText();
 
-						double lowerMass = Double.parseDouble(strLowerMass);
-						double higherMass = Double.parseDouble(strHigherMass);
-
+						double massrange[] = new double[dialog.massrange.size() * 2];
+						for (int i = 0; i < dialog.massrange.size(); i++) {
+							massrange[2 * i] = dialog.massrange.get(i).lowerMass;
+							massrange[2 * i + 1] = dialog.massrange.get(i).higherMass;
+						}
 						JDialog wait = showWaitDialog();
 						Thread t = new Thread(new Runnable() {
 
 							@Override
 							public void run() {
 								try {
-									double[][] intensity = msiimage.getReduceSpec(lowerMass, higherMass, progressTracker);
+									double[][] intensity = msiimage.getReduceSpec(progressTracker, massrange);
 									BufferedImage imgGenerated = panelGraph.calculateImage(intensity);
 									panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
 									btnSave.setEnabled(true);
