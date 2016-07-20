@@ -8,9 +8,23 @@ import com.constambeys.load.MSIImage;
 
 import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
 
-public class OptimalMzV1 extends OptimalMz  {
+/**
+ * Finds the optimal mass based on intensity differences
+ * 
+ * @author Constambeys
+ */
+public class OptimalMzV1 extends OptimalMz {
 
-
+	/**
+	 * Finds the optimal mass based on intensity differences
+	 * 
+	 * @param loadMZML
+	 *            the loaded mass spectrometry image
+	 * @param isLetter
+	 *            class that identifies letter pixels
+	 * @param bins
+	 *            class that defines the bins distribution
+	 */
 	public OptimalMzV1(MSIImage loadMZML, ICheckLetter isLetter, IBinResolution bins) {
 		super(loadMZML, isLetter, bins);
 	}
@@ -30,8 +44,8 @@ public class OptimalMzV1 extends OptimalMz  {
 		double mzRangeHighest = bins.getHigherBound();
 
 		for (int line = 0; line < loadMZML.getLines(); line++) {
-			if (p != null)
-				p.update((int) ((float) line / loadMZML.getLines() * 100));
+			if (callback != null)
+				callback.update((int) ((float) line / loadMZML.getLines() * 100));
 
 			for (int x = 0; x < loadMZML.getWidth(); x++) {
 				Spectrum spectrum = loadMZML.getSpectrum(line, x);
@@ -64,8 +78,8 @@ public class OptimalMzV1 extends OptimalMz  {
 			stats[i].diff = stats[i].i1 - stats[i].i;
 		}
 
-		if (p != null)
-			p.update(100);
+		if (callback != null)
+			callback.update(100);
 
 		long end = System.nanoTime() - startTime;
 		System.out.println(String.format("%.2fs", end / 1000000000.0));

@@ -2,13 +2,31 @@ package com.constambeys.load;
 
 import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
 
+/**
+ * Implements meandering pattern left-> right -> down -> left
+ * 
+ * @author Constambeys
+ *
+ */
 public class LoadPattern implements ILoadPattern {
 
 	private Param param;
+	/**
+	 * the filtered number of spectrums
+	 */
 	private int scansTotal;
+	/**
+	 * the starting spectrum index
+	 */
 	private int startIndex;
+	/**
+	 * the increment in each step
+	 */
 	private int step;
 
+	/**
+	 * Specifies the spectrum selection algorithm
+	 */
 	public static enum Type {
 		ALL("ALL"), ODD("ODD 1,3,..."), EVEN("EVEN 2,4,...");
 
@@ -24,6 +42,9 @@ public class LoadPattern implements ILoadPattern {
 		}
 	}
 
+	/**
+	 * Specifies the file parameters
+	 */
 	public static class Param {
 		public int lines;
 		public int widthInMM;
@@ -31,10 +52,21 @@ public class LoadPattern implements ILoadPattern {
 		public float downMotionInMM;
 	}
 
-	public LoadPattern(JMzReader run, Param param, Type type) throws Exception {
+	/**
+	 * Constructs a new {@code LoadPattern} class which implements meandering pattern
+	 * 
+	 * @param reader
+	 *            a file reader that implements the {@code JMzReader}
+	 * @param param
+	 *            the file parameters
+	 * @param type
+	 *            the selection algorithm
+	 * @throws Exception
+	 */
+	public LoadPattern(JMzReader reader, Param param, Type type) throws Exception {
 
 		this.param = param;
-		this.scansTotal = run.getSpectraCount();
+		this.scansTotal = reader.getSpectraCount();
 
 		if (type == Type.ODD) { // Positive
 			this.scansTotal = (int) Math.ceil(scansTotal / 2);

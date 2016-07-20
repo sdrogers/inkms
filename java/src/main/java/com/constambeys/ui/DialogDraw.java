@@ -38,9 +38,14 @@ import com.constambeys.load.MSIImage;
 import com.constambeys.python.ICheckLetter;
 import com.constambeys.python.IProgress;
 import com.constambeys.python.IsLetterV2;
-import com.constambeys.ui.DialogTemplate.State;
 import com.constambeys.ui.graph.PanelGraphDraw;
 
+/**
+ * The {@code DialogDraw} class allows the user to draw the interested area on the screen
+ * 
+ * @author Constambeys
+ *
+ */
 public class DialogDraw extends JDialog {
 	enum State {
 		NONE, GENERATED, TEMPLATE, BOTH
@@ -58,19 +63,47 @@ public class DialogDraw extends JDialog {
 	private PanelGraphDraw panelGraph;
 	private JFormattedTextField jRectSize;
 
+	/**
+	 * Initialises a new user interface dialog
+	 * 
+	 * @param owner
+	 *            the Frame from which the dialog is displayed
+	 * @param modal
+	 *            specifies whether dialog blocks user input to other top-level windows when shown
+	 * @throws Exception
+	 */
 	public DialogDraw(Frame owner, boolean modal) throws Exception {
 		super(owner, modal);
-		init(Startup.loadMZML());
+		setupUI(Startup.loadMZML());
 	}
 
-	public DialogDraw(MSIImage loadMZXML, Frame owner, boolean modal) throws Exception {
+	/**
+	 * Initialises a new user interface dialog using the given image file
+	 * 
+	 * @param msiimage
+	 *            the loaded mass spectrometry image
+	 * @param owner
+	 *            the Frame from which the dialog is displayed
+	 * @param modal
+	 *            specifies whether dialog blocks user input to other top-level windows when shown.
+	 * @throws Exception
+	 */
+	public DialogDraw(MSIImage msiimage, Frame owner, boolean modal) throws Exception {
 		super(owner, modal);
-		init(loadMZXML);
+		setupUI(msiimage);
 	}
 
-	public void init(MSIImage loadMZXML) throws ParseException, IOException {
+	/**
+	 * Initialises the UI elements
+	 * 
+	 * @param msiimage
+	 *            the loaded mass spectrometry image
+	 * @throws ParseException
+	 * @throws IOException
+	 */
+	public void setupUI(MSIImage msiimage) throws ParseException, IOException {
 
-		this.msiimage = loadMZXML;
+		this.msiimage = msiimage;
 		setTitle("JavaBall");
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 800, 400);
@@ -210,6 +243,10 @@ public class DialogDraw extends JDialog {
 
 	}
 
+	/**
+	 * ActionListener of the Graph button.
+	 * 
+	 */
 	private void btnGraph() {
 		try {
 			if (msiimage == null) {
@@ -269,6 +306,10 @@ public class DialogDraw extends JDialog {
 		}
 	}
 
+	/**
+	 * ActionListener of the Save button.
+	 * 
+	 */
 	private void btnSave() {
 		try {
 			BufferedImage overlay = panelGraph.getTemplateOverlay();
@@ -287,6 +328,12 @@ public class DialogDraw extends JDialog {
 		}
 	}
 
+	/**
+	 * ActionListener of the OK button.
+	 * 
+	 * @param event
+	 *            the event data
+	 */
 	private void btnOK(ActionEvent event) {
 		try {
 
@@ -302,6 +349,11 @@ public class DialogDraw extends JDialog {
 		}
 	}
 
+	/**
+	 * Create a dialog that block UI interaction
+	 * 
+	 * @return dialog
+	 */
 	private JDialog showWaitDialog() {
 		JDialog loading = new JDialog(this, true);
 		loading.setLayout(new BorderLayout());
@@ -312,6 +364,11 @@ public class DialogDraw extends JDialog {
 		return loading;
 	}
 
+	/**
+	 * Task that update user interface Catches exceptions and shows an error message
+	 * 
+	 * @param task
+	 */
 	private void updateUI(Runnable task) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -337,6 +394,12 @@ public class DialogDraw extends JDialog {
 		}
 	};
 
+	/**
+	 * Set OK button listener
+	 * 
+	 * @param l
+	 *            callback listener
+	 */
 	public void addOkListener(IOkListener l) {
 		ok = l;
 	}

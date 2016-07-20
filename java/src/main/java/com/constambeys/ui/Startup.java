@@ -21,6 +21,12 @@ public class Startup {
 
 	public static boolean DEBUG = false;
 
+	/**
+	 * Debug Method used to load mass spectrometry file
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
 	public static MSIImage loadMZML() throws Exception {
 		long startTime = System.nanoTime();
 		JMzReader run = new MzMlWrapper(new File("E:\\Enironments\\data\\abcdefgh_1.mzML"));
@@ -66,6 +72,18 @@ public class Startup {
 		frame = new FrameMain();
 	}
 
+	/**
+	 * Loads an icon from resources and rescales it to the given {@code width} and {@code height}
+	 * 
+	 * @param name
+	 *            the resource name
+	 * @param width
+	 *            the width to scale the image
+	 * @param height
+	 *            the height to scale the image
+	 * @return
+	 * @throws IOException
+	 */
 	public static ImageIcon loadIcon(String name, int width, int height) throws IOException {
 		// Load the file from resource folder
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();

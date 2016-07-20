@@ -18,13 +18,27 @@ import org.apache.commons.codec.binary.Base64;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
+/**
+ * * The main class to parse mzXML files. This objects represents a mzXML file and provides the basic functionality to access the files elements.
+ * 
+ * 
+ * @author Constambeys
+ *
+ */
 public class MzXMLNative implements IReader {
 
 	private List<Spectrum> peaks = new ArrayList<Spectrum>(1000);
 
-	public MzXMLNative(File input) throws Exception {
+	/**
+	 * Creates a new {@code MzXMLNative} object based on the given mzXML file.
+	 * 
+	 * @param sourcefile
+	 *            The mzXML file to parse.
+	 * @throws Exception
+	 */
+	public MzXMLNative(File sourcefile) throws Exception {
 		XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-		InputStream in = new BufferedInputStream(new FileInputStream(input));
+		InputStream in = new BufferedInputStream(new FileInputStream(sourcefile));
 		XMLStreamReader streamReader = inputFactory.createXMLStreamReader(in);
 
 		while (streamReader.hasNext()) {
@@ -60,6 +74,15 @@ public class MzXMLNative implements IReader {
 		return null;
 	}
 
+	/**
+	 * Gets {@code Spectrum} from binary compressed data
+	 * 
+	 * @param encodedString
+	 *            The encoded String
+	 * @return {@code Spectrum}
+	 * @throws IOException
+	 * @throws DataFormatException
+	 */
 	private Spectrum getSpectrumValues(String encodedString) throws IOException, DataFormatException {
 		IReader.Spectrum spectrum = new Spectrum();
 
@@ -76,6 +99,15 @@ public class MzXMLNative implements IReader {
 		return spectrum;
 	}
 
+	/**
+	 * Returns decompressed bytes using the popular ZLIB compression library
+	 * 
+	 * @param data
+	 *            input byte array
+	 * @return {@code byte array}
+	 * @throws IOException
+	 * @throws DataFormatException
+	 */
 	public static byte[] decompress(byte[] data) throws IOException, DataFormatException {
 
 		Inflater inflater = new Inflater();

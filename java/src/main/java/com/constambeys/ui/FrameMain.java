@@ -60,6 +60,12 @@ import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
 import uk.ac.ebi.pride.tools.mzml_wrapper.MzMlWrapper;
 import uk.ac.ebi.pride.tools.mzxml_parser.MzXMLFile;
 
+/**
+ * The {@code FrameMain} class is the main application frame
+ * 
+ * @author Constambeys
+ *
+ */
 @SuppressWarnings("serial")
 public class FrameMain extends JFrame {
 
@@ -85,7 +91,7 @@ public class FrameMain extends JFrame {
 	private ExecutorService executorService;
 
 	/**
-	 * Create the frame.
+	 * Initialises a new user interface dialog
 	 */
 	public FrameMain() {
 		try {
@@ -277,6 +283,11 @@ public class FrameMain extends JFrame {
 		}
 	}
 
+	/**
+	 * Creates {@code JMenuBar}
+	 * 
+	 * @throws IOException
+	 */
 	private void createMenuBar() throws IOException {
 
 		JMenuBar menubar = new JMenuBar();
@@ -346,6 +357,11 @@ public class FrameMain extends JFrame {
 		setJMenuBar(menubar);
 	}
 
+	/**
+	 * 
+	 * ActionListener of the Load button.
+	 *
+	 */
 	private void btnLoad() {
 
 		DialogLoad dialog = new DialogLoad(FrameMain.this, "Set Parameters", true);
@@ -367,11 +383,11 @@ public class FrameMain extends JFrame {
 								try {
 									long startTime = System.nanoTime();
 									String filepath = dialog.jFilePath.getText();
-									JMzReader run;
+									JMzReader reader;
 									if (filepath.toLowerCase().endsWith("mzxml")) {
-										run = new MzXMLFile(new File(filepath));
+										reader = new MzXMLFile(new File(filepath));
 									} else {
-										run = new MzMlWrapper(new File(filepath));
+										reader = new MzMlWrapper(new File(filepath));
 									}
 									long estimatedTime = System.nanoTime() - startTime;
 									System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
@@ -384,8 +400,8 @@ public class FrameMain extends JFrame {
 
 									LoadPattern.Type type = (LoadPattern.Type) dialog.jcomboType.getSelectedItem();
 
-									LoadPattern pattern = new LoadPattern(run, param, type);
-									msiimage = new MSIImage(run, pattern);
+									LoadPattern pattern = new LoadPattern(reader, param, type);
+									msiimage = new MSIImage(reader, pattern);
 								} finally {
 									updateUI(new Runnable() {
 
@@ -410,6 +426,10 @@ public class FrameMain extends JFrame {
 		dialog.setVisible(true);
 	}
 
+	/**
+	 * ActionListener of the Graph button.
+	 * 
+	 */
 	private void btnGraph() {
 		try {
 			if (msiimage == null) {
@@ -431,7 +451,7 @@ public class FrameMain extends JFrame {
 						double lowerMass = Double.parseDouble(strLowerMass);
 						double higherMass = Double.parseDouble(strHigherMass);
 
-						createGraph(strLowerMass, strHigherMass, lowerMass, higherMass);
+						addGraphTab(strLowerMass, strHigherMass, lowerMass, higherMass);
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 					}
@@ -444,6 +464,12 @@ public class FrameMain extends JFrame {
 		}
 	}
 
+	/**
+	 * Executes Optimal Mass algorithm
+	 * 
+	 * @param version
+	 *            1 or 2
+	 */
 	private void btnOptimalMz(int version) {
 		try {
 			if (msiimage == null) {
@@ -524,9 +550,9 @@ public class FrameMain extends JFrame {
 
 								optimalMz.run();
 
-								createTextBox(optimalMz.printN(n));
+								addTextTab(optimalMz.printTopResults(n));
 
-								for (OptimalMz.Stats r : optimalMz.getIndexesN(n)) {
+								for (OptimalMz.Stats r : optimalMz.getTopResults(n)) {
 									createGraph(bins.getLowerMz(r.index), bins.getHigherMz(r.index));
 								}
 							}
@@ -544,6 +570,10 @@ public class FrameMain extends JFrame {
 		}
 	}
 
+	/**
+	 * ActionListener of the Template button.
+	 * 
+	 */
 	private void btnTemplate() {
 		try {
 
@@ -567,6 +597,10 @@ public class FrameMain extends JFrame {
 		}
 	}
 
+	/**
+	 * ActionListener of the Draw button.
+	 * 
+	 */
 	private void btnDraw() {
 		try {
 
@@ -590,12 +624,32 @@ public class FrameMain extends JFrame {
 		}
 	}
 
+	/**
+	 * Displays a mass spectrometry image at the given interval
+	 * 
+	 * @param lowerMass
+	 *            the lower mass per charge value
+	 * @param higherMass
+	 *            the upper mass per charge value
+	 */
 	private void createGraph(double lowerMass, double higherMass) {
 
-		createGraph(Double.toString(lowerMass), Double.toString(higherMass), lowerMass, higherMass);
+		addGraphTab(Double.toString(lowerMass), Double.toString(higherMass), lowerMass, higherMass);
 	}
 
-	private void createGraph(String strLowerMass, String strHigherMass, double lowerMass, double higherMass) {
+	/**
+	 * Displays a mass spectrometry image at the given interval with custom title
+	 * 
+	 * @param strLowerMass
+	 *            lower bound displayed in the title
+	 * @param strHigherMass
+	 *            upper bound displayed in the title
+	 * @param lowerMass
+	 *            the lower mass per charge value
+	 * @param higherMass
+	 *            the upper mass per charge value
+	 */
+	private void addGraphTab(String strLowerMass, String strHigherMass, double lowerMass, double higherMass) {
 		ITask task = new ITask() {
 
 			@Override
@@ -618,7 +672,7 @@ public class FrameMain extends JFrame {
 		submitTask(task);
 	}
 
-	private void createTextBox(String t) {
+	private void addTextTab(String t) {
 		JPanel background = new JPanel();
 		background.setBorder(new EmptyBorder(5, 5, 5, 5));
 		background.setLayout(new BorderLayout(0, 0));
@@ -643,6 +697,11 @@ public class FrameMain extends JFrame {
 		});
 	}
 
+	/**
+	 * Creates a dialog that block UI interaction
+	 * 
+	 * @return dialog
+	 */
 	private JDialog showWaitDialog() {
 		JDialog loading = new JDialog(this, true);
 		loading.setLayout(new BorderLayout());
@@ -653,6 +712,11 @@ public class FrameMain extends JFrame {
 		return loading;
 	}
 
+	/**
+	 * Task is added to the queue and is executed in the background. Catches exceptions and shows an error message
+	 * 
+	 * @param task
+	 */
 	private void submitTask(ITask task) {
 
 		executorService.submit(new Runnable() {
@@ -668,6 +732,11 @@ public class FrameMain extends JFrame {
 		});
 	}
 
+	/**
+	 * Task that update user interface Catches exceptions and shows an error message
+	 * 
+	 * @param task
+	 */
 	private void updateUI(Runnable task) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -680,6 +749,9 @@ public class FrameMain extends JFrame {
 		});
 	}
 
+	/**
+	 * Background tasks interface
+	 */
 	interface ITask {
 		public void run() throws Exception;
 	}

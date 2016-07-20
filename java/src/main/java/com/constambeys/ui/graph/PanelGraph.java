@@ -15,6 +15,12 @@ import java.util.List;
 
 import javax.swing.JPanel;
 
+/**
+ * JPanel that draws a Buffered Image
+ * 
+ * @author Constambeys
+ *
+ */
 public class PanelGraph extends JPanel implements MouseListener, MouseMotionListener {
 	// CONSTANTS
 	protected final int MARGIN_X_LEFT = 20;
@@ -28,12 +34,13 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 	protected final int MARGIN_LABELS = 20;
 
 	public static class Point {
-		public double x;
-		public double y;
 
-		Point(double x, double y) {
-			this.x = x;
-			this.y = y;
+		public double x_ratio;
+		public double y_ratio;
+
+		Point(double x_ratio, double y_ratio) {
+			this.x_ratio = x_ratio;
+			this.y_ratio = y_ratio;
 		}
 	}
 
@@ -43,14 +50,29 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 
 	protected List<ImageClicked> clickListeners = new ArrayList<ImageClicked>(1);
 
+	/**
+	 * Adds the specified mouse listener to receive mouse events from this component.
+	 * 
+	 * @param listener
+	 */
 	public void addClickListener(ImageClicked listener) {
 		clickListeners.add(listener);
 	}
 
+	/**
+	 * Removes the specified mouse listener so that it no longer receives mouse events from this component
+	 * 
+	 * @param listener
+	 */
 	public void removeClickListener(ImageClicked listener) {
 		clickListeners.remove(listener);
 	}
 
+	/**
+	 * Trigger the subscribed mouse listeners
+	 * 
+	 * @param p
+	 */
 	protected void triggerClickListeners(Point p) {
 		for (ImageClicked l : clickListeners) {
 			l.imageClicked(p);
@@ -63,14 +85,29 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 
 	protected List<ImageDragged> draggedListeners = new ArrayList<ImageDragged>(1);
 
+	/**
+	 * Adds the specified mouse motion listener to receive mouse motion events from this component
+	 * 
+	 * @param listener
+	 */
 	public void addDraggedListener(ImageDragged listener) {
 		draggedListeners.add(listener);
 	}
 
+	/**
+	 * Removes the specified mouse motion listener so that it no longer receives mouse motion events from this component.
+	 * 
+	 * @param listener
+	 */
 	public void removeDraggedListener(ImageDragged listener) {
 		draggedListeners.remove(listener);
 	}
 
+	/**
+	 * Trigger the subscribed mouse motion listeners
+	 * 
+	 * @param p
+	 */
 	protected void triggerDraggedListeners(Point p) {
 		for (ImageDragged l : draggedListeners) {
 			l.imageDragged(p);
@@ -93,6 +130,9 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 	protected Font titleFont;
 	protected Font axisFont;
 
+	/**
+	 * Initialises a new {@code PanelGraph }
+	 */
 	public PanelGraph() {
 		super();
 		colormap = Colormap.hot;
@@ -103,11 +143,26 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 		addMouseMotionListener(this);
 	}
 
+	/**
+	 * Sets Graph Title
+	 * 
+	 * @param title
+	 */
 	public void setTitle(String title) {
 		this.title = title;
 		this.repaint();
 	}
 
+	/**
+	 * Draws the image based on the given dimensions
+	 * 
+	 * @param img
+	 *            the image
+	 * @param widthInMM
+	 *            the image width in millimetres
+	 * @param heightInMM
+	 *            the image height in millimetres
+	 */
 	public void draw(BufferedImage img, int widthInMM, int heightInMM) {
 		this.widthInMM = widthInMM;
 		this.heightInMM = heightInMM;
@@ -116,6 +171,12 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 		this.repaint();
 	}
 
+	/**
+	 * Converts a 2d array to buffered image. Uses hot colour map
+	 * 
+	 * @param intensity
+	 * @return
+	 */
 	public BufferedImage calculateImage(double[][] intensity) {
 
 		int height = intensity.length;
@@ -147,16 +208,35 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 		return bufferImage;
 	}
 
+	/**
+	 * @return the displayed image
+	 */
 	public BufferedImage getImage() {
 		return bufferImage;
 	}
 
+	/**
+	 * Determine Title Dimensions
+	 * 
+	 * @param g
+	 *            Graphics Object
+	 * @return
+	 */
 	private int paintTitleHeight(Graphics g) {
 		FontMetrics titleFontMetrics = g.getFontMetrics(titleFont);
 		int titleHeight = (titleFontMetrics.getAscent());
 		return (int) (titleHeight * 1.2f);
 	}
 
+	/**
+	 * Draw Title
+	 * 
+	 * @param g
+	 *            Graphics Object
+	 * @param margin_y_top
+	 *            the top margin
+	 * @return
+	 */
 	private int paintTitle(Graphics g, int margin_y_top) {
 		// Title
 		FontMetrics titleFontMetrics = g.getFontMetrics(titleFont);
@@ -169,6 +249,19 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 		return titleHeight;
 	}
 
+	/**
+	 * Determine Image Dimensions
+	 * 
+	 * @param g
+	 *            Graphics Object
+	 * @param available_width
+	 *            the available display width
+	 * @param available_height
+	 *            the available display height
+	 * @param margin_y_top
+	 *            the top margin
+	 * @return image width and height
+	 */
 	private int[] paintImageHeight(Graphics g, int available_width, int available_height, int margin_y_top) {
 		double ratio = widthInMM / heightInMM;
 		double ratio_ = available_width / available_height;
@@ -187,6 +280,19 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 		return new int[] { width, height };
 	}
 
+	/**
+	 * Draw Image
+	 * 
+	 * @param g
+	 *            Graphics Object
+	 * @param available_width
+	 *            the available display width
+	 * @param available_height
+	 *            the available display height
+	 * @param margin_y_top
+	 *            the top margin
+	 * @return image width and height
+	 */
 	private int[] paintImage(Graphics g, int available_width, int available_height, int margin_y_top) {
 		double ratio = widthInMM / heightInMM;
 		double ratio_ = available_width / available_height;
@@ -210,6 +316,19 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 		return new int[] { width, height };
 	}
 
+	/**
+	 * Paint image x and y axis
+	 * 
+	 * @param g2d
+	 *            Graphics Object
+	 * @param width
+	 *            the image width
+	 * @param height
+	 *            the image height
+	 * @param margin_y_top
+	 *            the top margin
+	 * 
+	 */
 	private void paintAxis(Graphics2D g2d, int width, int height, int margin_y_top) {
 		// Axis
 		g2d.setColor(Color.BLACK);
@@ -220,6 +339,18 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 		g2d.drawLine(MARGIN_X_LEFT - MARGIN_Y_AXIS, margin_y_top, MARGIN_X_LEFT - MARGIN_Y_AXIS, margin_y_top + height);
 	}
 
+	/**
+	 * Paint image labels
+	 * 
+	 * @param g2d
+	 *            Graphics Object
+	 * @param width
+	 *            the image width
+	 * @param height
+	 *            the image height
+	 * @param margin_y_top
+	 *            the top margin
+	 */
 	private void paintLabels(Graphics2D g2d, int width, int height, int margin_y_top) {
 		FontMetrics axisFontMetrics = g2d.getFontMetrics(axisFont);
 		g2d.setFont(axisFont);

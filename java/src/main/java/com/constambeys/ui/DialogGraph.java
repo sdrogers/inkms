@@ -1,4 +1,5 @@
 package com.constambeys.ui;
+
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
@@ -31,16 +32,40 @@ public class DialogGraph extends JDialog {
 	JTextField jLowerMass = new JTextField(10);
 	JTextField jHigherMass = new JTextField(10);
 
-	public DialogGraph(Frame frame, String title, boolean modal) {
-		super(frame, title, modal);
+	/**
+	 * The {@code DialogGraph} class allows the user to draw a mass range
+	 * 
+	 * @param owner
+	 *            the Frame from which the dialog is displayed
+	 * @param title
+	 *            the {@code String} to display in the dialog's title bar
+	 * @param modal
+	 *            specifies whether dialog blocks user input to other top-level windows when shown
+	 */
+	public DialogGraph(Frame owner, String title, boolean modal) {
+		super(owner, title, modal);
 		setupUI();
 	}
 
-	public DialogGraph(Dialog dialog, String title, boolean modal) {
-		super(dialog, title, modal);
+	/**
+	 * The {@code DialogGraph} class allows the user to draw a mass range
+	 * 
+	 * @param owner
+	 *            the Frame from which the dialog is displayed
+	 * @param title
+	 *            the {@code String} to display in the dialog's title bar
+	 * @param modal
+	 *            specifies whether dialog blocks user input to other top-level windows when shown
+	 */
+	public DialogGraph(Dialog owner, String title, boolean modal) {
+		super(owner, title, modal);
 		setupUI();
 	}
 
+	/**
+	 * Initialises the UI elements
+	 * 
+	 */
 	private void setupUI() {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 200, 100);
@@ -102,6 +127,12 @@ public class DialogGraph extends JDialog {
 		getContentPane().add(panelSouth, BorderLayout.SOUTH);
 	}
 
+	/**
+	 * Set OK button listener
+	 * 
+	 * @param l
+	 *            callback listener
+	 */
 	public void addOkListener(ActionListener l) {
 		ok = l;
 	}

@@ -1,5 +1,10 @@
 package com.constambeys.python;
 
+/**
+ * Represents evenly distributed bins of certain width
+ * 
+ * @author Constambeys
+ */
 public class BinEventlyDistributed implements IBinResolution {
 
 	private double mzRangeLower;
@@ -9,6 +14,16 @@ public class BinEventlyDistributed implements IBinResolution {
 	private double range;
 	private double mass[];
 
+	/**
+	 * Constructs a new {@code BinEventlyDistributed} class which implements {@code IBinResolution} interface
+	 * 
+	 * @param mzRangeLower
+	 *            the lower bound mass per charge
+	 * @param mzRangeHighest
+	 *            the upper bound mass per charge
+	 * @param resolution
+	 *            the number of bins between {@code mzRangeLower} and {@code mzRangeHighest}
+	 */
 	public BinEventlyDistributed(double mzRangeLower, double mzRangeHighest, int resolution) {
 		this.mzRangeLower = mzRangeLower;
 		this.mzRangeHighest = mzRangeHighest;

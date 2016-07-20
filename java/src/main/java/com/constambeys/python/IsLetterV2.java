@@ -3,6 +3,12 @@ package com.constambeys.python;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
+/**
+ * Identifies letters using a template image
+ * 
+ * @author Constambeys
+ *
+ */
 public class IsLetterV2 implements ICheckLetter {
 
 	private BufferedImage imgTemplate;
@@ -10,8 +16,14 @@ public class IsLetterV2 implements ICheckLetter {
 	private int height;
 	private int letter;
 
-	// -1 white
-	// -16777216 black
+	/**
+	 * Constructs a new {@code IsLetterV2} class using a template image
+	 * 
+	 * @param imgTemplate
+	 *            to identify letters based on the image color
+	 * @param letter
+	 *            the colour of letters
+	 */
 	public IsLetterV2(BufferedImage imgTemplate, Color letter) {
 		this.imgTemplate = imgTemplate;
 		this.width = imgTemplate.getWidth();

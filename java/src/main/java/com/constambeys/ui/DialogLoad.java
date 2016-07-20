@@ -20,12 +20,16 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.constambeys.layout.SpringUtilities;
 import com.constambeys.load.LoadPattern;
-import com.constambeys.load.MSIImage;
-
 import javax.swing.JFileChooser;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * The {@code DialogLoad} class allows the user to load file parameters
+ * 
+ * @author Constambeys
+ *
+ */
 public class DialogLoad extends JDialog implements MouseListener {
 
 	/**
@@ -45,11 +49,25 @@ public class DialogLoad extends JDialog implements MouseListener {
 	JTextField jtextDownMotion;
 	JComboBox<LoadPattern.Type> jcomboType;
 
-	public DialogLoad(FrameMain mainFrame, String title, boolean modal) {
-		super(mainFrame, title, modal);
+	/**
+	 * Initialises a new user interface dialog
+	 * 
+	 * @param owner
+	 *            the Frame from which the dialog is displayed
+	 * @param title
+	 *            the {@code String} to display in the dialog's title bar
+	 * @param modal
+	 *            specifies whether dialog blocks user input to other top-level windows when shown
+	 */
+	public DialogLoad(FrameMain owner, String title, boolean modal) {
+		super(owner, title, modal);
 		setupUI();
 	}
 
+	/**
+	 * Initialises the UI elements
+	 * 
+	 */
 	private void setupUI() {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 200, 185);
@@ -139,13 +157,19 @@ public class DialogLoad extends JDialog implements MouseListener {
 		getContentPane().add(panelSouth, BorderLayout.SOUTH);
 	}
 
+	/**
+	 * Set OK button listener
+	 * 
+	 * @param l
+	 *            callback listener
+	 */
 	public void addOkListener(ActionListener l) {
 		ok = l;
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		Settings settings = Settings.getAppSettings();
+		Settings settings = new Settings();
 
 		JFileChooser fileChooser = new JFileChooser();
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML | mzXML files", "mzML", "mzXML");

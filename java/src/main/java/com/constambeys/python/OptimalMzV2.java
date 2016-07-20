@@ -8,6 +8,12 @@ import com.constambeys.load.MSIImage;
 
 import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
 
+/**
+ * Find the optimal mass based on intensity differences and the number of pixels above average intensity
+ * 
+ * @author Constambeys
+ * 
+ */
 public class OptimalMzV2 extends OptimalMz {
 
 	public class Pixel {
@@ -17,6 +23,17 @@ public class OptimalMzV2 extends OptimalMz {
 
 	int pixelWeight = 2;
 
+	/**
+	 * @param loadMZML
+	 *            the loaded mass spectrometry image
+	 * @param isLetter
+	 *            class that identifies letter pixels
+	 * @param bins
+	 *            class that defines the bins distribution
+	 * @param pixelWeight
+	 *            the number of pixels raised to power pixelWeight
+	 * 
+	 */
 	public OptimalMzV2(MSIImage loadMZML, ICheckLetter isLetter, IBinResolution bins, int pixelWeight) {
 		super(loadMZML, isLetter, bins);
 		this.pixelWeight = pixelWeight;
@@ -39,8 +56,8 @@ public class OptimalMzV2 extends OptimalMz {
 		Pixel[][][] pixels = new Pixel[loadMZML.getLines()][loadMZML.getWidth()][resolution];
 
 		for (int line = 0; line < loadMZML.getLines(); line++) {
-			if (p != null)
-				p.update((int) ((float) line / loadMZML.getLines() * 100));
+			if (callback != null)
+				callback.update((int) ((float) line / loadMZML.getLines() * 100));
 
 			for (int x = 0; x < loadMZML.getWidth(); x++) {
 				for (int i = 0; i < resolution; i++) {
@@ -78,8 +95,8 @@ public class OptimalMzV2 extends OptimalMz {
 		}
 
 		for (int line = 0; line < loadMZML.getLines(); line++) {
-			if (p != null)
-				p.update((int) ((float) line / loadMZML.getLines() * 100));
+			if (callback != null)
+				callback.update((int) ((float) line / loadMZML.getLines() * 100));
 
 			for (int x = 0; x < loadMZML.getWidth(); x++) {
 
@@ -100,8 +117,8 @@ public class OptimalMzV2 extends OptimalMz {
 			stats[i].diff = -(stats[i].i - stats[i].i1) * Math.pow(stats[i].diff, pixelWeight);
 		}
 
-		if (p != null)
-			p.update(100);
+		if (callback != null)
+			callback.update(100);
 		long end = System.nanoTime() - startTime;
 		System.out.println(String.format("%.2fs", end / 1000000000.0));
 

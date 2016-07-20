@@ -2,14 +2,31 @@ package com.constambeys.python;
 
 import java.util.ArrayList;
 
+/**
+ * Represents bin width in parts per million
+ * 
+ * @author Constambeys
+ *
+ */
 public class BinsPartsPerMillion implements IBinResolution {
 
 	Double[] mzs;
 
+	/**
+	 * Constructs a new {@code BinsPartsPerMillion} class which implements {@code IBinResolution} interface
+	 * 
+	 * @param mzRangeLower
+	 *            the lower bound mass per charge
+	 * @param mzRangeHighest
+	 *            the upper bound mass per charge
+	 * @param ppm
+	 *            the width of each bin is defined in parts per million
+	 * @throws Exception
+	 */
 	public BinsPartsPerMillion(double mzRangeLower, double mzRangeHighest, int ppm) throws Exception {
 		if (mzRangeLower == 0)
 			throw new Exception("Lower Mass should be not zero");
-		
+
 		ArrayList<Double> arr_mzs = new ArrayList<Double>(100);
 		double ratio = ppm / 1000000d;
 		double lowerBound = mzRangeLower * (1 - ratio);

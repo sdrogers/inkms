@@ -6,6 +6,13 @@ public class Colormap {
 
 	public static int[] hot = hot(1024);
 
+	/**
+	 * Creates a hot colour map of the given size
+	 * 
+	 * @param resolution
+	 *            the number of colours
+	 * @return {@link Color} converted to RGB
+	 */
 	private static int[] hot(int resolution) {
 		// http://www.codeproject.com/Articles/18150/Create-Custom-Color-Maps-in-C
 		int[] hot = new int[resolution];

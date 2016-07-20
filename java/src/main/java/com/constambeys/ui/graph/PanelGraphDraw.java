@@ -8,6 +8,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 
+/**
+ * Extends {@link PanelGraph} and display an overlay image
+ * 
+ * @author Constmabeys
+ *
+ */
 public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicked, PanelGraph.ImageDragged, MouseMotionListener {
 
 	protected BufferedImage imgOverlay;
@@ -21,6 +27,9 @@ public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicke
 	int rectSize = 10;
 	boolean drawing = true;
 
+	/**
+	 * Initialises a {@code PanelGraphDraw }
+	 */
 	public PanelGraphDraw() {
 		super();
 		super.addClickListener(this);
@@ -28,6 +37,12 @@ public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicke
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.constambeys.ui.graph.PanelGraph#draw(java.awt.image.BufferedImage, int, int)
+	 */
+	@Override
 	public void draw(BufferedImage img, int widthInMM, int heightInMM) {
 		super.draw(img, widthInMM, heightInMM);
 		overlayWidth = img.getWidth();
@@ -38,14 +53,27 @@ public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicke
 		g2dOverlay = imgOverlay.createGraphics();
 	}
 
+	/**
+	 * @return overlay image
+	 */
 	public BufferedImage getTemplateOverlay() {
 		return imgOverlay;
 	}
 
+	/**
+	 * Changes the drawing area size
+	 * 
+	 * @param size
+	 */
 	public void setDrawingDimension(int size) {
 		this.rectSize = size;
 	}
 
+	/**
+	 * Sets drawing or erasing state
+	 * 
+	 * @param drawing
+	 */
 	public void setState(boolean drawing) {
 		this.drawing = drawing;
 	}
@@ -64,6 +92,11 @@ public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicke
 
 	}
 
+	/**
+	 * Processes mouse movements
+	 * 
+	 * @param p
+	 */
 	private void imageClickedDragged(Point p) {
 
 		if (drawing) {
@@ -80,7 +113,7 @@ public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicke
 		int width = (int) ((double) rectSize / widthDisplayed * overlayWidth);
 		int height = (int) ((double) rectSize / heightDisplayed * overlayHeight) + 1;
 
-		g2dOverlay.fillRect((int) (overlayWidth * p.x), (int) (overlayHeight * p.y), width, height);
+		g2dOverlay.fillRect((int) (overlayWidth * p.x_ratio), (int) (overlayHeight * p.y_ratio), width, height);
 
 		this.repaint();
 

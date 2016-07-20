@@ -5,6 +5,12 @@ import java.util.List;
 
 import com.constambeys.load.MSIImage;
 
+/**
+ * Abstract class that provides basic functionality for optimal mass detection
+ * 
+ * @author Constambeys
+ *
+ */
 public abstract class OptimalMz {
 
 	public class Stats implements Comparable<Stats> {
@@ -26,17 +32,39 @@ public abstract class OptimalMz {
 	protected MSIImage loadMZML;
 	protected ICheckLetter isLetter;
 	protected IBinResolution bins;
-	protected IProgress p;
+	protected IProgress callback;
 
-	public OptimalMz(MSIImage loadMZML, ICheckLetter isLetter, IBinResolution bins) {
-		this.loadMZML = loadMZML;
+	/**
+	 * @param msiimage
+	 *            the loaded mass spectrometry image
+	 * @param isLetter
+	 *            class that identifies letter pixels
+	 * @param bins
+	 *            class that defines the bins distribution
+	 */
+	public OptimalMz(MSIImage msiimage, ICheckLetter isLetter, IBinResolution bins) {
+		this.loadMZML = msiimage;
 		this.isLetter = isLetter;
 		this.bins = bins;
 	}
 
+	/**
+	 * Calculate the optimal mass intervals
+	 * 
+	 * @throws Exception
+	 */
 	public abstract void run() throws Exception;
 
-	public List<Stats> getIndexesN(int n, int threshold_i) {
+	/**
+	 * returns the top n results that have on average intensity above threshold
+	 * 
+	 * @param n
+	 *            the number of results returned
+	 * @param threshold_i
+	 *            intesity threshold
+	 * @return a list of results
+	 */
+	public List<Stats> getTopResults(int n, int threshold_i) {
 
 		ArrayList<Stats> result = new ArrayList<Stats>(n);
 
@@ -52,13 +80,27 @@ public abstract class OptimalMz {
 		return result;
 	}
 
-	public List<Stats> getIndexesN(int n) {
-		return getIndexesN(n, 0);
+	/**
+	 * returns the top n results
+	 * 
+	 * @param n
+	 *            the number of results returned
+	 * @return a list of results
+	 */
+	public List<Stats> getTopResults(int n) {
+		return getTopResults(n, 0);
 	}
 
-	public String printN(int n) {
+	/**
+	 * returns the top n results statistics
+	 * 
+	 * @param n
+	 *            the number of results printed
+	 * @return String variable
+	 */
+	public String printTopResults(int n) {
 		StringBuffer sb = new StringBuffer();
-		List<Stats> result = getIndexesN(n);
+		List<Stats> result = getTopResults(n);
 		for (Stats r : result) {
 			sb.append(String.format("mz: %f - %f , i: %f - %f, c: %d - %d \n", bins.getLowerMz(r.index), bins.getHigherMz(r.index), r.i, r.i1, r.c, r.c1));
 			sb.append(String.format("i1 - i: "));
@@ -69,7 +111,13 @@ public abstract class OptimalMz {
 		return sb.toString();
 	}
 
-	public void setProgressListener(IProgress p) {
-		this.p = p;
+	/**
+	 * Sets a progress listener
+	 * 
+	 * @param callback
+	 *            during progress updates
+	 */
+	public void setProgressListener(IProgress callback) {
+		this.callback = callback;
 	}
 }
