@@ -66,7 +66,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	private State state = State.NONE;
 
 	int helpIndex = 0;
-	String help[] = { "Click template to load an image", "Click enable to enable the textboxes", "Click Template P1 textbox", "Select  point 1 on image", "Click Template P2 textbox", "Select point 2 on image", "Click graph to display a given mass range", "Click Generated P1 textbox", "Select the corresponding point 1 on image", "Click Generated P2 textbox", "Select the corresponding point 2 on image", "Check both template and generated checkboxes" };
+	String help[] = { "Click Load to load an image", "Click enable to enable the textboxes", "Click Template P1 textbox", "Select  point 1 on image", "Click Template P2 textbox", "Select point 2 on image", "Click graph to display a given mass range", "Click Generated P1 textbox", "Select the corresponding point 1 on image", "Click Generated P2 textbox", "Select the corresponding point 2 on image", "Check both template and generated checkboxes" };
 	private JLabel jHelp;
 	private PanelGraphWithMarkers panelGraph;
 
@@ -164,7 +164,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		Box boxEast = new Box(BoxLayout.Y_AXIS);
 		background.add(BorderLayout.EAST, boxEast);
 
-		JButton btnLoad = new JButton("Template");
+		JButton btnLoad = new JButton("Load");
 		boxSouth.add(btnLoad);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
