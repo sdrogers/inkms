@@ -359,29 +359,34 @@ public class FrameMain extends JFrame {
 	 *
 	 */
 	private void btnLoad() {
-		if (Startup.DEBUG) {
-			try {
-				msiimage = Startup.loadMZML();
-			} catch (Exception ex) {
-				JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-			}
-			return;
-		}
-
-		DialogLoad dialog = new DialogLoad(FrameMain.this, "Set Parameters", true);
-		dialog.pack();
-		dialog.addOkListener(new DialogLoad.OKListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e, MSIImage msiimage) {
+		try {
+			if (Startup.DEBUG) {
 				try {
-					FrameMain.this.msiimage = msiimage;
+					msiimage = Startup.loadMZML();
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 				}
+				return;
 			}
-		});
-		dialog.setVisible(true);
+
+			DialogLoad dialog = new DialogLoad(FrameMain.this, "Set Parameters", true);
+			dialog.pack();
+			dialog.addOkListener(new DialogLoad.OKListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e, MSIImage msiimage) {
+					try {
+						FrameMain.this.msiimage = msiimage;
+					} catch (Exception ex) {
+						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			});
+			dialog.setVisible(true);
+
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	/**

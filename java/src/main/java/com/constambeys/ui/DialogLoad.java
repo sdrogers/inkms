@@ -1,12 +1,18 @@
 package com.constambeys.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -14,6 +20,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
@@ -22,15 +29,13 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.constambeys.layout.SpringUtilities;
 import com.constambeys.load.IReader;
-import com.constambeys.load.ImzMLWrapper;
+import com.constambeys.load.ImzMLProxy;
 import com.constambeys.load.MSIImage;
-import com.constambeys.load.MzJavaWrapper;
-import com.constambeys.load.MzMLWrapper;
+import com.constambeys.load.MzJavaProxy;
+import com.constambeys.load.MzMLProxy;
 import com.constambeys.patterns.ILoadPattern;
 import com.constambeys.patterns.Pattern1;
 import com.constambeys.patterns.Pattern2;
-import com.constambeys.ui.FrameMain.ITask;
-
 import javax.swing.JFileChooser;
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +63,6 @@ public class DialogLoad extends JDialog implements MouseListener {
 	 */
 	private OKListener ok;
 
-	private JPanel panelSouth = new JPanel();
 	private JButton buttonOK = new JButton("OK");
 
 	private JTextField jFilePath;
@@ -71,6 +75,10 @@ public class DialogLoad extends JDialog implements MouseListener {
 	private IReader reader;
 	private Pattern pattern;
 
+	private JRadioButton jradMeandering;
+	private JRadioButton jradNormal;
+	private JLabel image;
+
 	/**
 	 * Initialises a new user interface dialog
 	 * 
@@ -80,8 +88,9 @@ public class DialogLoad extends JDialog implements MouseListener {
 	 *            the {@code String} to display in the dialog's title bar
 	 * @param modal
 	 *            specifies whether dialog blocks user input to other top-level windows when shown
+	 * @throws IOException
 	 */
-	public DialogLoad(FrameMain owner, String title, boolean modal) {
+	public DialogLoad(FrameMain owner, String title, boolean modal) throws IOException {
 		super(owner, title, modal);
 		setupUI();
 	}
@@ -89,15 +98,28 @@ public class DialogLoad extends JDialog implements MouseListener {
 	/**
 	 * Initialises the UI elements
 	 * 
+	 * @throws IOException
+	 * 
 	 */
-	private void setupUI() {
+	private void setupUI() throws IOException {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 200, 185);
+
 		setMinimumSize(getSize());
 		getContentPane().setLayout(new BorderLayout());
 
 		// Create and populate the panel.
 		JPanel panelCenter = new JPanel(new SpringLayout());
+		getContentPane().add(panelCenter, BorderLayout.CENTER);
+
+		JPanel panelSouth = new JPanel();
+		panelSouth.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		panelSouth.setBorder(new EmptyBorder(5, 5, 5, 5));
+		getContentPane().add(panelSouth, BorderLayout.SOUTH);
+
+		Box boxEast = new Box(BoxLayout.Y_AXIS);
+		getContentPane().add(boxEast, BorderLayout.EAST);
+
 		JLabel l;
 
 		l = new JLabel("File", JLabel.TRAILING);
@@ -135,9 +157,6 @@ public class DialogLoad extends JDialog implements MouseListener {
 		l = new JLabel("Indexes:", JLabel.TRAILING);
 		panelCenter.add(l);
 		jcomboType = new JComboBox<Object>();
-		DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<Object>(Pattern2.Type.values());
-		jcomboType.setModel(model);
-		pattern = Pattern.Pattern2;
 		l.setLabelFor(jcomboType);
 		panelCenter.add(jcomboType);
 
@@ -145,11 +164,6 @@ public class DialogLoad extends JDialog implements MouseListener {
 		SpringUtilities.makeCompactGrid(panelCenter, 6, 2, // rows, cols
 				6, 6, // initX, initY
 				6, 6); // xPad, yPad
-
-		getContentPane().add(panelCenter, BorderLayout.CENTER);
-
-		panelSouth.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		panelSouth.setBorder(new EmptyBorder(5, 5, 5, 5));
 
 		JButton buttonCancel = new JButton("Cancel");
 		buttonCancel.addActionListener(new ActionListener() {
@@ -199,7 +213,31 @@ public class DialogLoad extends JDialog implements MouseListener {
 		panelSouth.add(buttonOK);
 
 		getRootPane().setDefaultButton(buttonOK);
-		getContentPane().add(panelSouth, BorderLayout.SOUTH);
+
+		jradMeandering = new JRadioButton("Meandering", true);
+		jradNormal = new JRadioButton("Normal");
+		ButtonGroup group1 = new ButtonGroup();
+		group1.add(jradMeandering);
+		group1.add(jradNormal);
+		boxEast.add(jradMeandering);
+		boxEast.add(jradNormal);
+		boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
+
+		jradMeandering.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					setPattern(Pattern.Pattern1);
+				} else if (e.getStateChange() == ItemEvent.DESELECTED) {
+					setPattern(Pattern.Pattern2);
+				}
+			}
+		});
+
+		image = new JLabel();
+		boxEast.add(image);
+		setPattern(Pattern.Pattern1);
 	}
 
 	/**
@@ -241,11 +279,11 @@ public class DialogLoad extends JDialog implements MouseListener {
 						String filepath = selectedFile.getAbsolutePath();
 
 						if (filepath.toLowerCase().endsWith("mzxml")) {
-							reader = new MzJavaWrapper(new File(filepath));
+							reader = new MzJavaProxy(new File(filepath));
 						} else if (filepath.toLowerCase().endsWith("imzml")) {
-							reader = new ImzMLWrapper(new File(filepath));
+							reader = new ImzMLProxy(new File(filepath));
 						} else if (filepath.toLowerCase().endsWith("mzml")) {
-							reader = new MzMLWrapper(new File(filepath));
+							reader = new MzMLProxy(new File(filepath));
 						} else {
 							throw new Exception("File format not supprted");
 						}
@@ -253,8 +291,8 @@ public class DialogLoad extends JDialog implements MouseListener {
 						long estimatedTime = System.nanoTime() - startTime;
 						System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
 
-						if (reader instanceof ImzMLWrapper) {
-							jtextLines.setText(Integer.toString(((ImzMLWrapper) reader).getLines()));
+						if (reader instanceof ImzMLProxy) {
+							jtextLines.setText(Integer.toString(((ImzMLProxy) reader).getLines()));
 							jtextLines.setEditable(false);
 							jtextDownMotion.setText("0");
 						} else {
@@ -296,6 +334,30 @@ public class DialogLoad extends JDialog implements MouseListener {
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
 
+	}
+
+	private void setPattern(Pattern p) {
+		if (p == Pattern.Pattern1) {
+			DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<Object>(Pattern1.Type.values());
+			jcomboType.setModel(model);
+			pattern = Pattern.Pattern1;
+			try {
+				image.setIcon(Startup.loadIcon("pattern1.png", 200, 200));
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} else if (p == Pattern.Pattern2) {
+			DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<Object>(Pattern2.Type.values());
+			jcomboType.setModel(model);
+			pattern = Pattern.Pattern2;
+			try {
+				image.setIcon(Startup.loadIcon("pattern2.png", 200, 200));
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 	}
 
 	/**

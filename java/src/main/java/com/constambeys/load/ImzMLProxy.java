@@ -5,12 +5,12 @@ import java.io.IOException;
 
 import imzML.ImzML;
 
-public class ImzMLWrapper implements IReader {
+public class ImzMLProxy implements IReader {
 	private ImzML imzML;
 	private int nColumns;
 	private int nRows;
 
-	public ImzMLWrapper(File mzML) throws IOException {
+	public ImzMLProxy(File mzML) throws IOException {
 		long start = System.nanoTime();
 
 		imzML = imzMLConverter.ImzMLHandler.parseimzML(mzML.getAbsolutePath());

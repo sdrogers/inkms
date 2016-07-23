@@ -9,11 +9,11 @@ import org.expasy.mzjava.core.io.ms.spectrum.MzxmlReader;
 import org.expasy.mzjava.core.ms.peaklist.PeakList.Precision;
 import org.expasy.mzjava.core.ms.spectrum.MsnSpectrum;
 
-public class MzJavaWrapper implements IReader {
+public class MzJavaProxy implements IReader {
 	private ArrayList<MsnSpectrum> list;
 	private int count;
 
-	public MzJavaWrapper(File mzXML) throws IOException {
+	public MzJavaProxy(File mzXML) throws IOException {
 		long start = System.nanoTime();
 
 		MzxmlReader reader = new MzxmlReader(mzXML, Precision.DOUBLE);

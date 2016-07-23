@@ -6,11 +6,11 @@ import java.io.IOException;
 import mzML.MzML;
 import mzML.SpectrumList;
 
-public class MzMLWrapper implements IReader {
+public class MzMLProxy implements IReader {
 	private SpectrumList list;
 	private int count;
 
-	public MzMLWrapper(File mzML) throws IOException {
+	public MzMLProxy(File mzML) throws IOException {
 		long start = System.nanoTime();
 
 		MzML imzML = imzMLConverter.MzMLHandler.parsemzML(mzML.getAbsolutePath());
