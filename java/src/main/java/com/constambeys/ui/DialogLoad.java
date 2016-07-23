@@ -16,18 +16,20 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.constambeys.layout.SpringUtilities;
-import com.constambeys.load.ILoadPattern;
+import com.constambeys.load.IReader;
+import com.constambeys.load.ImzMLWrapper;
 import com.constambeys.load.MSIImage;
-import com.constambeys.load.Pattern1;
-import com.constambeys.load.Pattern2;
-
-import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
-import uk.ac.ebi.pride.tools.mzml_wrapper.MzMlWrapper;
-import uk.ac.ebi.pride.tools.mzxml_parser.MzXMLFile;
+import com.constambeys.load.MzJavaWrapper;
+import com.constambeys.load.MzMLWrapper;
+import com.constambeys.patterns.ILoadPattern;
+import com.constambeys.patterns.Pattern1;
+import com.constambeys.patterns.Pattern2;
+import com.constambeys.ui.FrameMain.ITask;
 
 import javax.swing.JFileChooser;
 import java.io.File;
@@ -64,8 +66,10 @@ public class DialogLoad extends JDialog implements MouseListener {
 	private JTextField jtextWidth;
 	private JTextField jtextHeight;
 	private JTextField jtextDownMotion;
-	private Pattern pattern;
 	private JComboBox jcomboType;
+
+	private IReader reader;
+	private Pattern pattern;
 
 	/**
 	 * Initialises a new user interface dialog
@@ -122,7 +126,7 @@ public class DialogLoad extends JDialog implements MouseListener {
 		l.setLabelFor(jtextHeight);
 		panelCenter.add(jtextHeight);
 
-		l = new JLabel("Down (mm)", JLabel.TRAILING);
+		l = new JLabel("Drop (mm)", JLabel.TRAILING);
 		panelCenter.add(l);
 		jtextDownMotion = new JTextField(10);
 		l.setLabelFor(jtextDownMotion);
@@ -163,16 +167,6 @@ public class DialogLoad extends JDialog implements MouseListener {
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				try {
-					long startTime = System.nanoTime();
-					String filepath = jFilePath.getText();
-					JMzReader reader;
-					if (filepath.toLowerCase().endsWith("mzxml")) {
-						reader = new MzXMLFile(new File(filepath));
-					} else {
-						reader = new MzMlWrapper(new File(filepath));
-					}
-					long estimatedTime = System.nanoTime() - startTime;
-					System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
 
 					ILoadPattern p;
 					if (pattern == Pattern.Pattern1) {
@@ -220,24 +214,63 @@ public class DialogLoad extends JDialog implements MouseListener {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		Settings settings = new Settings();
+		try {
+			Settings settings = new Settings();
 
-		JFileChooser fileChooser = new JFileChooser();
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML | mzXML files", "mzML", "mzXML");
-		fileChooser.setFileFilter(filter);
-		if (settings.get("load_dir") != null) {
-			fileChooser.setCurrentDirectory(new File(settings.get("load_dir")));
-		}
-		int result = fileChooser.showOpenDialog(DialogLoad.this);
-		if (result == JFileChooser.APPROVE_OPTION) {
-			File selectedFile = fileChooser.getSelectedFile();
-			jFilePath.setText(selectedFile.getAbsolutePath());
-			settings.put("load_dir", fileChooser.getCurrentDirectory().getAbsolutePath());
-			try {
-				settings.save();
-			} catch (IOException e1) {
-				System.err.println("Error saving");
+			JFileChooser fileChooser = new JFileChooser();
+			FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML | mzXML | imzML files", "mzML", "mzXML", "imzML");
+			fileChooser.setFileFilter(filter);
+			if (settings.get("load_dir") != null) {
+				fileChooser.setCurrentDirectory(new File(settings.get("load_dir")));
 			}
+			int result = fileChooser.showOpenDialog(DialogLoad.this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+
+				jFilePath.setText("Loading ...");
+
+				File selectedFile = fileChooser.getSelectedFile();
+
+				updateUI(new ITask() {
+
+					@Override
+					public void run() throws Exception {
+
+						jFilePath.setText(selectedFile.getAbsolutePath());
+
+						long startTime = System.nanoTime();
+						String filepath = selectedFile.getAbsolutePath();
+
+						if (filepath.toLowerCase().endsWith("mzxml")) {
+							reader = new MzJavaWrapper(new File(filepath));
+						} else if (filepath.toLowerCase().endsWith("imzml")) {
+							reader = new ImzMLWrapper(new File(filepath));
+						} else if (filepath.toLowerCase().endsWith("mzml")) {
+							reader = new MzMLWrapper(new File(filepath));
+						} else {
+							throw new Exception("File format not supprted");
+						}
+
+						long estimatedTime = System.nanoTime() - startTime;
+						System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
+
+						if (reader instanceof ImzMLWrapper) {
+							jtextLines.setText(Integer.toString(((ImzMLWrapper) reader).getLines()));
+							jtextLines.setEditable(false);
+							jtextDownMotion.setText("0");
+						} else {
+							jtextLines.setEditable(true);
+						}
+						settings.put("load_dir", fileChooser.getCurrentDirectory().getAbsolutePath());
+						try {
+							settings.save();
+						} catch (IOException e1) {
+							System.err.println("Error saving");
+						}
+					}
+				});
+			}
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -264,4 +297,29 @@ public class DialogLoad extends JDialog implements MouseListener {
 		// TODO Auto-generated method stub
 
 	}
+
+	/**
+	 * Task that update user interface Catches exceptions and shows an error message
+	 * 
+	 * @param task
+	 */
+	private void updateUI(ITask task) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					task.run();
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(null, "Task Failed", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+	}
+
+	/**
+	 * Background tasks interface
+	 */
+	interface ITask {
+		public void run() throws Exception;
+	}
+
 }

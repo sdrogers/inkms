@@ -23,15 +23,15 @@ import javax.swing.JPanel;
  */
 public class PanelGraph extends JPanel implements MouseListener, MouseMotionListener {
 	// CONSTANTS
-	protected final int MARGIN_X_LEFT = 20;
+	protected final int MARGIN_X_LEFT = 30;
 	protected final int MARGIN_X_RIGHT = 5;
-	protected final int MARGIN_Y_BOTTOM = 5;
+	protected final int MARGIN_Y_BOTTOM = 30;
 	protected final float MARGIN_Y_TOP_RATIO = 1.8f;
 
 	protected final int MARGIN_X_AXIS = 3;
 	protected final int MARGIN_Y_AXIS = 3;
 
-	protected final int MARGIN_LABELS = 20;
+	protected final int MARGIN_LABELS = 25;
 
 	public static class Point {
 

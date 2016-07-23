@@ -43,8 +43,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
-import com.constambeys.load.Pattern1;
 import com.constambeys.load.MSIImage;
+import com.constambeys.patterns.Pattern1;
 import com.constambeys.python.BinEventlyDistributed;
 import com.constambeys.python.BinsPartsPerMillion;
 import com.constambeys.python.IBinResolution;
@@ -55,10 +55,6 @@ import com.constambeys.python.OptimalMz;
 import com.constambeys.python.OptimalMzV1;
 import com.constambeys.python.OptimalMzV2;
 import com.constambeys.ui.graph.PanelGraph;
-
-import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
-import uk.ac.ebi.pride.tools.mzml_wrapper.MzMlWrapper;
-import uk.ac.ebi.pride.tools.mzxml_parser.MzXMLFile;
 
 /**
  * The {@code FrameMain} class is the main application frame
@@ -631,7 +627,7 @@ public class FrameMain extends JFrame {
 				BufferedImage image = panelGraph.calculateImage(intensity);
 				panelGraph.draw(image, msiimage.getWidthMM(), msiimage.getHeightMM());
 
-				updateUI(new Runnable() {
+				updateUI(new ITask() {
 					@Override
 					public void run() {
 						tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), panelGraph);
@@ -665,7 +661,7 @@ public class FrameMain extends JFrame {
 
 		background.add(BorderLayout.CENTER, scroller);
 
-		updateUI(new Runnable() {
+		updateUI(new ITask() {
 			@Override
 			public void run() {
 				tabbedPane.add("OptimalMz " + (tabbedPane.getTabCount() + 1), background);
@@ -713,7 +709,7 @@ public class FrameMain extends JFrame {
 	 * 
 	 * @param task
 	 */
-	private void updateUI(Runnable task) {
+	private void updateUI(ITask task) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {

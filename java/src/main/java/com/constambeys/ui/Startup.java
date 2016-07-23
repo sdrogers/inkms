@@ -10,12 +10,11 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
-import com.constambeys.load.Pattern1;
+import com.constambeys.load.IReader;
 import com.constambeys.load.MSIImage;
+import com.constambeys.load.MzJavaWrapper;
+import com.constambeys.patterns.Pattern1;
 import com.constambeys.python.IProgress;
-
-import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
-import uk.ac.ebi.pride.tools.mzml_wrapper.MzMlWrapper;
 
 public class Startup {
 
@@ -29,7 +28,7 @@ public class Startup {
 	 */
 	public static MSIImage loadMZML() throws Exception {
 		long startTime = System.nanoTime();
-		JMzReader run = new MzMlWrapper(new File("E:\\Enironments\\data\\abcdefgh_1.mzML"));
+		IReader run = new MzJavaWrapper(new File("E:\\Enironments\\data\\abcdefgh_1.mzXML"));
 		long estimatedTime = System.nanoTime() - startTime;
 		System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
 

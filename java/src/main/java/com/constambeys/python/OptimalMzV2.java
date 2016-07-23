@@ -1,12 +1,8 @@
 package com.constambeys.python;
 
 import java.util.Arrays;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.constambeys.load.MSIImage;
-
-import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
+import com.constambeys.load.Spectrum;
 
 /**
  * Find the optimal mass based on intensity differences and the number of pixels above average intensity
@@ -66,10 +62,10 @@ public class OptimalMzV2 extends OptimalMz {
 				Spectrum spectrum = loadMZML.getSpectrum(line, x);
 				boolean isLetterCheck = isLetter.check(x, line);
 
-				Map<Double, Double> map = spectrum.getPeakList();
-				for (Entry<Double, Double> entry : map.entrySet()) {
-					double mz = entry.getKey();
-					double i = entry.getValue();
+				for (int s = 0; s < spectrum.mzs.length; s++) {
+					double mz = spectrum.mzs[s];
+					double i = spectrum.ints[s];
+					
 					if (mzRangeLower <= mz && mz <= mzRangeHighest) {
 						int indx = bins.getMassIndex(mz);
 

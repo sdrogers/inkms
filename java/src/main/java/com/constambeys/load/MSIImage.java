@@ -1,13 +1,7 @@
 package com.constambeys.load;
 
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.constambeys.patterns.ILoadPattern;
 import com.constambeys.python.IProgress;
-
-import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
-import uk.ac.ebi.pride.tools.jmzreader.JMzReaderException;
-import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
 
 /**
  * The {@code MSIImage} class represents mass spectrometry image
@@ -16,7 +10,7 @@ import uk.ac.ebi.pride.tools.jmzreader.model.Spectrum;
  */
 public class MSIImage {
 
-	private JMzReader run;
+	private IReader run;
 	private int lines;
 	private int columns;
 	private int[][] data;
@@ -33,7 +27,7 @@ public class MSIImage {
 	 *            a pattern that implements {@code ILoadPattern} interface
 	 * @throws Exception
 	 */
-	public MSIImage(JMzReader reader, ILoadPattern pattern) throws Exception {
+	public MSIImage(IReader reader, ILoadPattern pattern) throws Exception {
 
 		this.run = reader;
 		this.widthInMM = pattern.getWidthMM();
@@ -53,7 +47,7 @@ public class MSIImage {
 	 * @return a Spectrum class
 	 * @throws JMzReaderException
 	 */
-	public Spectrum getSpectrum(int line, int column) throws JMzReaderException {
+	public Spectrum getSpectrum(int line, int column) throws Exception {
 		int index = data[line][column];
 		// get a List of all scan numbers in the mzXML file
 		// List<String> scanNumbers = inputParser.getSpectraIds();
@@ -71,7 +65,7 @@ public class MSIImage {
 	 * @return Returns a 2d array
 	 * @throws JMzReaderException
 	 */
-	public double[][] getReduceSpec(IProgress callback, double... mzrange) throws JMzReaderException {
+	public double[][] getReduceSpec(IProgress callback, double... mzrange) throws Exception {
 
 		long start = System.nanoTime();
 
@@ -84,10 +78,9 @@ public class MSIImage {
 
 				double intensity = 0;
 				Spectrum spectrum = getSpectrum(line, column);
-				Map<Double, Double> map = spectrum.getPeakList();
-				for (Entry<Double, Double> entry : map.entrySet()) {
-					double mz = entry.getKey();
-					double i = entry.getValue();
+				for (int s=0; s<spectrum.mzs.length; s++) {
+					double mz = spectrum.mzs[s];
+					double i = spectrum.ints[s];
 					for (int m = 0; m < mzrange.length; m = m + 2) {
 						if (mzrange[m] <= mz && mz <= mzrange[m + 1]) {
 							intensity = intensity + i;
