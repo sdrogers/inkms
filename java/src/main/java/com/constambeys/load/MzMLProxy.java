@@ -6,6 +6,11 @@ import java.io.IOException;
 import mzML.MzML;
 import mzML.SpectrumList;
 
+/**
+ * The {@code MzMLProxy} class reads mzML data
+ * 
+ * @author Constambeys
+ */
 public class MzMLProxy implements IReader {
 	private SpectrumList list;
 	private int count;

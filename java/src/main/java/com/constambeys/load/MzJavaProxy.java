@@ -9,6 +9,11 @@ import org.expasy.mzjava.core.io.ms.spectrum.MzxmlReader;
 import org.expasy.mzjava.core.ms.peaklist.PeakList.Precision;
 import org.expasy.mzjava.core.ms.spectrum.MsnSpectrum;
 
+/**
+ * The {@code MzJavaProxy} class reads mzXML data
+ * 
+ * @author Constambeys
+ */
 public class MzJavaProxy implements IReader {
 	private ArrayList<MsnSpectrum> list;
 	private int count;

@@ -5,6 +5,11 @@ import java.io.IOException;
 
 import imzML.ImzML;
 
+/**
+ * The {@code ImzMLProxy} class reads imzML data
+ * 
+ * @author Constambeys
+ */
 public class ImzMLProxy implements IReader {
 	private ImzML imzML;
 	private int nColumns;
