@@ -1,5 +1,10 @@
 package com.constambeys.load;
 
+/**
+ * Specifies the the mass spectrometer scanning pattern
+ * 
+ * @author Constambeys
+ */
 public interface ILoadPattern {
 
 	/**
@@ -8,7 +13,7 @@ public interface ILoadPattern {
 	int[][] getDataStructure();
 
 	/**
-	 * @return the width in millimetres of the image 
+	 * @return the width in millimetres of the image
 	 */
 	int getWidthMM();
 

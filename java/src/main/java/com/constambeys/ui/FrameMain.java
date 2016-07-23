@@ -43,7 +43,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
-import com.constambeys.load.LoadPattern;
+import com.constambeys.load.Pattern1;
 import com.constambeys.load.MSIImage;
 import com.constambeys.python.BinEventlyDistributed;
 import com.constambeys.python.BinsPartsPerMillion;
@@ -363,61 +363,23 @@ public class FrameMain extends JFrame {
 	 *
 	 */
 	private void btnLoad() {
+		if (Startup.DEBUG) {
+			try {
+				msiimage = Startup.loadMZML();
+			} catch (Exception ex) {
+				JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			}
+			return;
+		}
 
 		DialogLoad dialog = new DialogLoad(FrameMain.this, "Set Parameters", true);
 		dialog.pack();
-		dialog.addOkListener(new ActionListener() {
+		dialog.addOkListener(new DialogLoad.OKListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent e, MSIImage msiimage) {
 				try {
-
-					if (Startup.DEBUG) {
-						msiimage = Startup.loadMZML();
-					} else {
-						JDialog wait = showWaitDialog();
-						ITask task = new ITask() {
-
-							@Override
-							public void run() throws Exception {
-								try {
-									long startTime = System.nanoTime();
-									String filepath = dialog.jFilePath.getText();
-									JMzReader reader;
-									if (filepath.toLowerCase().endsWith("mzxml")) {
-										reader = new MzXMLFile(new File(filepath));
-									} else {
-										reader = new MzMlWrapper(new File(filepath));
-									}
-									long estimatedTime = System.nanoTime() - startTime;
-									System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
-
-									LoadPattern.Param param = new LoadPattern.Param();
-									param.lines = Integer.parseInt(dialog.jtextLines.getText());
-									param.widthInMM = Integer.parseInt(dialog.jtextWidth.getText());
-									param.heightInMM = Integer.parseInt(dialog.jtextHeight.getText());
-									param.downMotionInMM = Float.parseFloat(dialog.jtextDownMotion.getText());
-
-									LoadPattern.Type type = (LoadPattern.Type) dialog.jcomboType.getSelectedItem();
-
-									LoadPattern pattern = new LoadPattern(reader, param, type);
-									msiimage = new MSIImage(reader, pattern);
-								} finally {
-									updateUI(new Runnable() {
-
-										@Override
-										public void run() {
-											wait.setVisible(false);
-											wait.dispose();
-										}
-									});
-								}
-							}
-						};
-						submitTask(task);
-						wait.setVisible(true);
-					}
-
+					FrameMain.this.msiimage = msiimage;
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 				}
@@ -680,6 +642,12 @@ public class FrameMain extends JFrame {
 		submitTask(task);
 	}
 
+	/**
+	 * Creates a new tab with scrollable text box
+	 * 
+	 * @param t
+	 *            Sets the text of this TextComponent to the specified text.
+	 */
 	private void addTextTab(String t) {
 		JPanel background = new JPanel();
 		background.setBorder(new EmptyBorder(5, 5, 5, 5));

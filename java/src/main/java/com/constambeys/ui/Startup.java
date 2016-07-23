@@ -10,7 +10,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
-import com.constambeys.load.LoadPattern;
+import com.constambeys.load.Pattern1;
 import com.constambeys.load.MSIImage;
 import com.constambeys.python.IProgress;
 
@@ -33,13 +33,13 @@ public class Startup {
 		long estimatedTime = System.nanoTime() - startTime;
 		System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
 
-		LoadPattern.Param param = new LoadPattern.Param();
+		Pattern1.Param param = new Pattern1.Param();
 		param.lines = 8;
 		param.widthInMM = 62;
 		param.heightInMM = 10;
 		param.downMotionInMM = 1.25f;
 
-		LoadPattern pattern = new LoadPattern(run, param, LoadPattern.Type.ALL);
+		Pattern1 pattern = new Pattern1(run, param, Pattern1.Type.ALL);
 		MSIImage loadMZXML = new MSIImage(run, pattern);
 		return loadMZXML;
 

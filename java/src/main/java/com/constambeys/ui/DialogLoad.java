@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -19,7 +20,15 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.constambeys.layout.SpringUtilities;
-import com.constambeys.load.LoadPattern;
+import com.constambeys.load.ILoadPattern;
+import com.constambeys.load.MSIImage;
+import com.constambeys.load.Pattern1;
+import com.constambeys.load.Pattern2;
+
+import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
+import uk.ac.ebi.pride.tools.mzml_wrapper.MzMlWrapper;
+import uk.ac.ebi.pride.tools.mzxml_parser.MzXMLFile;
+
 import javax.swing.JFileChooser;
 import java.io.File;
 import java.io.IOException;
@@ -32,22 +41,31 @@ import java.io.IOException;
  */
 public class DialogLoad extends JDialog implements MouseListener {
 
+	public interface OKListener {
+		public void actionPerformed(ActionEvent e, MSIImage msiimage);
+	}
+
+	private enum Pattern {
+		Pattern1, Pattern2;
+	}
+
 	/**
 	 * Create the dialog.
 	 * 
 	 * @param result
 	 */
-	ActionListener ok;
+	private OKListener ok;
 
-	JPanel panelSouth = new JPanel();
-	JButton buttonOK = new JButton("OK");
+	private JPanel panelSouth = new JPanel();
+	private JButton buttonOK = new JButton("OK");
 
-	JTextField jFilePath;
-	JTextField jtextLines;
-	JTextField jtextWidth;
-	JTextField jtextHeight;
-	JTextField jtextDownMotion;
-	JComboBox<LoadPattern.Type> jcomboType;
+	private JTextField jFilePath;
+	private JTextField jtextLines;
+	private JTextField jtextWidth;
+	private JTextField jtextHeight;
+	private JTextField jtextDownMotion;
+	private Pattern pattern;
+	private JComboBox jcomboType;
 
 	/**
 	 * Initialises a new user interface dialog
@@ -112,7 +130,10 @@ public class DialogLoad extends JDialog implements MouseListener {
 
 		l = new JLabel("Indexes:", JLabel.TRAILING);
 		panelCenter.add(l);
-		jcomboType = new JComboBox<LoadPattern.Type>(LoadPattern.Type.values());
+		jcomboType = new JComboBox<Object>();
+		DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<Object>(Pattern2.Type.values());
+		jcomboType.setModel(model);
+		pattern = Pattern.Pattern2;
 		l.setLabelFor(jcomboType);
 		panelCenter.add(jcomboType);
 
@@ -142,10 +163,40 @@ public class DialogLoad extends JDialog implements MouseListener {
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				try {
+					long startTime = System.nanoTime();
+					String filepath = jFilePath.getText();
+					JMzReader reader;
+					if (filepath.toLowerCase().endsWith("mzxml")) {
+						reader = new MzXMLFile(new File(filepath));
+					} else {
+						reader = new MzMlWrapper(new File(filepath));
+					}
+					long estimatedTime = System.nanoTime() - startTime;
+					System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
+
+					ILoadPattern p;
+					if (pattern == Pattern.Pattern1) {
+						Pattern1.Param param = new Pattern1.Param();
+						param.lines = Integer.parseInt(jtextLines.getText());
+						param.widthInMM = Integer.parseInt(jtextWidth.getText());
+						param.heightInMM = Integer.parseInt(jtextHeight.getText());
+						param.downMotionInMM = Float.parseFloat(jtextDownMotion.getText());
+						Pattern1.Type type = (Pattern1.Type) jcomboType.getSelectedItem();
+						p = new Pattern1(reader, param, type);
+					} else {
+						Pattern2.Param param = new Pattern2.Param();
+						param.lines = Integer.parseInt(jtextLines.getText());
+						param.widthInMM = Integer.parseInt(jtextWidth.getText());
+						param.heightInMM = Integer.parseInt(jtextHeight.getText());
+						Pattern2.Type type = (Pattern2.Type) jcomboType.getSelectedItem();
+						p = new Pattern2(reader, param, type);
+					}
+					MSIImage msiimage = new MSIImage(reader, p);
+
 					setVisible(false);
 					dispose();
 					if (ok != null)
-						ok.actionPerformed(event);
+						ok.actionPerformed(event, msiimage);
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 				}
@@ -163,7 +214,7 @@ public class DialogLoad extends JDialog implements MouseListener {
 	 * @param l
 	 *            callback listener
 	 */
-	public void addOkListener(ActionListener l) {
+	public void addOkListener(OKListener l) {
 		ok = l;
 	}
 

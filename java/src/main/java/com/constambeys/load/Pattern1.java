@@ -8,7 +8,7 @@ import uk.ac.ebi.pride.tools.jmzreader.JMzReader;
  * @author Constambeys
  *
  */
-public class LoadPattern implements ILoadPattern {
+public class Pattern1 implements ILoadPattern {
 
 	private Param param;
 	/**
@@ -53,7 +53,7 @@ public class LoadPattern implements ILoadPattern {
 	}
 
 	/**
-	 * Constructs a new {@code LoadPattern} class which implements meandering pattern
+	 * Constructs a meandering pattern class which implements{@code ILoadPattern}
 	 * 
 	 * @param reader
 	 *            a file reader that implements the {@code JMzReader}
@@ -63,7 +63,7 @@ public class LoadPattern implements ILoadPattern {
 	 *            the selection algorithm
 	 * @throws Exception
 	 */
-	public LoadPattern(JMzReader reader, Param param, Type type) throws Exception {
+	public Pattern1(JMzReader reader, Param param, Type type) throws Exception {
 
 		this.param = param;
 		this.scansTotal = reader.getSpectraCount();
@@ -115,7 +115,7 @@ public class LoadPattern implements ILoadPattern {
 			}
 			index = index + (skipPerLine * step);
 			direction = !direction;
-			if (remaining >= 0) {
+			if (remaining > 0) {
 				remaining = remaining - 1;
 				index = index + step;
 			}
