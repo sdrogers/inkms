@@ -21,7 +21,7 @@ import javax.swing.JPanel;
  * @author Constambeys
  *
  */
-public class PanelGraph extends JPanel implements MouseListener, MouseMotionListener {
+public class PanelGraph extends JPanel {
 	// CONSTANTS
 	protected final int MARGIN_X_LEFT = 30;
 	protected final int MARGIN_X_RIGHT = 5;
@@ -130,6 +130,8 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 	protected Font titleFont;
 	protected Font axisFont;
 
+	protected Object metadata;
+
 	/**
 	 * Initialises a new {@code PanelGraph }
 	 */
@@ -139,8 +141,8 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 		titleFont = new Font("SansSerif", Font.BOLD, 15);
 		axisFont = new Font("SansSerif", Font.BOLD, 10);
 
-		addMouseListener(this);
-		addMouseMotionListener(this);
+		addMouseListener(new MyMouseListener());
+		addMouseMotionListener(new MyMouseMotionListener());
 	}
 
 	/**
@@ -213,6 +215,22 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public BufferedImage getImage() {
 		return bufferImage;
+	}
+
+	/**
+	 * Save additional metadata
+	 * 
+	 * @param info
+	 */
+	public void setMetadata(Object info) {
+		metadata = info;
+	}
+
+	/**
+	 * Get saved metadata
+	 */
+	public Object getMetadata() {
+		return metadata;
 	}
 
 	/**
@@ -406,55 +424,74 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 
 	}
 
-	@Override
-	public void mouseClicked(MouseEvent e) {
+	/**
+	 * Use private class for hiding method calls
+	 * 
+	 * @author Constambeys
+	 *
+	 */
+	protected class MyMouseListener implements MouseListener {
 
-		int x = e.getX() - MARGIN_X_LEFT;
-		int y = e.getY() - margin_y_top;
-		if (x >= 0 && x <= widthDisplayed && y >= 0 && y <= heightDisplayed) {
-			Point p = new Point((double) x / widthDisplayed, (double) y / heightDisplayed);
-			triggerClickListeners(p);
+		@Override
+		public void mouseClicked(MouseEvent e) {
+
+			int x = e.getX() - MARGIN_X_LEFT;
+			int y = e.getY() - margin_y_top;
+			if (x >= 0 && x <= widthDisplayed && y >= 0 && y <= heightDisplayed) {
+				Point p = new Point((double) x / widthDisplayed, (double) y / heightDisplayed);
+				triggerClickListeners(p);
+			}
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+
 		}
 	}
 
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
+	/**
+	 * Use private class for hiding method calls
+	 * 
+	 * @author Constambeys
+	 *
+	 */
+	protected class MyMouseMotionListener implements MouseMotionListener {
 
-	}
+		@Override
+		public void mouseDragged(MouseEvent e) {
 
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
+			int x = e.getX() - MARGIN_X_LEFT;
+			int y = e.getY() - margin_y_top;
+			if (x >= 0 && x <= widthDisplayed && y >= 0 && y <= heightDisplayed) {
+				Point p = new Point((double) x / widthDisplayed, (double) y / heightDisplayed);
+				triggerDraggedListeners(p);
+			}
+		}
 
-	}
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			// TODO Auto-generated method stub
 
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent e) {
-
-		int x = e.getX() - MARGIN_X_LEFT;
-		int y = e.getY() - margin_y_top;
-		if (x >= 0 && x <= widthDisplayed && y >= 0 && y <= heightDisplayed) {
-			Point p = new Point((double) x / widthDisplayed, (double) y / heightDisplayed);
-			triggerDraggedListeners(p);
 		}
 	}
 
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
 }

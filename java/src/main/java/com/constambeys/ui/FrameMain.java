@@ -11,8 +11,13 @@ import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,10 +46,12 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
+import org.apache.commons.io.FilenameUtils;
+
 import com.constambeys.load.MSIImage;
-import com.constambeys.patterns.Pattern1;
 import com.constambeys.python.BinEventlyDistributed;
 import com.constambeys.python.BinsPartsPerMillion;
 import com.constambeys.python.IBinResolution;
@@ -290,14 +297,66 @@ public class FrameMain extends JFrame {
 
 		JMenu fileMenu = new JMenu("Tabs");
 
+		JMenuItem jMenuExport = new JMenuItem("Export");
+		int height = (int) jMenuExport.getPreferredSize().getHeight();
+		jMenuExport.setIcon(Startup.loadIcon("export128.png", height, height));
+
 		JMenuItem jMenuSave = new JMenuItem("Save");
-		int height = (int) jMenuSave.getPreferredSize().getHeight();
+		height = (int) jMenuSave.getPreferredSize().getHeight();
 		jMenuSave.setIcon(Startup.loadIcon("save128.png", height, height));
 
 		JMenuItem jMenuClose = new JMenuItem("Close");
 		jMenuClose.setIcon(Startup.loadIcon("closeBlue128.png", height, height));
+
 		JMenuItem jMenuCloseAll = new JMenuItem("Close All");
 		jMenuCloseAll.setIcon(Startup.loadIcon("closeRed128.png", height, height));
+
+		jMenuExport.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				try {
+					int selected = tabbedPane.getSelectedIndex();
+					if (selected >= 0) {
+						Component component = tabbedPane.getComponentAt(selected);
+						if (component instanceof PanelGraph) {
+							PanelGraph pg = (PanelGraph) component;
+							double[][] intensity = (double[][]) pg.getMetadata();
+							if (intensity != null) {
+								JFileChooser fileChooser = new JFileChooser();
+								FileNameExtensionFilter filter = new FileNameExtensionFilter("csv file", "csv");
+								fileChooser.setFileFilter(filter);
+
+								// fileChooser
+								if (fileChooser.showSaveDialog(FrameMain.this) == JFileChooser.APPROVE_OPTION) {
+
+									File file = fileChooser.getSelectedFile();
+									if (!FilenameUtils.getExtension(file.getName()).equalsIgnoreCase(".csv")) {
+										// ALTERNATIVELY: remove the extension (if any) and replace it with ".csv"
+										file = new File(file.getParentFile(), FilenameUtils.getBaseName(file.getName()) + ".csv");
+									}
+
+									try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
+										for (int line = 0; line < intensity.length; line++) {
+											for (int column = 0; column < intensity[line].length; column++) {
+												if (column != 0) {
+													writer.write(",");
+												}
+												writer.write(Double.toString(intensity[line][column]));
+											}
+											writer.write("\n");
+										}
+									} catch (IOException ex) {
+										JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+									}
+								}
+							}
+						}
+					}
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
 
 		jMenuSave.addActionListener(new ActionListener() {
 			@Override
@@ -344,6 +403,7 @@ public class FrameMain extends JFrame {
 			}
 		});
 
+		fileMenu.add(jMenuExport);
 		fileMenu.add(jMenuSave);
 		fileMenu.add(jMenuClose);
 		fileMenu.add(jMenuCloseAll);
@@ -631,6 +691,7 @@ public class FrameMain extends JFrame {
 				panelGraph.setTitle(title);
 				BufferedImage image = panelGraph.calculateImage(intensity);
 				panelGraph.draw(image, msiimage.getWidthMM(), msiimage.getHeightMM());
+				panelGraph.setMetadata(intensity);
 
 				updateUI(new ITask() {
 					@Override

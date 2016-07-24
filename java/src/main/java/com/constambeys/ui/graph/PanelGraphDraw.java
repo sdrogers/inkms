@@ -14,13 +14,14 @@ import java.awt.image.BufferedImage;
  * @author Constmabeys
  *
  */
-public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicked, PanelGraph.ImageDragged, MouseMotionListener {
+public class PanelGraphDraw extends PanelGraph {
 
 	protected BufferedImage imgOverlay;
 	private Graphics2D g2dOverlay;
 	private int overlayWidth;
 	private int overlayHeight;
 
+	private boolean visible;
 	private int mouseX;
 	private int mouseY;
 
@@ -32,9 +33,9 @@ public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicke
 	 */
 	public PanelGraphDraw() {
 		super();
-		super.addClickListener(this);
-		super.addDraggedListener(this);
-
+		super.addClickListener(new MyClickListener());
+		super.addDraggedListener(new MyDraggedListener());
+		super.addMouseMotionListener(new MyMouseMotionListener());
 	}
 
 	/*
@@ -87,8 +88,11 @@ public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicke
 
 		g.drawImage(imgOverlay, MARGIN_X_LEFT, margin_y_top, widthDisplayed, heightDisplayed, null);
 
-		g.setColor(Color.WHITE);
-		g.fillRect(mouseX - rectSize / 2, mouseY - rectSize / 2, rectSize, rectSize);
+		if (visible) {
+			// Draw mouse pointer
+			g.setColor(Color.WHITE);
+			g.fillRect(mouseX - rectSize / 2, mouseY - rectSize / 2, rectSize, rectSize);
+		}
 
 	}
 
@@ -127,22 +131,54 @@ public class PanelGraphDraw extends PanelGraph implements PanelGraph.ImageClicke
 			g2dOverlay.dispose();
 	}
 
-	@Override
-	public void imageClicked(Point p) {
-		imageClickedDragged(p);
+	/**
+	 * Receives events from base class
+	 * 
+	 * @author Constambeys
+	 *
+	 */
+	protected class MyClickListener implements PanelGraph.ImageClicked {
+		@Override
+		public void imageClicked(Point p) {
+			imageClickedDragged(p);
+		}
 	}
 
-	@Override
-	public void imageDragged(Point p) {
-		imageClickedDragged(p);
+	/**
+	 * Receives events from base class
+	 * 
+	 * @author Constambeys
+	 *
+	 */
+	protected class MyDraggedListener implements PanelGraph.ImageDragged {
+
+		@Override
+		public void imageDragged(Point p) {
+			imageClickedDragged(p);
+		}
+
 	}
 
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		super.mouseMoved(e);
-		mouseX = e.getX();
-		mouseY = e.getY();
-		this.repaint();
+	/**
+	 * Updates mouse coordinates
+	 * 
+	 * @author Constambeys
+	 *
+	 */
+	protected class MyMouseMotionListener implements MouseMotionListener {
+
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			visible = false;
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			visible = true;
+			mouseX = e.getX();
+			mouseY = e.getY();
+			PanelGraphDraw.this.repaint();
+		}
 	}
 
 }
