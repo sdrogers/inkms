@@ -118,7 +118,7 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 	protected int widthInMM;
 	protected int heightInMM;
 	protected BufferedImage bufferImage;
-	protected int[] colormap;
+	protected IColormap colormap;
 
 	// Mouse Listener transform x,y relative to image
 	protected int margin_y_top;
@@ -135,7 +135,7 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public PanelGraph() {
 		super();
-		colormap = Colormap.hot;
+		colormap = new Hot();
 		titleFont = new Font("SansSerif", Font.BOLD, 15);
 		axisFont = new Font("SansSerif", Font.BOLD, 10);
 
@@ -192,7 +192,7 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 			}
 		}
 
-		int resolution = colormap.length - 1;
+		int resolution = colormap.getMaxIndex();
 		BufferedImage bufferImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
@@ -201,7 +201,7 @@ public class PanelGraph extends JPanel implements MouseListener, MouseMotionList
 				// Color color = new Color(value, value, value);
 				// bufferImage.setRGB(i, j, color.getRGB());
 				int indx = (int) (intensity[j][i] / max * resolution);
-				bufferImage.setRGB(i, j, colormap[indx]);
+				bufferImage.setRGB(i, j, colormap.get(indx));
 			}
 		}
 

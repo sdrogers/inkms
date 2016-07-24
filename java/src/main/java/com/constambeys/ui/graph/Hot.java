@@ -2,9 +2,13 @@ package com.constambeys.ui.graph;
 
 import java.awt.Color;
 
-public class Colormap {
+public class Hot implements IColormap {
 
-	public static int[] hot = hot(1024);
+	private static int[] hot = hot(1024);
+
+	public Hot() {
+
+	}
 
 	/**
 	 * Creates a hot colour map of the given size
@@ -46,6 +50,16 @@ public class Colormap {
 		}
 
 		return hot;
+	}
+
+	@Override
+	public int getMaxIndex() {
+		return hot.length - 1;
+	}
+
+	@Override
+	public int get(int indx) {
+		return hot[indx];
 	}
 
 }
