@@ -29,7 +29,7 @@ public abstract class OptimalMz {
 
 	protected Stats[] stats;
 
-	protected MSIImage loadMZML;
+	protected MSIImage msiimage;
 	protected ICheckLetter isLetter;
 	protected IBinResolution bins;
 	protected IProgress callback;
@@ -43,7 +43,7 @@ public abstract class OptimalMz {
 	 *            class that defines the bins distribution
 	 */
 	public OptimalMz(MSIImage msiimage, ICheckLetter isLetter, IBinResolution bins) {
-		this.loadMZML = msiimage;
+		this.msiimage = msiimage;
 		this.isLetter = isLetter;
 		this.bins = bins;
 	}

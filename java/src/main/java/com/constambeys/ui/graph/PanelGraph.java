@@ -33,6 +33,10 @@ public class PanelGraph extends JPanel {
 
 	protected final int MARGIN_LABELS = 25;
 
+	// Graphics
+	protected Font fontTitle;
+	protected Font fontAxis;
+
 	public static class Point {
 
 		public double x_ratio;
@@ -125,10 +129,7 @@ public class PanelGraph extends JPanel {
 	protected int widthDisplayed;
 	protected int heightDisplayed;
 
-	// Graphics
 	protected String title = "";
-	protected Font titleFont;
-	protected Font axisFont;
 
 	protected Object metadata;
 
@@ -138,8 +139,8 @@ public class PanelGraph extends JPanel {
 	public PanelGraph() {
 		super();
 		colormap = new Hot();
-		titleFont = new Font("SansSerif", Font.BOLD, 15);
-		axisFont = new Font("SansSerif", Font.BOLD, 10);
+		fontTitle = new Font("SansSerif", Font.BOLD, 15);
+		fontAxis = new Font("SansSerif", Font.BOLD, 10);
 
 		addMouseListener(new MyMouseListener());
 		addMouseMotionListener(new MyMouseMotionListener());
@@ -241,7 +242,7 @@ public class PanelGraph extends JPanel {
 	 * @return
 	 */
 	private int paintTitleHeight(Graphics g) {
-		FontMetrics titleFontMetrics = g.getFontMetrics(titleFont);
+		FontMetrics titleFontMetrics = g.getFontMetrics(fontTitle);
 		int titleHeight = (titleFontMetrics.getAscent());
 		return (int) (titleHeight * 1.2f);
 	}
@@ -257,12 +258,12 @@ public class PanelGraph extends JPanel {
 	 */
 	private int paintTitle(Graphics g, int margin_y_top) {
 		// Title
-		FontMetrics titleFontMetrics = g.getFontMetrics(titleFont);
+		FontMetrics titleFontMetrics = g.getFontMetrics(fontTitle);
 
 		int titleWidth = titleFontMetrics.stringWidth(title);
 		int titleHeight = (titleFontMetrics.getAscent());
 		int titleOffsetX = (getWidth() - titleWidth) / 2;
-		g.setFont(titleFont);
+		g.setFont(fontTitle);
 		g.drawString(title, titleOffsetX, (int) (margin_y_top + titleHeight * 1.2f));
 		return titleHeight;
 	}
@@ -370,8 +371,8 @@ public class PanelGraph extends JPanel {
 	 *            the top margin
 	 */
 	private void paintLabels(Graphics2D g2d, int width, int height, int margin_y_top) {
-		FontMetrics axisFontMetrics = g2d.getFontMetrics(axisFont);
-		g2d.setFont(axisFont);
+		FontMetrics axisFontMetrics = g2d.getFontMetrics(fontAxis);
+		g2d.setFont(fontAxis);
 		g2d.setStroke(new BasicStroke(1));
 		int yOffset = axisFontMetrics.getAscent() / 2;
 

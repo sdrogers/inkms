@@ -1,6 +1,7 @@
 package com.constambeys.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -52,6 +53,7 @@ import javax.swing.text.NumberFormatter;
 import org.apache.commons.io.FilenameUtils;
 
 import com.constambeys.load.MSIImage;
+import com.constambeys.load.Spectrum;
 import com.constambeys.python.BinEventlyDistributed;
 import com.constambeys.python.BinsPartsPerMillion;
 import com.constambeys.python.IBinResolution;
@@ -62,6 +64,7 @@ import com.constambeys.python.OptimalMz;
 import com.constambeys.python.OptimalMzV1;
 import com.constambeys.python.OptimalMzV2;
 import com.constambeys.ui.graph.PanelGraph;
+import com.constambeys.ui.graph.PanelVlines;
 
 /**
  * The {@code FrameMain} class is the main application frame
@@ -147,6 +150,10 @@ public class FrameMain extends JFrame {
 
 			JButton btnDraw = new JButton("Draw");
 			boxSouth.add(btnDraw);
+			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+			JButton btnSpectrum = new JButton("Spectrum");
+			boxSouth.add(btnSpectrum);
 			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 			boxSouth.add(Box.createHorizontalGlue());
@@ -269,6 +276,14 @@ public class FrameMain extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					btnDraw();
+				}
+			});
+
+			btnSpectrum.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					btnSpectrum();
 				}
 			});
 
@@ -420,7 +435,7 @@ public class FrameMain extends JFrame {
 	 */
 	private void btnLoad() {
 		try {
-			if (Startup.DEBUG) {
+			if (Startup.DEBUG_FILE) {
 				try {
 					msiimage = Startup.loadMZML();
 				} catch (Exception ex) {
@@ -656,6 +671,116 @@ public class FrameMain extends JFrame {
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	private void btnSpectrum() {
+		try {
+			if (Startup.DEBUG_SPECTRUM) {
+				PanelVlines panelVlines = new PanelVlines();
+				panelVlines.add(0, 0);
+				panelVlines.add(40, 40);
+				panelVlines.add(60, 60);
+				panelVlines.add(100, 100);
+				panelVlines.addCommit();
+				tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), panelVlines);
+				return;
+			}
+
+			if (msiimage == null) {
+				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			if (jradTempl.isSelected() && isLetterTemplate == null) {
+				throw new Exception("Template Settings not loaded");
+			}
+
+			if (jradDraw.isSelected() && isLetterDraw == null) {
+				throw new Exception("Template Settings not loaded");
+			}
+
+			DialogOptimalMz dialog = new DialogOptimalMz(FrameMain.this, "Set Parameters", true);
+
+			if (jradRect.isSelected()) {
+				dialog.addTextBox("xstart", "x start (mm)");
+				dialog.addTextBox("xstop", "x stop (mm)");
+				dialog.addTextBox("ystart", "y start (mm)");
+				dialog.addTextBox("ystop", "y stop (mm)");
+			}
+
+			dialog.addTextBox("ymin", "y min");
+
+			dialog.pack();
+			dialog.addOkListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						ICheckLetter isLetter;
+
+						if (jradRect.isSelected()) {
+							double x_start = Double.parseDouble(dialog.getText("xstart")); // 30
+							double x_stop = Double.parseDouble(dialog.getText("xstop"));// 40
+							double y_start = Double.parseDouble(dialog.getText("ystart"));// 0
+							double y_stop = Double.parseDouble(dialog.getText("ystop"));// 10
+
+							isLetter = new IsLetterV1(msiimage, x_start, x_stop, y_start, y_stop);
+						} else if (jradTempl.isSelected()) {
+							isLetter = isLetterTemplate;
+						} else {
+							isLetter = isLetterDraw;
+						}
+
+						int ymin = Integer.parseInt(dialog.getText("ymin"));
+
+						ITask task = new ITask() {
+
+							@Override
+							public void run() throws Exception {
+								PanelVlines panelVlines = new PanelVlines();
+
+								for (int line = 0; line < msiimage.getLines(); line++) {
+									if (progressTracker != null)
+										progressTracker.update((int) ((float) line / msiimage.getLines() * 100));
+
+									for (int x = 0; x < msiimage.getWidth(); x++) {
+										Spectrum spectrum = msiimage.getSpectrum(line, x);
+										boolean isLetterCheck = isLetter.check(x, line);
+
+										for (int s = 0; s < spectrum.mzs.length; s++) {
+											double mz = spectrum.mzs[s];
+											double i = spectrum.ints[s];
+											if (i >= ymin)
+												panelVlines.add(mz, i, isLetterCheck ? Color.BLUE : Color.RED);
+										}
+									}
+								}
+
+								panelVlines.addCommit();
+
+								if (progressTracker != null)
+									progressTracker.update(100);
+
+								updateUI(new ITask() {
+									@Override
+									public void run() {
+										tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), panelVlines);
+									}
+								});
+							}
+						};
+						submitTask(task);
+
+					} catch (Exception ex) {
+						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			});
+			dialog.setVisible(true);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+
 	}
 
 	/**

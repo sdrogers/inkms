@@ -368,7 +368,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 		try {
 			File selectedFile;
-			if (Startup.DEBUG) {
+			if (Startup.DEBUG_FILE) {
 				selectedFile = new File("E:\\Enironments\\data\\abcdef.png");
 			} else {
 

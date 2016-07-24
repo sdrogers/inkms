@@ -14,11 +14,11 @@ import com.constambeys.load.IReader;
 import com.constambeys.load.MSIImage;
 import com.constambeys.load.MzJavaProxy;
 import com.constambeys.patterns.Pattern1;
-import com.constambeys.python.IProgress;
 
 public class Startup {
 
-	public static boolean DEBUG = false;
+	public static boolean DEBUG_FILE = false;
+	public static boolean DEBUG_SPECTRUM = false;
 
 	/**
 	 * Debug Method used to load mass spectrometry file
@@ -27,10 +27,7 @@ public class Startup {
 	 * @throws Exception
 	 */
 	public static MSIImage loadMZML() throws Exception {
-		long startTime = System.nanoTime();
 		IReader run = new MzJavaProxy(new File("E:\\Enironments\\data\\abcdefgh_1.mzXML"));
-		long estimatedTime = System.nanoTime() - startTime;
-		System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
 
 		Pattern1.Param param = new Pattern1.Param();
 		param.lines = 8;

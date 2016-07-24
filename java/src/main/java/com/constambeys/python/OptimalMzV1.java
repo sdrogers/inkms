@@ -14,15 +14,15 @@ public class OptimalMzV1 extends OptimalMz {
 	/**
 	 * Finds the optimal mass based on intensity differences
 	 * 
-	 * @param loadMZML
+	 * @param msiimage
 	 *            the loaded mass spectrometry image
 	 * @param isLetter
 	 *            class that identifies letter pixels
 	 * @param bins
 	 *            class that defines the bins distribution
 	 */
-	public OptimalMzV1(MSIImage loadMZML, ICheckLetter isLetter, IBinResolution bins) {
-		super(loadMZML, isLetter, bins);
+	public OptimalMzV1(MSIImage msiimage, ICheckLetter isLetter, IBinResolution bins) {
+		super(msiimage, isLetter, bins);
 	}
 
 	public void run() throws Exception {
@@ -39,12 +39,12 @@ public class OptimalMzV1 extends OptimalMz {
 		double mzRangeLower = bins.getLowerBound();
 		double mzRangeHighest = bins.getHigherBound();
 
-		for (int line = 0; line < loadMZML.getLines(); line++) {
+		for (int line = 0; line < msiimage.getLines(); line++) {
 			if (callback != null)
-				callback.update((int) ((float) line / loadMZML.getLines() * 100));
+				callback.update((int) ((float) line / msiimage.getLines() * 100));
 
-			for (int x = 0; x < loadMZML.getWidth(); x++) {
-				Spectrum spectrum = loadMZML.getSpectrum(line, x);
+			for (int x = 0; x < msiimage.getWidth(); x++) {
+				Spectrum spectrum = msiimage.getSpectrum(line, x);
 				boolean isLetterCheck = isLetter.check(x, line);
 
 				for (int s = 0; s < spectrum.mzs.length; s++) {

@@ -20,7 +20,7 @@ public class OptimalMzV2 extends OptimalMz {
 	int pixelWeight = 2;
 
 	/**
-	 * @param loadMZML
+	 * @param msiimage
 	 *            the loaded mass spectrometry image
 	 * @param isLetter
 	 *            class that identifies letter pixels
@@ -30,8 +30,8 @@ public class OptimalMzV2 extends OptimalMz {
 	 *            the number of pixels raised to power pixelWeight
 	 * 
 	 */
-	public OptimalMzV2(MSIImage loadMZML, ICheckLetter isLetter, IBinResolution bins, int pixelWeight) {
-		super(loadMZML, isLetter, bins);
+	public OptimalMzV2(MSIImage msiimage, ICheckLetter isLetter, IBinResolution bins, int pixelWeight) {
+		super(msiimage, isLetter, bins);
 		this.pixelWeight = pixelWeight;
 	}
 
@@ -49,17 +49,17 @@ public class OptimalMzV2 extends OptimalMz {
 		double mzRangeLower = bins.getLowerBound();
 		double mzRangeHighest = bins.getHigherBound();
 
-		Pixel[][][] pixels = new Pixel[loadMZML.getLines()][loadMZML.getWidth()][resolution];
+		Pixel[][][] pixels = new Pixel[msiimage.getLines()][msiimage.getWidth()][resolution];
 
-		for (int line = 0; line < loadMZML.getLines(); line++) {
+		for (int line = 0; line < msiimage.getLines(); line++) {
 			if (callback != null)
-				callback.update((int) ((float) line / loadMZML.getLines() * 100));
+				callback.update((int) ((float) line / msiimage.getLines() * 100));
 
-			for (int x = 0; x < loadMZML.getWidth(); x++) {
+			for (int x = 0; x < msiimage.getWidth(); x++) {
 				for (int i = 0; i < resolution; i++) {
 					pixels[line][x][i] = new Pixel();
 				}
-				Spectrum spectrum = loadMZML.getSpectrum(line, x);
+				Spectrum spectrum = msiimage.getSpectrum(line, x);
 				boolean isLetterCheck = isLetter.check(x, line);
 
 				for (int s = 0; s < spectrum.mzs.length; s++) {
@@ -90,11 +90,11 @@ public class OptimalMzV2 extends OptimalMz {
 				stats[i].i1 = stats[i].i1 / stats[i].c1;
 		}
 
-		for (int line = 0; line < loadMZML.getLines(); line++) {
+		for (int line = 0; line < msiimage.getLines(); line++) {
 			if (callback != null)
-				callback.update((int) ((float) line / loadMZML.getLines() * 100));
+				callback.update((int) ((float) line / msiimage.getLines() * 100));
 
-			for (int x = 0; x < loadMZML.getWidth(); x++) {
+			for (int x = 0; x < msiimage.getWidth(); x++) {
 
 				boolean isLetterCheck = isLetter.check(x, line);
 
