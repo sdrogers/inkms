@@ -9,7 +9,6 @@ class PlotImage(object):
         self.param = param
 
     def plotImshow(self, mzRangeLower, mzRangeHighest):
-
         intensity = self.loadMZML.getReduceSpec(mzRangeLower, mzRangeHighest)
 
         plt.figure()
@@ -21,11 +20,10 @@ class PlotImage(object):
         # plt.savefig('imShow{0}-{1}.png'.format(mzRangeLower, mzRangeHighest))
 
     def plotImshowII(self, *rangeTuples):
-
         intensity = self.loadMZML.getReduceSpecII(*rangeTuples)
 
         plt.figure()
-        plt.imshow(intensity, extent=[0, self.param.widthInMM, 0, self.param.heightInMM], interpolation='none',
+        plt.imshow(intensity, extent=[0, self.param.widthInMM, self.param.heightInMM, 0], interpolation='none',
                    cmap='hot')
 
         # Save Data

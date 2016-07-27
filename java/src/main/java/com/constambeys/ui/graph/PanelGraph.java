@@ -379,7 +379,7 @@ public class PanelGraph extends JPanel {
 		// Draw y values
 		for (int i = 0; i <= 10; i++) {
 			int y = margin_y_top + height * i / 10;
-			String value = String.format("%d", heightInMM * (10 - i) / 10);
+			String value = String.format("%d", heightInMM * i / 10);
 			// Pointer
 			g2d.drawLine(MARGIN_X_LEFT - 5, y, MARGIN_X_LEFT + 5, y);
 			g2d.drawString(value, MARGIN_X_LEFT - MARGIN_LABELS, y + yOffset);
