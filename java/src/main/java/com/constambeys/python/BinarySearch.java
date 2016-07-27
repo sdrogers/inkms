@@ -25,22 +25,22 @@ public class BinarySearch<T> {
 	 */
 	public int search(Comparable<T> value) {
 		int first = 0;
-		int last = list.size() - 1;
+		int last = list.size() - 2;
 
-		while (first < last) {
+		while (first <= last) {
 			int midpoint = (first + last) / 2;
-			int v1 = -value.compareTo(list.get(midpoint));
-			int v2 = -value.compareTo(list.get(midpoint + 1));
+			int v1 = value.compareTo(list.get(midpoint));
+			int v2 = value.compareTo(list.get(midpoint + 1));
 
-			// midpoint < value && midpoint +1 >= value
-			if (v1 == -1 && v2 >= 0) {
+			// value > midpoint && value <= midpoint +1
+			if (v1 == 1 && v2 <= 0) {
 				return midpoint;
-				// midpoint >=value then value <= midpoint
+				//  value <= 0
 			} else if (midpoint == 0 && value.compareTo(list.get(0)) <= 0) {
 				return -1;
 			} else {
-				// value > midpoint
-				if (v1 == 1) {
+				// value <= midpoint
+				if (v1 <= 0) {
 					last = midpoint - 1;
 				} else {
 					first = midpoint + 1;
@@ -48,7 +48,7 @@ public class BinarySearch<T> {
 			}
 		}
 
-		return last;
+		return list.size() - 1;
 	}
 
 	public static void main(String[] args) {

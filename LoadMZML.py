@@ -144,20 +144,20 @@ class LoadMZML(object):
     @staticmethod
     def binarySearch(alist, item):
         first = 0
-        last = len(alist) - 1
+        last = len(alist) - 2
 
-        while first < last:
+        while first <= last:
             midpoint = (first + last) // 2
             if alist[midpoint][0] < item and alist[midpoint + 1][0] >= item:
                 return midpoint
             elif midpoint == 0 and alist[midpoint][0] >= item:
                 return -1
             else:
-                if item < alist[midpoint][0]:
+                if item <= alist[midpoint][0]:
                     last = midpoint - 1
                 else:
                     first = midpoint + 1
-        return last
+        return len(alist) - 1
 
     # max_mz, max_i = getPeak(spectrum)
     def getPeak(spectrum):

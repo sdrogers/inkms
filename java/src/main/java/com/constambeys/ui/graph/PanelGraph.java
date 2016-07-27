@@ -282,8 +282,8 @@ public class PanelGraph extends JPanel {
 	 * @return image width and height
 	 */
 	private int[] paintImageHeight(Graphics g, int available_width, int available_height, int margin_y_top) {
-		double ratio = widthInMM / heightInMM;
-		double ratio_ = available_width / available_height;
+		double ratio = (double) (widthInMM) / heightInMM;
+		double ratio_ = (double) (available_width) / available_height;
 
 		int width;
 		int height;
@@ -313,8 +313,8 @@ public class PanelGraph extends JPanel {
 	 * @return image width and height
 	 */
 	private int[] paintImage(Graphics g, int available_width, int available_height, int margin_y_top) {
-		double ratio = widthInMM / heightInMM;
-		double ratio_ = available_width / available_height;
+		double ratio = (double) (widthInMM) / heightInMM;
+		double ratio_ = (double) (available_width) / available_height;
 
 		int width;
 		int height;

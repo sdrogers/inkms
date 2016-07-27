@@ -22,10 +22,10 @@ import com.constambeys.python.BinarySearch;
 public class PanelVlines extends JPanel {
 
 	protected final int PAINT_MAX_LINES_ON_SCREEN = 10000;
-	protected final int SEARCH = 200;
+	protected final int SEARCH = 300;
 	protected final double ZOOM_LOWER_BOUND = 0.5d;
 
-	protected final int MARGIN_X_LEFT = 30;
+	protected final int MARGIN_X_LEFT = 40;
 	protected final int MARGIN_X_RIGHT = 5;
 	protected final int MARGIN_Y_BOTTOM = 30;
 	protected final int MARGIN_Y_TOP = 30;
@@ -36,7 +36,8 @@ public class PanelVlines extends JPanel {
 	protected final int MARGIN_X_AXIS = 3;
 	protected final int MARGIN_Y_AXIS = 3;
 
-	protected final int MARGIN_LABELS = 25;
+	protected final int MARGIN_LABELS_X = 25;
+	protected final int MARGIN_LABELS_Y = 38;
 
 	// Graphics
 	protected Font fontAxis;
@@ -44,10 +45,10 @@ public class PanelVlines extends JPanel {
 	/**
 	 * Real value statistics
 	 */
-	protected int xmin;
-	protected int xmax;
-	protected int ymin;
-	protected int ymax;
+	protected double xmin;
+	protected double xmax;
+	protected double ymin;
+	protected double ymax;
 
 	/**
 	 * Zoom = 1 No Zoom
@@ -82,17 +83,13 @@ public class PanelVlines extends JPanel {
 	boolean showInfo;
 	Vline closest;
 
+	/**
+	 * Initialises a new {@code PanelVlines }
+	 */
 	public PanelVlines() {
 		super();
 		lines = new ArrayList<>();
 		blines = new BinarySearch<>(lines);
-		findxstart = new Comparable<PanelVlines.Vline>() {
-
-			@Override
-			public int compareTo(Vline o) {
-				return Double.compare(xstart, o.x);
-			}
-		};
 		visible = new ArrayList<>();
 		bvisible = new BinarySearch<>(visible);
 		fontAxis = new Font("SansSerif", Font.BOLD, 10);
@@ -121,7 +118,7 @@ public class PanelVlines extends JPanel {
 
 				// Zoom to mouse position
 				// Correcting xx
-				xstart = xstart + (int) ((e.getX() - MARGIN_X_LEFT) * (xmax - xmin) * (zoom - zoomOrg) / (zoom * zoomOrg * available_width));
+				xstart = xstart + (e.getX() - MARGIN_X_LEFT) * (xmax - xmin) * (zoom - zoomOrg) / (zoom * zoomOrg * available_width);
 
 				// Get scrolled unit amount
 				// System.out.println("ScrollAmount: " + e.getScrollAmount());
@@ -131,19 +128,42 @@ public class PanelVlines extends JPanel {
 
 	}
 
+	/**
+	 * After adding all values call addCommit
+	 *
+	 * @param x
+	 *            coordinate
+	 * @param y
+	 *            coordinate
+	 */
 	public void add(double x, double y) {
 		Vline line = new Vline(x, y);
 		lines.add(line);
 	}
 
+	/**
+	 * After adding all values call addCommit
+	 *
+	 * @param x
+	 *            coordinate
+	 * @param y
+	 *            coordinate
+	 * @param color
+	 *            arrow colour
+	 */
 	public void add(double x, double y, Color color) {
 		Vline line = new Vline(x, y, color);
 		lines.add(line);
 	}
 
-	public void addCommit() {
+	/**
+	 * Call to update internal state
+	 * @throws Exception 
+	 */
+	public void addCommit() throws Exception {
 		Collections.sort(lines);
 		calculateStatistics();
+		xstart = xmin;
 	}
 
 	/**
@@ -169,6 +189,14 @@ public class PanelVlines extends JPanel {
 		g2d.drawLine(MARGIN_X_LEFT - MARGIN_Y_AXIS, margin_y_top, MARGIN_X_LEFT - MARGIN_Y_AXIS, margin_y_top + height);
 	}
 
+	/**
+	 * Calculates the interval's decimal places
+	 * <p>
+	 * for example 10 order 0, 1 order 0, 0.1 order 1 ...
+	 *
+	 * @param interval
+	 * @return order
+	 */
 	protected int calculateDesimalPlaces(double interval) {
 		int accuracy = 0;
 		while (interval < 1) {
@@ -179,24 +207,41 @@ public class PanelVlines extends JPanel {
 		return accuracy;
 	}
 
-	protected void calculateStatistics() {
+	/**
+	 * Updates input data statistical values min, max
+	 * 
+	 * @throws Exception
+	 */
+	protected void calculateStatistics() throws Exception {
 
 		if (lines.size() == 0) {
 			return;
 		}
 
-		xmin = (int) lines.get(0).x;
-		xmax = (int) lines.get(lines.size() - 1).x;
-		ymin = (int) lines.get(0).y;
-		ymax = (int) lines.get(0).y;
+		xmin = lines.get(0).x;
+		xmax = lines.get(lines.size() - 1).x;
+		ymin = lines.get(0).y;
+		ymax = lines.get(0).y;
 
 		for (Vline line : lines) {
-			int y = (int) line.y;
+			double y = line.y;
 
 			if (ymin > y)
 				ymin = y;
 			if (ymax < y)
 				ymax = y;
+		}
+
+		if (xmax == xmin) {
+			xmax = 100;
+			xmin = 0;
+			throw new Exception("Too few data");
+		}
+
+		if (ymax == ymin) {
+			ymax = 100;
+			ymin = 0;
+			throw new Exception("Too few data");
 		}
 
 		return;
@@ -226,10 +271,10 @@ public class PanelVlines extends JPanel {
 		// Draw y values
 		for (int i = 0; i <= 10; i++) {
 			int y = margin_y_top + height * i / 10;
-			String value = String.format("%." + decimalPlaces + "f", PixelsToY(10 - i, 10));
+			String value = String.format("%." + decimalPlaces + "e", PixelsToY(10 - i, 10));
 			// Pointer
 			g2d.drawLine(MARGIN_X_LEFT - 5, y, MARGIN_X_LEFT + 5, y);
-			g2d.drawString(value, MARGIN_X_LEFT - MARGIN_LABELS, y + yOffset);
+			g2d.drawString(value, MARGIN_X_LEFT - MARGIN_LABELS_Y, y + yOffset);
 		}
 
 		decimalPlaces = calculateDesimalPlaces(PixelsToX(1, 10) - xstart);
@@ -241,7 +286,7 @@ public class PanelVlines extends JPanel {
 			int xOffset = axisFontMetrics.stringWidth(value) / 2;
 			// Pointer
 			g2d.drawLine(x, margin_y_top + height + MARGIN_X_AXIS - 5, x, margin_y_top + height + MARGIN_X_AXIS + 5);
-			g2d.drawString(value, x - xOffset, margin_y_top + height + MARGIN_X_AXIS + MARGIN_LABELS);
+			g2d.drawString(value, x - xOffset, margin_y_top + height + MARGIN_X_AXIS + MARGIN_LABELS_X);
 		}
 	}
 
@@ -256,9 +301,17 @@ public class PanelVlines extends JPanel {
 			Graphics2D g2d = (Graphics2D) g;
 
 			// Display only a small subset of the data in that range
-			int indexStart = 1 + blines.search(findxstart);
+			int indexStart = 1 + blines.search(new Comparable<PanelVlines.Vline>() {
+
+				@Override
+				public int compareTo(Vline o) {
+					return Double.compare(xstart, o.x);
+				}
+			});
+
+			double xstop = PixelsToX(1, 1);
+
 			int indexStop = blines.search(new Comparable<PanelVlines.Vline>() {
-				double xstop = PixelsToX(1, 1);
 
 				@Override
 				public int compareTo(Vline o) {
@@ -268,8 +321,6 @@ public class PanelVlines extends JPanel {
 			int step = 1;
 			if (indexStop - indexStart > PAINT_MAX_LINES_ON_SCREEN) {
 				step = (indexStop - indexStart) / PAINT_MAX_LINES_ON_SCREEN;
-				if (step == 0)
-					step = 1;
 			}
 
 			visible.clear();
@@ -295,6 +346,11 @@ public class PanelVlines extends JPanel {
 		}
 	}
 
+	/**
+	 * Represents a pair of x and y coordinates
+	 * 
+	 * @author Constambeys
+	 */
 	protected class Vline implements Comparable<Vline> {
 
 		/**
@@ -431,17 +487,14 @@ public class PanelVlines extends JPanel {
 					return Double.compare(x, o.x1);
 				}
 			});
+			int indexStart = Math.max(0, index - SEARCH);
+			int indexStop = Math.min(visible.size() - 1, index + SEARCH);
 
-			if (index - SEARCH < 0)
-				index = SEARCH;
-			else if (index + SEARCH > visible.size() - 1)
-				index = visible.size() - 1 - SEARCH;
+			closest = null;
 
-			closest = visible.get(index - SEARCH);
-
-			for (int i = index - SEARCH; i < index + SEARCH; i++) {
+			for (int i = indexStart + 1; i < indexStop; i++) {
 				Vline line = visible.get(i);
-				if (line.y > closest.y) {
+				if (closest == null || line.y > closest.y) {
 					closest = line;
 				}
 			}
@@ -451,28 +504,76 @@ public class PanelVlines extends JPanel {
 		}
 	}
 
+	/**
+	 * Converts x value to the display coordinate
+	 * <p>
+	 * Does not include margin constants
+	 * 
+	 * @param x
+	 * @return coordinate
+	 */
 	protected int xToPixels(double x) {
 		return (int) (zoom * (x - xstart) / (xmax - xmin) * available_width);
 	}
 
+	/**
+	 * Converts y value to the display coordinate
+	 * <p>
+	 * Does not include margin constants
+	 *
+	 * @param y
+	 * @return coordinate
+	 */
 	protected int yToPixels(double y) {
 		return (int) (zoom * (y) / (ymax - ymin) * available_height);
 	}
 
+	/**
+	 * Converts display coordinate to x value
+	 * <p>
+	 * Does not include margin constants
+	 *
+	 * @param x
+	 * @return coordinate
+	 */
 	protected double PixelsToX(int x) {
 		return xstart + x * (xmax - xmin) / zoom / available_width;
 	}
 
+	/**
+	 * Converts display ratio to x value
+	 * <p>
+	 * Does not include margin constants
+	 *
+	 * @param x
+	 * @return coordinate
+	 */
 	protected double PixelsToX(int i, int max) {
 		// int x1 = (int) (zoom * (x - xx) / (xmax - xmin) * available_width);
 		// => find x
 		return xstart + ((xmax - xmin) / zoom * i / max);
 	}
 
+	/**
+	 * Converts display coordinate to y value
+	 * <p>
+	 * Does not include margin constants
+	 *
+	 * @param y
+	 * @return coordinate
+	 */
 	protected double PixelsToY(int y) {
 		return y * (ymax - ymin) / zoom / available_height;
 	}
 
+	/**
+	 * Converts display ratio to y value
+	 * <p>
+	 * Does not include margin constants
+	 *
+	 * @param y
+	 * @return coordinate
+	 */
 	protected double PixelsToY(int i, int max) {
 		// int y1 = (int) (zoom * (y) / (ymax - ymin) * available_height);
 		// => find y

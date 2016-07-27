@@ -673,6 +673,10 @@ public class FrameMain extends JFrame {
 		}
 	}
 
+	/**
+	 * ActionListener of the Spectrum button.
+	 * 
+	 */
 	private void btnSpectrum() {
 		try {
 			if (Startup.DEBUG_SPECTRUM) {
