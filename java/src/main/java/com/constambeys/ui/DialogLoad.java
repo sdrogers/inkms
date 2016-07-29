@@ -73,6 +73,7 @@ public class DialogLoad extends JDialog implements MouseListener {
 	private JComboBox jcomboType;
 
 	private IReader reader;
+	private Thread tread;
 	private Pattern pattern;
 
 	private JRadioButton jradMeandering;
@@ -90,9 +91,9 @@ public class DialogLoad extends JDialog implements MouseListener {
 	 *            specifies whether dialog blocks user input to other top-level windows when shown
 	 * @throws IOException
 	 */
-	public DialogLoad(FrameMain owner, String title, boolean modal) throws IOException {
-		super(owner, title, modal);
-		setupUI();
+	public DialogLoad(FrameMain owner, boolean canClose) throws IOException {
+		super(owner, "Set Parameters", true);
+		setupUI(canClose);
 	}
 
 	/**
@@ -101,8 +102,9 @@ public class DialogLoad extends JDialog implements MouseListener {
 	 * @throws IOException
 	 * 
 	 */
-	private void setupUI() throws IOException {
+	private void setupUI(boolean canClose) throws IOException {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
 		setBounds(100, 100, 200, 185);
 
 		setMinimumSize(getSize());
@@ -165,22 +167,39 @@ public class DialogLoad extends JDialog implements MouseListener {
 				6, 6, // initX, initY
 				6, 6); // xPad, yPad
 
-		JButton buttonCancel = new JButton("Cancel");
-		buttonCancel.addActionListener(new ActionListener() {
+		if (canClose) {
+			JButton buttonCancel = new JButton("Cancel");
+			buttonCancel.addActionListener(new ActionListener() {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setVisible(false);
-				dispose();
-			}
-		});
-		panelSouth.add(buttonCancel);
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					setVisible(false);
+					dispose();
+				}
+			});
+			panelSouth.add(buttonCancel);
+		} else {
+			// Close button is clicked
+			addWindowListener(new java.awt.event.WindowAdapter() {
+				@Override
+				public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+					System.exit(0);
+				}
+			});
+		}
 
 		buttonOK.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				try {
+					if (tread != null && tread.isAlive()) {
+						JOptionPane.showMessageDialog(null, "Please wait until file loading is completed", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					} else if (reader == null) {
+						JOptionPane.showMessageDialog(null, "Click file to select an input file", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
 
 					ILoadPattern p;
 					if (pattern == Pattern.Pattern1) {
@@ -240,6 +259,42 @@ public class DialogLoad extends JDialog implements MouseListener {
 		setPattern(Pattern.Pattern1);
 	}
 
+	private void loadfile(File selectedFile) throws Exception {
+
+		long startTime = System.nanoTime();
+		String filepath = selectedFile.getAbsolutePath();
+
+		if (filepath.toLowerCase().endsWith("mzxml")) {
+			reader = new MzJavaProxy(new File(filepath));
+		} else if (filepath.toLowerCase().endsWith("imzml")) {
+			reader = new ImzMLProxy(new File(filepath));
+		} else if (filepath.toLowerCase().endsWith("mzml")) {
+			reader = new MzMLProxy(new File(filepath));
+		} else {
+			throw new Exception("File format not supprted");
+		}
+
+		long estimatedTime = System.nanoTime() - startTime;
+		System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
+
+		updateUI(new ITask() {
+
+			@Override
+			public void run() throws Exception {
+				jFilePath.setText(selectedFile.getAbsolutePath());
+
+				if (reader instanceof ImzMLProxy) {
+					jtextLines.setText(Integer.toString(((ImzMLProxy) reader).getLines()));
+					jtextLines.setEditable(false);
+					jtextDownMotion.setText("0");
+				} else {
+					jtextLines.setEditable(true);
+				}
+			}
+		});
+
+	}
+
 	/**
 	 * Set OK button listener
 	 * 
@@ -253,8 +308,12 @@ public class DialogLoad extends JDialog implements MouseListener {
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		try {
-			Settings settings = new Settings();
+			if (tread != null && tread.isAlive()) {
+				JOptionPane.showMessageDialog(null, "Please wait until file loading is completed", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 
+			Settings settings = new Settings();
 			JFileChooser fileChooser = new JFileChooser();
 			FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML | mzXML | imzML files", "mzML", "mzXML", "imzML");
 			fileChooser.setFileFilter(filter);
@@ -268,44 +327,25 @@ public class DialogLoad extends JDialog implements MouseListener {
 
 				File selectedFile = fileChooser.getSelectedFile();
 
-				updateUI(new ITask() {
+				tread = new Thread(new Runnable() {
 
 					@Override
-					public void run() throws Exception {
-
-						jFilePath.setText(selectedFile.getAbsolutePath());
-
-						long startTime = System.nanoTime();
-						String filepath = selectedFile.getAbsolutePath();
-
-						if (filepath.toLowerCase().endsWith("mzxml")) {
-							reader = new MzJavaProxy(new File(filepath));
-						} else if (filepath.toLowerCase().endsWith("imzml")) {
-							reader = new ImzMLProxy(new File(filepath));
-						} else if (filepath.toLowerCase().endsWith("mzml")) {
-							reader = new MzMLProxy(new File(filepath));
-						} else {
-							throw new Exception("File format not supprted");
-						}
-
-						long estimatedTime = System.nanoTime() - startTime;
-						System.out.println(String.format("%.3fs", estimatedTime / 1000000000.0));
-
-						if (reader instanceof ImzMLProxy) {
-							jtextLines.setText(Integer.toString(((ImzMLProxy) reader).getLines()));
-							jtextLines.setEditable(false);
-							jtextDownMotion.setText("0");
-						} else {
-							jtextLines.setEditable(true);
-						}
-						settings.put("load_dir", fileChooser.getCurrentDirectory().getAbsolutePath());
+					public void run() {
 						try {
-							settings.save();
-						} catch (IOException e1) {
-							System.err.println("Error saving");
+							loadfile(selectedFile);
+						} catch (Exception ex) {
+							JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 						}
 					}
 				});
+				tread.start();
+
+				settings.put("load_dir", fileChooser.getCurrentDirectory().getAbsolutePath());
+				try {
+					settings.save();
+				} catch (IOException e1) {
+					System.err.println("Error saving");
+				}
 			}
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

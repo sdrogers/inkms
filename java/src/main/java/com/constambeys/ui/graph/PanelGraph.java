@@ -147,13 +147,23 @@ public class PanelGraph extends JPanel {
 	}
 
 	/**
-	 * Sets Graph Title
+	 * Set the Graph Title
 	 * 
 	 * @param title
 	 */
 	public void setTitle(String title) {
 		this.title = title;
 		this.repaint();
+	}
+
+	/**
+	 * Get the Graph Title
+	 * 
+	 * @param title
+	 * @return
+	 */
+	public String getTitle() {
+		return this.title;
 	}
 
 	/**

@@ -1,40 +1,44 @@
 package com.constambeys.ui;
 
-import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.FlowLayout;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.DefaultListModel;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.ParallelGroup;
+import javax.swing.GroupLayout.SequentialGroup;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.SpringLayout;
-import javax.swing.border.EmptyBorder;
-
-import com.constambeys.layout.SpringUtilities;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 
 public class DialogGraph extends JDialog {
 
-	/**
-	 * Create the dialog.
-	 * 
-	 * @param result
-	 */
-	private ActionListener ok;
+	interface IOkListener {
+		public void actionPerformed(ActionEvent e, List<MassPerCharge> ranges);
+	}
 
-	private JPanel panelSouth = new JPanel();
-	private JButton buttonOK = new JButton("OK");
-
-	private JTextField jLowerMass = new JTextField(10);
-	private JTextField jHigherMass = new JTextField(10);
-
-	ArrayList<MassPerCharge> massrange = new ArrayList<MassPerCharge>();
+	private IOkListener ok;
+	private JTextField jLowerMass;
+	private JTextField jHigherMass;
+	private DefaultListModel<MassPerCharge> jListModel;
+	private JList<MassPerCharge> jList;
 
 	/**
 	 * The {@code DialogGraph} class allows the user to draw a mass range
@@ -45,8 +49,9 @@ public class DialogGraph extends JDialog {
 	 *            the {@code String} to display in the dialog's title bar
 	 * @param modal
 	 *            specifies whether dialog blocks user input to other top-level windows when shown
+	 * @throws IOException
 	 */
-	public DialogGraph(Frame owner, String title, boolean modal) {
+	public DialogGraph(Frame owner, String title, boolean modal) throws IOException {
 		super(owner, title, modal);
 		setupUI();
 	}
@@ -60,8 +65,9 @@ public class DialogGraph extends JDialog {
 	 *            the {@code String} to display in the dialog's title bar
 	 * @param modal
 	 *            specifies whether dialog blocks user input to other top-level windows when shown
+	 * @throws IOException
 	 */
-	public DialogGraph(Dialog owner, String title, boolean modal) {
+	public DialogGraph(Dialog owner, String title, boolean modal) throws IOException {
 		super(owner, title, modal);
 		setupUI();
 	}
@@ -69,78 +75,154 @@ public class DialogGraph extends JDialog {
 	/**
 	 * Initialises the UI elements
 	 * 
+	 * @throws IOException
+	 * 
 	 */
-	private void setupUI() {
+	private void setupUI() throws IOException {
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 200, 100);
+		setBounds(100, 100, 400, 200);
 		setMinimumSize(getSize());
-		getContentPane().setLayout(new BorderLayout());
 
-		// Create and populate the panel.
-		JPanel panelCenter = new JPanel(new SpringLayout());
-		JLabel l;
+		GroupLayout layout = new GroupLayout(getContentPane());
+		getContentPane().setLayout(layout);
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
 
-		l = new JLabel("Lower Mass", JLabel.TRAILING);
-		panelCenter.add(l);
-		l.setLabelFor(jLowerMass);
-		panelCenter.add(jLowerMass);
+		JLabel l1 = new JLabel("Lower Mass", JLabel.TRAILING);
+		l1.setFocusable(false);
+		JLabel l2 = new JLabel("Higher Mass", JLabel.TRAILING);
+		l2.setFocusable(false);
 
-		l = new JLabel("Higher Mass", JLabel.TRAILING);
-		panelCenter.add(l);
-		l.setLabelFor(jHigherMass);
-		panelCenter.add(jHigherMass);
+		jLowerMass = new JTextField();
+		jLowerMass.setFocusable(true);
+		jHigherMass = new JTextField();
+		jLowerMass.setFocusable(true);
 
-		// Lay out the panel.
-		SpringUtilities.makeCompactGrid(panelCenter, 2, 2, // rows, cols
-				6, 6, // initX, initY
-				6, 6); // xPad, yPad
+		jListModel = new DefaultListModel<MassPerCharge>();
+		jList = new JList(jListModel);
+		jList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		jList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		jList.setFocusable(false);
+		JScrollPane jScrollList = new JScrollPane();
+		jScrollList.setPreferredSize(new Dimension(80, 80));
+		jScrollList.setViewportView(jList);
 
-		getContentPane().add(panelCenter, BorderLayout.CENTER);
+		JButton jbtnRight = new JButton();
+		int height = (int) jbtnRight.getPreferredSize().getHeight();
+		jbtnRight.setIcon(Startup.loadIcon("right128.png", height, height));
+		jbtnRight.setFocusable(false);
+		JButton jbtnLeft = new JButton();
+		jbtnLeft.setIcon(Startup.loadIcon("left128.png", height, height));
+		jbtnLeft.setFocusable(false);
+		JButton buttonOK = new JButton("OK");
+		buttonOK.setFocusable(false);
 
-		panelSouth.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		panelSouth.setBorder(new EmptyBorder(5, 5, 5, 5));
+		ParallelGroup h1 = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
+		h1.addComponent(l1);
+		h1.addComponent(jLowerMass);
+		h1.addComponent(l2);
+		h1.addComponent(jHigherMass);
 
-		JButton buttonSave = new JButton("Save");
-		buttonSave.addActionListener(new ActionListener() {
+		ParallelGroup h2 = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
+		h2.addComponent(jbtnRight);
+		h2.addComponent(jbtnLeft);
+
+		ParallelGroup h3 = layout.createParallelGroup(GroupLayout.Alignment.TRAILING);
+		h3.addComponent(jScrollList);
+		h3.addComponent(buttonOK);
+
+		SequentialGroup h = layout.createSequentialGroup();
+		h.addGroup(h1);
+		h.addGroup(h2);
+		h.addGroup(h3);
+		layout.setHorizontalGroup(h);
+
+		layout.linkSize(SwingConstants.HORIZONTAL, jbtnRight, jbtnLeft);
+
+		SequentialGroup v1 = layout.createSequentialGroup();
+		v1.addComponent(l1);
+		v1.addComponent(jLowerMass);
+		v1.addComponent(l2);
+		v1.addComponent(jHigherMass);
+
+		SequentialGroup v2 = layout.createSequentialGroup();
+		v2.addComponent(jbtnRight);
+		v2.addComponent(jbtnLeft);
+
+		ParallelGroup v3 = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
+		v3.addComponent(jScrollList);
+
+		ParallelGroup v4 = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
+		v4.addGroup(v1);
+		v4.addGroup(v2);
+		v4.addGroup(v3);
+
+		SequentialGroup v = layout.createSequentialGroup();
+		v.addGroup(v4);
+		v.addComponent(buttonOK);
+
+		layout.setVerticalGroup(v);
+
+		jbtnRight.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					readValues();
+					parseInput();
 					jLowerMass.setText("");
 					jHigherMass.setText("");
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 				}
+
 			}
 		});
-		panelSouth.add(buttonSave);
+
+		jbtnLeft.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int index = jList.getSelectedIndex();
+				if (index != -1) {
+					MassPerCharge selected = jListModel.getElementAt(index);
+					jListModel.remove(index);
+					jLowerMass.setText(selected.strLowerMass);
+					jHigherMass.setText(selected.strHigherMass);
+				}
+
+			}
+		});
 
 		buttonOK.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				try {
-					readValues();
+					parseInput();
 					setVisible(false);
 					dispose();
-					if (ok != null)
-						ok.actionPerformed(event);
+					if (ok != null) {
+						ArrayList<MassPerCharge> list = new ArrayList<MassPerCharge>();
+						for (int i = 0; i < jListModel.getSize(); i++) {
+							MassPerCharge item = jListModel.getElementAt(i);
+							list.add(item);
+						}
+						ok.actionPerformed(event, list);
+					}
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});
-		panelSouth.add(buttonOK);
 
 		getRootPane().setDefaultButton(buttonOK);
-		getContentPane().add(panelSouth, BorderLayout.SOUTH);
+
 	}
 
 	/**
 	 * Reads user interface values and adds them to {@code massrange} array
 	 */
-	private void readValues() {
+	private void parseInput() {
 		String strLowerMass = jLowerMass.getText().trim();
 		String strHigherMass = jHigherMass.getText().trim();
 		if (strLowerMass.equals("") && strHigherMass.equals("")) {
@@ -149,7 +231,7 @@ public class DialogGraph extends JDialog {
 		double lowerMass = Double.parseDouble(strLowerMass);
 		double higherMass = Double.parseDouble(strHigherMass);
 		MassPerCharge m = new MassPerCharge(strLowerMass, strHigherMass, lowerMass, higherMass);
-		massrange.add(m);
+		jListModel.addElement(m);
 	}
 
 	/**
@@ -158,8 +240,27 @@ public class DialogGraph extends JDialog {
 	 * @param l
 	 *            callback listener
 	 */
-	public void addOkListener(ActionListener l) {
+	public void addOkListener(IOkListener l) {
 		ok = l;
+	}
+
+	public static void main(String args[]) {
+		java.awt.EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+					// "com.sun.java.swing.plaf.motif.MotifLookAndFeel");
+					// UIManager.getCrossPlatformLookAndFeelClassName());
+
+					Dialog dialog = new DialogGraph(new JFrame(), "Set Parameters", true);
+					dialog.pack();
+					dialog.setVisible(true);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+
+			}
+		});
 	}
 
 	class MassPerCharge {
@@ -174,7 +275,12 @@ public class DialogGraph extends JDialog {
 
 			this.lowerMass = lowerMass;
 			this.higherMass = higherMass;
+		}
 
+		@Override
+		public String toString() {
+			return String.format("%sm/z - %sm/z", strLowerMass, strHigherMass);
 		}
 	}
+
 }

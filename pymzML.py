@@ -121,9 +121,9 @@ def TemplateOverlayN():
     template, generated = templateOverlay.alignment(template, generated)
 
     plt.figure()
-    plt.imshow(np.asarray(generated), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none',
+    plt.imshow(np.asarray(generated), extent=[0, param.widthInMM, param.heightInMM, 0], interpolation='none',
                cmap='hot')
-    plt.imshow(np.asarray(template), extent=[0, param.widthInMM, 0, param.heightInMM], interpolation='none', cmap='hot',
+    plt.imshow(np.asarray(template), extent=[0, param.widthInMM, param.heightInMM, 0], interpolation='none', cmap='hot',
                alpha=0.15)  # 0 fully transparent
 
     # Calculate optimal mass based on template

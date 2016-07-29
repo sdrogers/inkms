@@ -1,11 +1,13 @@
 package com.constambeys.ui.graph;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -21,8 +23,10 @@ import com.constambeys.python.BinarySearch;
 
 public class PanelVlines extends JPanel {
 
-	protected final int PAINT_MAX_LINES_ON_SCREEN = 10000;
-	protected final int SEARCH = 300;
+	protected final int PAINT_MAX_LINES_ON_SCREEN0 = 2000;
+	protected final int PAINT_MAX_LINES_ON_SCREEN1 = 2000;
+
+	protected final int SEARCH_PIXELS = 20;
 	protected final double ZOOM_LOWER_BOUND = 0.5d;
 
 	protected final int MARGIN_X_LEFT = 40;
@@ -66,32 +70,53 @@ public class PanelVlines extends JPanel {
 	/**
 	 * All Sorted
 	 */
-	protected List<Vline> lines;
-	protected BinarySearch<Vline> blines;
-	protected Comparable<Vline> findxstart;
+	protected List<Vline> lines0;
+	protected BinarySearch<Vline> blines0;
 	/**
 	 * Visible Sorted
 	 */
-	protected List<Vline> visible;
-	protected BinarySearch<Vline> bvisible;
+	protected List<Vline> visible0;
+	protected BinarySearch<Vline> bvisible0;
+
+	/**
+	 * All Sorted
+	 */
+	protected List<Vline> lines1;
+	protected BinarySearch<Vline> blines1;
+	/**
+	 * Visible Sorted
+	 */
+	protected List<Vline> visible1;
+	protected BinarySearch<Vline> bvisible1;
+
+	protected Comparable<Vline> findxstart;
 
 	// Calculated during paint
 	protected int available_height;
 	protected int available_width;
 
 	// Display hovering info
-	boolean showInfo;
-	Vline closest;
+	protected boolean showInfo;
+	protected Vline closest;
+
+	// Zoom to a selected region
+	protected boolean showSelectedRegion = false;
+	protected Point selectionStart;
+	protected Point selectionStop;
 
 	/**
 	 * Initialises a new {@code PanelVlines }
 	 */
 	public PanelVlines() {
 		super();
-		lines = new ArrayList<>();
-		blines = new BinarySearch<>(lines);
-		visible = new ArrayList<>();
-		bvisible = new BinarySearch<>(visible);
+		lines0 = new ArrayList<>();
+		blines0 = new BinarySearch<>(lines0);
+		visible0 = new ArrayList<>();
+		bvisible0 = new BinarySearch<>(visible0);
+		lines1 = new ArrayList<>();
+		blines1 = new BinarySearch<>(lines1);
+		visible1 = new ArrayList<>();
+		bvisible1 = new BinarySearch<>(visible1);
 		fontAxis = new Font("SansSerif", Font.BOLD, 10);
 
 		MyMouseListener listener = new MyMouseListener();
@@ -138,7 +163,7 @@ public class PanelVlines extends JPanel {
 	 */
 	public void add(double x, double y) {
 		Vline line = new Vline(x, y);
-		lines.add(line);
+		lines0.add(line);
 	}
 
 	/**
@@ -148,20 +173,28 @@ public class PanelVlines extends JPanel {
 	 *            coordinate
 	 * @param y
 	 *            coordinate
-	 * @param color
-	 *            arrow colour
+	 * @param inRegion
+	 *            true is coloured blue otherwise red
 	 */
-	public void add(double x, double y, Color color) {
-		Vline line = new Vline(x, y, color);
-		lines.add(line);
+	public void add(double x, double y, boolean inRegion) {
+		if (inRegion) {
+			Vline line = new Vline(x, y, Color.BLUE);
+			lines0.add(line);
+		} else {
+			Vline line = new Vline(x, y, Color.RED);
+			lines1.add(line);
+		}
 	}
 
 	/**
 	 * Call to update internal state
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 */
 	public void addCommit() throws Exception {
-		Collections.sort(lines);
+		Collections.sort(lines0);
+		Collections.sort(lines1);
+
 		calculateStatistics();
 		xstart = xmin;
 	}
@@ -214,16 +247,16 @@ public class PanelVlines extends JPanel {
 	 */
 	protected void calculateStatistics() throws Exception {
 
-		if (lines.size() == 0) {
-			return;
+		if (lines0.size() == 0) {
+			throw new Exception("Too few data");
 		}
 
-		xmin = lines.get(0).x;
-		xmax = lines.get(lines.size() - 1).x;
-		ymin = lines.get(0).y;
-		ymax = lines.get(0).y;
+		xmin = lines0.get(0).x;
+		xmax = lines0.get(lines0.size() - 1).x;
+		ymin = lines0.get(0).y;
+		ymax = lines0.get(0).y;
 
-		for (Vline line : lines) {
+		for (Vline line : lines0) {
 			double y = line.y;
 
 			if (ymin > y)
@@ -290,6 +323,39 @@ public class PanelVlines extends JPanel {
 		}
 	}
 
+	private void paint(Graphics2D g2d, List<Vline> list, BinarySearch<Vline> blist, List<Vline> visible, int limit) {
+		visible.clear();
+
+		// Display only a small subset of the data in that range
+		int indexStart = 1 + blist.search(new Comparable<PanelVlines.Vline>() {
+
+			@Override
+			public int compareTo(Vline o) {
+				return Double.compare(xstart, o.x);
+			}
+		});
+
+		double xstop = PixelsToX(1, 1);
+
+		int indexStop = 1 + blist.search(new Comparable<PanelVlines.Vline>() {
+
+			@Override
+			public int compareTo(Vline o) {
+				return Double.compare(xstop, o.x);
+			}
+		});
+		int step = 1;
+		if (indexStop - indexStart > limit) {
+			step = (indexStop - indexStart) / limit;
+		}
+
+		for (int i = indexStart; i < indexStop; i += step) {
+			Vline line = list.get(i);
+			line.paintComponent(g2d);
+			visible.add(line);
+		}
+	}
+
 	@Override
 	protected void paintComponent(Graphics g) {
 		try {
@@ -300,35 +366,11 @@ public class PanelVlines extends JPanel {
 
 			Graphics2D g2d = (Graphics2D) g;
 
-			// Display only a small subset of the data in that range
-			int indexStart = 1 + blines.search(new Comparable<PanelVlines.Vline>() {
+			paint(g2d, lines1, blines1, visible1, PAINT_MAX_LINES_ON_SCREEN1);
+			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+			paint(g2d, lines0, blines0, visible0, PAINT_MAX_LINES_ON_SCREEN0);
+			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
 
-				@Override
-				public int compareTo(Vline o) {
-					return Double.compare(xstart, o.x);
-				}
-			});
-
-			double xstop = PixelsToX(1, 1);
-
-			int indexStop = blines.search(new Comparable<PanelVlines.Vline>() {
-
-				@Override
-				public int compareTo(Vline o) {
-					return Double.compare(xstop, o.x);
-				}
-			});
-			int step = 1;
-			if (indexStop - indexStart > PAINT_MAX_LINES_ON_SCREEN) {
-				step = (indexStop - indexStart) / PAINT_MAX_LINES_ON_SCREEN;
-			}
-
-			visible.clear();
-			for (int i = indexStart; i < indexStop; i += step) {
-				Vline line = lines.get(i);
-				line.paintComponent(g2d);
-				visible.add(line);
-			}
 			paintAxis(g2d, available_width, available_height, MARGIN_Y_TOP);
 			paintLabels(g2d, available_width, available_height, MARGIN_Y_TOP);
 
@@ -339,6 +381,11 @@ public class PanelVlines extends JPanel {
 				if (infoY > available_height)
 					infoY = available_height / 2;
 				g.drawString(String.format("%f,%f", closest.x, closest.y), MARGIN_X_LEFT + infoX + 3, MARGIN_Y_TOP + available_height - infoY);
+			}
+
+			if (showSelectedRegion) {
+				g.setColor(Color.YELLOW);
+				g.drawRect(Math.min(selectionStart.x, selectionStop.x), Math.min(selectionStart.y, selectionStop.y), Math.abs(selectionStop.x - selectionStart.x), Math.abs(selectionStop.y - selectionStart.y));
 			}
 
 		} catch (Exception ex) {
@@ -428,6 +475,7 @@ public class PanelVlines extends JPanel {
 	 */
 	protected class MyMouseListener implements MouseListener, MouseMotionListener {
 
+		// Move graph left/ right
 		private int xmouse;
 
 		@Override
@@ -436,11 +484,32 @@ public class PanelVlines extends JPanel {
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			xmouse = e.getX();
+			if (e.isControlDown()) {
+				selectionStart = e.getPoint();
+				selectionStop = e.getPoint();
+				showSelectedRegion = true;
+			} else {
+				xmouse = e.getX();
+				showSelectedRegion = false;
+			}
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
+			if (showSelectedRegion) {
+				int selectionStartX = Math.min(selectionStart.x, selectionStop.x);
+				int selectionStopX = Math.max(selectionStart.x, selectionStop.x);
+				
+				double x1 = PixelsToX(selectionStartX - MARGIN_X_LEFT);
+				double x2 = PixelsToX(selectionStopX - MARGIN_X_LEFT);
+
+				xstart = Math.min(x1, x2);
+				// zoom * (xstop-xstart)/(xmax-xmin) * available width = available width
+				zoom = (xmax - xmin) / Math.abs(x1 - x2);
+				showSelectedRegion = false;
+				PanelVlines.this.repaint();
+			}
+
 		}
 
 		@Override
@@ -456,30 +525,28 @@ public class PanelVlines extends JPanel {
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-
-			int pixels = (e.getX() - xmouse);
-			// Move x to new location on screen
-			// int stop = (int) (zoom * (x - xx) / (xmax - xmin) * available_width);
-			// int start = (int) (zoom * (x - xx') / (xmax - xmin) * available_width);
-			// => stop - start = pixels = ...
-			// xx' = xx - offset
-
-			double offset = (pixels * (xmax - xmin) / (zoom * available_width));
-			if (offset != 0) {
-				xmouse = e.getX();
-				xstart -= offset;
-
+			if (showSelectedRegion) {
+				selectionStop = e.getPoint();
 				PanelVlines.this.repaint();
+			} else {
+				int pixels = (e.getX() - xmouse);
+				// Move x to new location on screen
+				// int stop = (int) (zoom * (x - xx) / (xmax - xmin) * available_width);
+				// int start = (int) (zoom * (x - xx') / (xmax - xmin) * available_width);
+				// => stop - start = pixels = ...
+				// xx' = xx - offset
+
+				double offset = (pixels * (xmax - xmin) / (zoom * available_width));
+				if (offset != 0) {
+					xmouse = e.getX();
+					xstart -= offset;
+
+					PanelVlines.this.repaint();
+				}
 			}
 		}
 
-		@Override
-		public void mouseMoved(MouseEvent e) {
-
-			if (lines.size() == 0) {
-				return;
-			}
-			int x = e.getX() - MARGIN_X_LEFT;
+		private void find(int x, List<Vline> visible, BinarySearch<Vline> bvisible) {
 			int index = bvisible.search(new Comparable<PanelVlines.Vline>() {
 
 				@Override
@@ -487,21 +554,42 @@ public class PanelVlines extends JPanel {
 					return Double.compare(x, o.x1);
 				}
 			});
-			int indexStart = Math.max(0, index - SEARCH);
-			int indexStop = Math.min(visible.size() - 1, index + SEARCH);
 
-			closest = null;
-
-			for (int i = indexStart + 1; i < indexStop; i++) {
+			for (int i = index; i >= 0; i--) {
 				Vline line = visible.get(i);
+				if (x - line.x1 > SEARCH_PIXELS)
+					break;
+
 				if (closest == null || line.y > closest.y) {
 					closest = line;
 				}
+
 			}
+
+			for (int i = index + 1; i < visible.size(); i++) {
+				Vline line = visible.get(i);
+				if (line.x1 - x > SEARCH_PIXELS)
+					break;
+
+				if (closest == null || line.y > closest.y) {
+					closest = line;
+				}
+
+			}
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e) {
+
+			int x = e.getX() - MARGIN_X_LEFT;
+			closest = null;
+			find(x, visible0, bvisible0);
+			find(x, visible1, bvisible1);
 
 			PanelVlines.this.repaint();
 
 		}
+
 	}
 
 	/**

@@ -1,7 +1,6 @@
 package com.constambeys.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -20,10 +19,12 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -46,6 +47,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
@@ -63,6 +65,7 @@ import com.constambeys.python.IsLetterV1;
 import com.constambeys.python.OptimalMz;
 import com.constambeys.python.OptimalMzV1;
 import com.constambeys.python.OptimalMzV2;
+import com.constambeys.ui.DialogGraph.MassPerCharge;
 import com.constambeys.ui.graph.PanelGraph;
 import com.constambeys.ui.graph.PanelVlines;
 
@@ -89,7 +92,7 @@ public class FrameMain extends JFrame {
 	private JRadioButton jradRect;
 	private JRadioButton jradTempl;
 	private JRadioButton jradDraw;
-	private JRadioButton jradEvently;
+	private JRadioButton jradEvenly;
 	private JRadioButton jradPPM;
 	private JFormattedTextField jnumGraphs;
 	private JFormattedTextField jV2PixelsWeight;
@@ -125,12 +128,12 @@ public class FrameMain extends JFrame {
 			Box boxSouth = new Box(BoxLayout.X_AXIS);
 			background.add(BorderLayout.SOUTH, boxSouth);
 
-			Box boxEast = new Box(BoxLayout.Y_AXIS);
+			Box boxEast = createSettings();
 			background.add(BorderLayout.EAST, boxEast);
 
-			JButton btnLoad = new JButton("Load");
-			boxSouth.add(btnLoad);
-			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+			// JButton btnLoad = new JButton("Load");
+			// boxSouth.add(btnLoad);
+			// boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 			JButton btnGraph = new JButton("Graph");
 			boxSouth.add(btnGraph);
@@ -162,67 +165,6 @@ public class FrameMain extends JFrame {
 			boxSouth.add(jcheckSettings);
 			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-			JLabel l;
-
-			jradRect = new JRadioButton("Rectangle", true);
-			jradTempl = new JRadioButton("Template");
-			jradDraw = new JRadioButton("Draw");
-			ButtonGroup group1 = new ButtonGroup();
-			group1.add(jradRect);
-			group1.add(jradTempl);
-			group1.add(jradDraw);
-			boxEast.add(jradRect);
-			boxEast.add(jradTempl);
-			boxEast.add(jradDraw);
-			boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
-
-			jradEvently = new JRadioButton("Evently", true);
-			jradPPM = new JRadioButton("PPM");
-			ButtonGroup group2 = new ButtonGroup();
-			group2.add(jradEvently);
-			group2.add(jradPPM);
-			boxEast.add(jradEvently);
-			boxEast.add(jradPPM);
-			boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
-
-			l = new JLabel("Graphs: ", JLabel.TRAILING);
-			NumberFormat format1 = NumberFormat.getInstance();
-			NumberFormatter formatter1 = new NumberFormatter(format1);
-			formatter1.setValueClass(Integer.class);
-			formatter1.setMinimum(0);
-			formatter1.setAllowsInvalid(true);
-			// If you want the value to be committed on each keystroke instead of
-			// focus lost
-			formatter1.setCommitsOnValidEdit(true);
-			jnumGraphs = new JFormattedTextField(formatter1);
-			jnumGraphs.setValue(GRAPHS);
-			Dimension maxsize1 = jnumGraphs.getMaximumSize();
-			Dimension prefsize1 = jnumGraphs.getPreferredSize();
-			maxsize1.height = prefsize1.height;
-			jnumGraphs.setMaximumSize(maxsize1);
-			l.setLabelFor(jnumGraphs);
-			boxEast.add(l);
-			boxEast.add(jnumGraphs);
-
-			l = new JLabel("OptMz2 Weight: ", JLabel.TRAILING);
-			NumberFormat format2 = NumberFormat.getInstance();
-			NumberFormatter formatter2 = new NumberFormatter(format2);
-			formatter2.setValueClass(Integer.class);
-			formatter2.setMinimum(0);
-			formatter2.setAllowsInvalid(true);
-			// If you want the value to be committed on each keystroke instead of
-			// focus lost
-			formatter2.setCommitsOnValidEdit(true);
-			jV2PixelsWeight = new JFormattedTextField(formatter2);
-			jV2PixelsWeight.setValue(2);
-			Dimension maxsize2 = jnumGraphs.getMaximumSize();
-			Dimension prefsize2 = jnumGraphs.getPreferredSize();
-			maxsize2.height = prefsize2.height;
-			jV2PixelsWeight.setMaximumSize(maxsize2);
-			l.setLabelFor(jV2PixelsWeight);
-			boxEast.add(l);
-			boxEast.add(jV2PixelsWeight);
-
 			addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
@@ -231,13 +173,13 @@ public class FrameMain extends JFrame {
 
 			});
 
-			btnLoad.addActionListener(new ActionListener() {
+			// btnLoad.addActionListener(new ActionListener() {
 
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					btnLoad();
-				}
-			});
+			// @Override
+			// public void actionPerformed(ActionEvent e) {
+			// btnLoad(false);
+			// }
+			// });
 
 			btnGraph.addActionListener(new ActionListener() {
 
@@ -296,6 +238,16 @@ public class FrameMain extends JFrame {
 
 			executorService = Executors.newFixedThreadPool(THREADS);
 			createMenuBar();
+
+			// User must load a file once the program is started
+			updateUI(new ITask() {
+
+				@Override
+				public void run() throws Exception {
+					btnLoad(false);
+				}
+			});
+			;
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
@@ -310,21 +262,52 @@ public class FrameMain extends JFrame {
 
 		JMenuBar menubar = new JMenuBar();
 
-		JMenu fileMenu = new JMenu("Tabs");
-
-		JMenuItem jMenuExport = new JMenuItem("Export");
-		int height = (int) jMenuExport.getPreferredSize().getHeight();
-		jMenuExport.setIcon(Startup.loadIcon("export128.png", height, height));
-
-		JMenuItem jMenuSave = new JMenuItem("Save");
-		height = (int) jMenuSave.getPreferredSize().getHeight();
-		jMenuSave.setIcon(Startup.loadIcon("save128.png", height, height));
+		JMenu fileMenuTabs = new JMenu("Tabs");
 
 		JMenuItem jMenuClose = new JMenuItem("Close");
+		int height = (int) jMenuClose.getPreferredSize().getHeight();
 		jMenuClose.setIcon(Startup.loadIcon("closeBlue128.png", height, height));
 
 		JMenuItem jMenuCloseAll = new JMenuItem("Close All");
 		jMenuCloseAll.setIcon(Startup.loadIcon("closeRed128.png", height, height));
+
+		JMenu fileMenuGraph = new JMenu("Graph");
+
+		JMenuItem jMenuNewWindow = new JMenuItem("Open");
+		jMenuNewWindow.setIcon(Startup.loadIcon("open64.png", height, height));
+
+		JMenuItem jMenuExport = new JMenuItem("Export");
+		jMenuExport.setIcon(Startup.loadIcon("export128.png", height, height));
+
+		JMenuItem jMenuSave = new JMenuItem("Save");
+		jMenuSave.setIcon(Startup.loadIcon("save128.png", height, height));
+
+		jMenuNewWindow.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				try {
+					int selected = tabbedPane.getSelectedIndex();
+					if (selected >= 0) {
+						Component component = tabbedPane.getComponentAt(selected);
+						if (component instanceof PanelGraph) {
+							PanelGraph pg = (PanelGraph) component;
+							BufferedImage imgGenerated = pg.getImage();
+							if (imgGenerated != null) {
+								FrameGraph window = new FrameGraph(msiimage);
+								window.setGraph(pg.getTitle(), imgGenerated);
+								window.setVisible(true);
+							}
+						} else {
+							JOptionPane.showMessageDialog(null, "Before open load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+						}
+					} else {
+						JOptionPane.showMessageDialog(null, "Before open load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
 
 		jMenuExport.addActionListener(new ActionListener() {
 			@Override
@@ -365,7 +348,11 @@ public class FrameMain extends JFrame {
 									}
 								}
 							}
+						} else {
+							JOptionPane.showMessageDialog(null, "Before export load a graph", "Error", JOptionPane.ERROR_MESSAGE);
 						}
+					} else {
+						JOptionPane.showMessageDialog(null, "Before export load a graph", "Error", JOptionPane.ERROR_MESSAGE);
 					}
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -385,15 +372,25 @@ public class FrameMain extends JFrame {
 							BufferedImage imgGenerated = pg.getImage();
 							if (imgGenerated != null) {
 								JFileChooser fileChooser = new JFileChooser();
+								FileNameExtensionFilter filter = new FileNameExtensionFilter("png file", ".png");
+								fileChooser.setFileFilter(filter);
+
 								if (fileChooser.showSaveDialog(FrameMain.this) == JFileChooser.APPROVE_OPTION) {
 									File file = fileChooser.getSelectedFile();
-									if (!file.getName().endsWith(".png"))
-										file = new File(file.getAbsolutePath() + ".png");
+									if (!FilenameUtils.getExtension(file.getName()).equalsIgnoreCase(".png")) {
+										// ALTERNATIVELY: remove the extension (if any) and replace it with ".csv"
+										file = new File(file.getParentFile(), FilenameUtils.getBaseName(file.getName()) + ".png");
+									}
+
 									// save to file
 									ImageIO.write(imgGenerated, "PNG", file);
 								}
 							}
+						} else {
+							JOptionPane.showMessageDialog(null, "Before save load a graph", "Error", JOptionPane.ERROR_MESSAGE);
 						}
+					} else {
+						JOptionPane.showMessageDialog(null, "Before save load a graph", "Error", JOptionPane.ERROR_MESSAGE);
 					}
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -418,14 +415,94 @@ public class FrameMain extends JFrame {
 			}
 		});
 
-		fileMenu.add(jMenuExport);
-		fileMenu.add(jMenuSave);
-		fileMenu.add(jMenuClose);
-		fileMenu.add(jMenuCloseAll);
+		fileMenuTabs.add(jMenuClose);
+		fileMenuTabs.add(jMenuCloseAll);
 
-		menubar.add(fileMenu);
+		fileMenuGraph.add(jMenuNewWindow);
+		fileMenuGraph.add(jMenuExport);
+		fileMenuGraph.add(jMenuSave);
+
+		menubar.add(fileMenuTabs);
+		menubar.add(fileMenuGraph);
 
 		setJMenuBar(menubar);
+	}
+
+	private Box createSettings() {
+
+		JLabel l;
+
+		Box box1 = new Box(BoxLayout.Y_AXIS);
+		box1.setBorder(BorderFactory.createTitledBorder("A"));
+		jradRect = new JRadioButton("Rectangle", true);
+		jradTempl = new JRadioButton("Template");
+		jradDraw = new JRadioButton("Draw");
+		ButtonGroup group1 = new ButtonGroup();
+		group1.add(jradRect);
+		group1.add(jradTempl);
+		group1.add(jradDraw);
+		box1.add(jradRect);
+		box1.add(jradTempl);
+		box1.add(jradDraw);
+
+		Box box2 = new Box(BoxLayout.Y_AXIS);
+		box2.setBorder(BorderFactory.createTitledBorder("B"));
+		jradEvenly = new JRadioButton("Evenly", true);
+		jradPPM = new JRadioButton("PPM");
+		ButtonGroup group2 = new ButtonGroup();
+		group2.add(jradEvenly);
+		group2.add(jradPPM);
+		box2.add(jradEvenly);
+		box2.add(jradPPM);
+
+		Box box3 = new Box(BoxLayout.Y_AXIS);
+		box3.setBorder(BorderFactory.createTitledBorder("C"));
+		l = new JLabel("Graphs: ", JLabel.TRAILING);
+		NumberFormat format1 = NumberFormat.getInstance();
+		NumberFormatter formatter1 = new NumberFormatter(format1);
+		formatter1.setValueClass(Integer.class);
+		formatter1.setMinimum(0);
+		formatter1.setAllowsInvalid(true);
+		// If you want the value to be committed on each keystroke instead of
+		// focus lost
+		formatter1.setCommitsOnValidEdit(true);
+		jnumGraphs = new JFormattedTextField(formatter1);
+		jnumGraphs.setValue(GRAPHS);
+		Dimension maxsize1 = jnumGraphs.getMaximumSize();
+		Dimension prefsize1 = jnumGraphs.getPreferredSize();
+		maxsize1.height = prefsize1.height;
+		jnumGraphs.setMaximumSize(maxsize1);
+		l.setLabelFor(jnumGraphs);
+		box3.add(l);
+		box3.add(jnumGraphs);
+
+		l = new JLabel("OptMz2 Weight: ", JLabel.TRAILING);
+		NumberFormat format2 = NumberFormat.getInstance();
+		NumberFormatter formatter2 = new NumberFormatter(format2);
+		formatter2.setValueClass(Integer.class);
+		formatter2.setMinimum(0);
+		formatter2.setAllowsInvalid(true);
+		// If you want the value to be committed on each keystroke instead of
+		// focus lost
+		formatter2.setCommitsOnValidEdit(true);
+		jV2PixelsWeight = new JFormattedTextField(formatter2);
+		jV2PixelsWeight.setValue(2);
+		Dimension maxsize2 = jnumGraphs.getMaximumSize();
+		Dimension prefsize2 = jnumGraphs.getPreferredSize();
+		maxsize2.height = prefsize2.height;
+		jV2PixelsWeight.setMaximumSize(maxsize2);
+		l.setLabelFor(jV2PixelsWeight);
+		box3.add(l);
+		box3.add(jV2PixelsWeight);
+
+		Box main = new Box(BoxLayout.Y_AXIS);
+		main.add(box1);
+		main.add(Box.createRigidArea(new Dimension(0, 10)));
+		main.add(box2);
+		main.add(Box.createRigidArea(new Dimension(0, 10)));
+		main.add(box3);
+
+		return main;
 	}
 
 	/**
@@ -433,7 +510,7 @@ public class FrameMain extends JFrame {
 	 * ActionListener of the Load button.
 	 *
 	 */
-	private void btnLoad() {
+	private void btnLoad(boolean canClose) {
 		try {
 			if (Startup.DEBUG_FILE) {
 				try {
@@ -444,7 +521,7 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
-			DialogLoad dialog = new DialogLoad(FrameMain.this, "Set Parameters", true);
+			DialogLoad dialog = new DialogLoad(FrameMain.this, canClose);
 			dialog.pack();
 			dialog.addOkListener(new DialogLoad.OKListener() {
 
@@ -478,25 +555,25 @@ public class FrameMain extends JFrame {
 			DialogGraph dialog = new DialogGraph(FrameMain.this, "Set Parameters", true);
 			dialog.setLocationRelativeTo(this);
 			dialog.pack();
-			dialog.addOkListener(new ActionListener() {
+			dialog.addOkListener(new DialogGraph.IOkListener() {
 
 				@Override
-				public void actionPerformed(ActionEvent e) {
+				public void actionPerformed(ActionEvent e, List<MassPerCharge> ranges) {
 					try {
-						if (dialog.massrange.size() == 0) {
+						if (ranges.size() == 0) {
 							return;
 						}
 
 						StringBuilder sb = new StringBuilder();
-						double massrange[] = new double[dialog.massrange.size() * 2];
+						double massrange[] = new double[ranges.size() * 2];
 
-						for (int i = 0; i < dialog.massrange.size(); i++) {
-							massrange[2 * i] = dialog.massrange.get(i).lowerMass;
-							massrange[2 * i + 1] = dialog.massrange.get(i).higherMass;
+						for (int i = 0; i < ranges.size(); i++) {
+							massrange[2 * i] = ranges.get(i).lowerMass;
+							massrange[2 * i + 1] = ranges.get(i).higherMass;
 							if (i != 0) {
 								sb.append(", ");
 							}
-							sb.append(String.format("%sm/z - %sm/z", dialog.massrange.get(i).strLowerMass, dialog.massrange.get(i).strHigherMass));
+							sb.append(ranges.get(i).toString());
 						}
 
 						addGraphTab(sb.toString(), massrange);
@@ -544,7 +621,7 @@ public class FrameMain extends JFrame {
 			dialog.addTextBox("lmass", "Lower Mass");
 			dialog.addTextBox("hmass", "Higher Mass");
 
-			if (jradEvently.isSelected()) {
+			if (jradEvenly.isSelected()) {
 				dialog.addTextBox("resolution", "Resolution"); // 200
 			} else {
 				dialog.addTextBox("ppm", "Parts Per Million"); // 1000
@@ -575,7 +652,7 @@ public class FrameMain extends JFrame {
 						double higherMass = Double.parseDouble(dialog.getText("hmass"));// 500
 
 						IBinResolution bins;
-						if (jradEvently.isSelected()) {
+						if (jradEvenly.isSelected()) {
 							int resolution = Integer.parseInt(dialog.getText("resolution"));
 							bins = new BinEventlyDistributed(lowerMass, higherMass, resolution);
 						} else {
@@ -624,6 +701,7 @@ public class FrameMain extends JFrame {
 	 * 
 	 */
 	private void btnTemplate() {
+
 		try {
 
 			if (msiimage == null) {
@@ -631,19 +709,39 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
-			DialogTemplate frame = new DialogTemplate(msiimage, FrameMain.this, true);
-			frame.addOkListener(new DialogTemplate.IOkListener() {
+			int selected = tabbedPane.getSelectedIndex();
+			if (selected >= 0) {
+				Component component = tabbedPane.getComponentAt(selected);
+				if (component instanceof PanelGraph) {
+					PanelGraph pg = (PanelGraph) component;
+					BufferedImage imgGenerated = pg.getImage();
+					if (imgGenerated != null) {
 
-				@Override
-				public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
-					isLetterTemplate = isLetter;
-					jradTempl.setSelected(true);
+						DialogTemplate frame = new DialogTemplate(msiimage, FrameMain.this, true);
+						frame.setGraph(imgGenerated);
+						frame.addOkListener(new DialogTemplate.IOkListener() {
+
+							@Override
+							public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
+								isLetterTemplate = isLetter;
+								jradTempl.setSelected(true);
+							}
+						});
+						frame.setVisible(true);
+					} else {
+						JOptionPane.showMessageDialog(null, "Something is wrong with the graph", "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, "Before template load a graph", "Error", JOptionPane.ERROR_MESSAGE);
 				}
-			});
-			frame.setVisible(true);
+			} else {
+				JOptionPane.showMessageDialog(null, "Before template load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+			}
+
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
+
 	}
 
 	/**
@@ -658,16 +756,34 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
-			DialogDraw frame = new DialogDraw(msiimage, FrameMain.this, true);
-			frame.addOkListener(new DialogDraw.IOkListener() {
+			int selected = tabbedPane.getSelectedIndex();
+			if (selected >= 0) {
+				Component component = tabbedPane.getComponentAt(selected);
+				if (component instanceof PanelGraph) {
+					PanelGraph pg = (PanelGraph) component;
+					BufferedImage imgGenerated = pg.getImage();
+					if (imgGenerated != null) {
+						DialogDraw frame = new DialogDraw(msiimage, FrameMain.this, true);
+						frame.setGraph(imgGenerated);
+						frame.addOkListener(new DialogDraw.IOkListener() {
 
-				@Override
-				public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
-					isLetterDraw = isLetter;
-					jradDraw.setSelected(true);
+							@Override
+							public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
+								isLetterDraw = isLetter;
+								jradDraw.setSelected(true);
+							}
+						});
+						frame.setVisible(true);
+					} else {
+						JOptionPane.showMessageDialog(null, "Something is wrong with the graph", "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, "Before draw load a graph", "Error", JOptionPane.ERROR_MESSAGE);
 				}
-			});
-			frame.setVisible(true);
+			} else {
+				JOptionPane.showMessageDialog(null, "Before draw load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+			}
+
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
@@ -681,10 +797,10 @@ public class FrameMain extends JFrame {
 		try {
 			if (Startup.DEBUG_SPECTRUM) {
 				PanelVlines panelVlines = new PanelVlines();
-				panelVlines.add(0, 0);
-				panelVlines.add(40, 40);
-				panelVlines.add(60, 60);
-				panelVlines.add(100, 100);
+				panelVlines.add(0, 0, true);
+				panelVlines.add(40, 40, true);
+				panelVlines.add(60, 60, false);
+				panelVlines.add(100, 40, false);
 				panelVlines.addCommit();
 				tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), panelVlines);
 				return;
@@ -712,7 +828,7 @@ public class FrameMain extends JFrame {
 				dialog.addTextBox("ystop", "y stop (mm)");
 			}
 
-			dialog.addTextBox("ymin", "y min");
+			dialog.addTextBox("ymin", "min intensity value");
 
 			dialog.pack();
 			dialog.addOkListener(new ActionListener() {
@@ -755,7 +871,7 @@ public class FrameMain extends JFrame {
 											double mz = spectrum.mzs[s];
 											double i = spectrum.ints[s];
 											if (i >= ymin)
-												panelVlines.add(mz, i, isLetterCheck ? Color.BLUE : Color.RED);
+												panelVlines.add(mz, i, isLetterCheck);
 										}
 									}
 								}
@@ -928,11 +1044,30 @@ public class FrameMain extends JFrame {
 		@Override
 		public void update(int value) {
 			if (value == 0) {
-				progressBar.setVisible(true);
+				updateUI(new ITask() {
+
+					@Override
+					public void run() throws Exception {
+						progressBar.setVisible(true);
+					}
+				});
 			} else if (value == 100) {
-				progressBar.setVisible(false);
+				updateUI(new ITask() {
+
+					@Override
+					public void run() throws Exception {
+						progressBar.setVisible(false);
+					}
+				});
 			}
-			progressBar.setValue(value);
+
+			updateUI(new ITask() {
+
+				@Override
+				public void run() throws Exception {
+					progressBar.setValue(value);
+				}
+			});
 		}
 	};
 }

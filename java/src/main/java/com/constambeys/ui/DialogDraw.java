@@ -11,19 +11,16 @@ import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -47,9 +44,6 @@ import com.constambeys.ui.graph.PanelGraphDraw;
  *
  */
 public class DialogDraw extends JDialog {
-	enum State {
-		NONE, GENERATED, TEMPLATE, BOTH
-	}
 
 	interface IOkListener {
 		public void actionPerformed(ActionEvent e, ICheckLetter isLetter);
@@ -57,7 +51,6 @@ public class DialogDraw extends JDialog {
 
 	private JProgressBar progressBar;
 
-	private JButton btnSave;
 	private IOkListener ok;
 	private MSIImage msiimage;
 	private PanelGraphDraw panelGraph;
@@ -104,7 +97,7 @@ public class DialogDraw extends JDialog {
 	public void setupUI(MSIImage msiimage) throws ParseException, IOException {
 
 		this.msiimage = msiimage;
-		setTitle("JavaBall");
+		setTitle("MSI");
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 800, 400);
 
@@ -129,15 +122,6 @@ public class DialogDraw extends JDialog {
 
 		Box boxEast = new Box(BoxLayout.Y_AXIS);
 		background.add(BorderLayout.EAST, boxEast);
-
-		JButton btnGraph = new JButton("Graph");
-		boxSouth.add(btnGraph);
-		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
-
-		btnSave = new JButton("Save");
-		btnSave.setEnabled(false);
-		boxSouth.add(btnSave);
-		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		JButton buttonOK = new JButton("OK");
 		// fills the empty gap
@@ -183,22 +167,6 @@ public class DialogDraw extends JDialog {
 		boxEast.add(l);
 		boxEast.add(jRectSize);
 
-		btnGraph.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnGraph();
-			}
-		});
-
-		btnSave.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnSave();
-			}
-		});
-
 		buttonOK.addActionListener(new ActionListener() {
 
 			@Override
@@ -243,86 +211,9 @@ public class DialogDraw extends JDialog {
 
 	}
 
-	/**
-	 * ActionListener of the Graph button.
-	 * 
-	 */
-	private void btnGraph() {
+	public void setGraph(BufferedImage imgGenerated) {
 		try {
-			if (msiimage == null) {
-				JOptionPane.showMessageDialog(null, "First load the MZXML data", "Error", JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-
-			DialogGraph dialog = new DialogGraph(this, "Set Parameters", true);
-			dialog.pack();
-			dialog.addOkListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try {
-
-						double massrange[] = new double[dialog.massrange.size() * 2];
-						for (int i = 0; i < dialog.massrange.size(); i++) {
-							massrange[2 * i] = dialog.massrange.get(i).lowerMass;
-							massrange[2 * i + 1] = dialog.massrange.get(i).higherMass;
-						}
-						JDialog wait = showWaitDialog();
-						Thread t = new Thread(new Runnable() {
-
-							@Override
-							public void run() {
-								try {
-									double[][] intensity = msiimage.getReduceSpec(progressTracker, massrange);
-									BufferedImage imgGenerated = panelGraph.calculateImage(intensity);
-									panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
-									btnSave.setEnabled(true);
-								} catch (Exception ex) {
-									JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-								} finally {
-									updateUI(new Runnable() {
-
-										@Override
-										public void run() {
-											wait.setVisible(false);
-											wait.dispose();
-										}
-									});
-								}
-							}
-						});
-						t.start();
-						wait.setVisible(true);
-
-					} catch (Exception ex) {
-						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-					}
-				}
-			});
-			dialog.setVisible(true);
-
-		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-		}
-	}
-
-	/**
-	 * ActionListener of the Save button.
-	 * 
-	 */
-	private void btnSave() {
-		try {
-			BufferedImage overlay = panelGraph.getTemplateOverlay();
-			if (overlay != null) {
-				JFileChooser fileChooser = new JFileChooser();
-				if (fileChooser.showSaveDialog(DialogDraw.this) == JFileChooser.APPROVE_OPTION) {
-					File file = fileChooser.getSelectedFile();
-					if (!file.getName().endsWith(".png"))
-						file = new File(file.getAbsolutePath() + ".png");
-					// save to file
-					ImageIO.write(overlay, "PNG", file);
-				}
-			}
+			panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}

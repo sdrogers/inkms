@@ -35,7 +35,7 @@ public class BinarySearch<T> {
 			// value > midpoint && value <= midpoint +1
 			if (v1 == 1 && v2 <= 0) {
 				return midpoint;
-				//  value <= 0
+				// value <= 0
 			} else if (midpoint == 0 && value.compareTo(list.get(0)) <= 0) {
 				return -1;
 			} else {
@@ -48,7 +48,14 @@ public class BinarySearch<T> {
 			}
 		}
 
-		return list.size() - 1;
+		if (list.size() == 1) {
+			if (value.compareTo(list.get(0)) <= 0) {
+				return -1;
+			} else {
+				return 0;
+			}
+		} else
+			return list.size() - 1;
 	}
 
 	public static void main(String[] args) {
