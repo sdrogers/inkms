@@ -2,12 +2,20 @@ package com.constambeys.ui.graph;
 
 import java.awt.Color;
 
+import com.constambeys.ui.Startup;
+
 public class Hot implements IColormap {
 
-	private static int[] hot = hot(1024);
+	private static int[] hot = null;
 
 	public Hot() {
-
+		if (hot == null) {
+			synchronized (Startup.sync) {
+				if (hot == null) {
+					hot = hot(1024);
+				}
+			}
+		}
 	}
 
 	/**

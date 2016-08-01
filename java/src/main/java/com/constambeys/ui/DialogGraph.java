@@ -5,8 +5,6 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +29,14 @@ import javax.swing.UIManager;
 public class DialogGraph extends JDialog {
 
 	interface IOkListener {
-		public void actionPerformed(ActionEvent e, List<MassPerCharge> ranges);
+		public void actionPerformed(ActionEvent e, List<MassRange> ranges);
 	}
 
 	private IOkListener ok;
 	private JTextField jLowerMass;
 	private JTextField jHigherMass;
-	private DefaultListModel<MassPerCharge> jListModel;
-	private JList<MassPerCharge> jList;
+	private DefaultListModel<MassRange> jListModel;
+	private JList<MassRange> jList;
 
 	/**
 	 * The {@code DialogGraph} class allows the user to draw a mass range
@@ -98,7 +96,7 @@ public class DialogGraph extends JDialog {
 		jHigherMass = new JTextField();
 		jLowerMass.setFocusable(true);
 
-		jListModel = new DefaultListModel<MassPerCharge>();
+		jListModel = new DefaultListModel<MassRange>();
 		jList = new JList(jListModel);
 		jList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		jList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
@@ -184,10 +182,10 @@ public class DialogGraph extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				int index = jList.getSelectedIndex();
 				if (index != -1) {
-					MassPerCharge selected = jListModel.getElementAt(index);
+					MassRange selected = jListModel.getElementAt(index);
 					jListModel.remove(index);
-					jLowerMass.setText(selected.strLowerMass);
-					jHigherMass.setText(selected.strHigherMass);
+					jLowerMass.setText(selected.lowerMass());
+					jHigherMass.setText(selected.higherMass());
 				}
 
 			}
@@ -202,9 +200,9 @@ public class DialogGraph extends JDialog {
 					setVisible(false);
 					dispose();
 					if (ok != null) {
-						ArrayList<MassPerCharge> list = new ArrayList<MassPerCharge>();
+						ArrayList<MassRange> list = new ArrayList<MassRange>();
 						for (int i = 0; i < jListModel.getSize(); i++) {
-							MassPerCharge item = jListModel.getElementAt(i);
+							MassRange item = jListModel.getElementAt(i);
 							list.add(item);
 						}
 						ok.actionPerformed(event, list);
@@ -228,9 +226,8 @@ public class DialogGraph extends JDialog {
 		if (strLowerMass.equals("") && strHigherMass.equals("")) {
 			return;
 		}
-		double lowerMass = Double.parseDouble(strLowerMass);
-		double higherMass = Double.parseDouble(strHigherMass);
-		MassPerCharge m = new MassPerCharge(strLowerMass, strHigherMass, lowerMass, higherMass);
+
+		MassRange m = new MassRange(strLowerMass, strHigherMass);
 		jListModel.addElement(m);
 	}
 
@@ -261,26 +258,6 @@ public class DialogGraph extends JDialog {
 
 			}
 		});
-	}
-
-	class MassPerCharge {
-		String strLowerMass;
-		String strHigherMass;
-		double lowerMass;
-		double higherMass;
-
-		MassPerCharge(String strLowerMass, String strHigherMass, double lowerMass, double higherMass) {
-			this.strLowerMass = strLowerMass;
-			this.strHigherMass = strHigherMass;
-
-			this.lowerMass = lowerMass;
-			this.higherMass = higherMass;
-		}
-
-		@Override
-		public String toString() {
-			return String.format("%sm/z - %sm/z", strLowerMass, strHigherMass);
-		}
 	}
 
 }

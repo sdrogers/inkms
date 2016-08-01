@@ -16,7 +16,8 @@ import com.constambeys.load.MzJavaProxy;
 import com.constambeys.patterns.Pattern1;
 
 public class Startup {
-
+	
+	public static Object sync = new Object();
 	public static boolean DEBUG_FILE = false;
 	public static boolean DEBUG_SPECTRUM = false;
 

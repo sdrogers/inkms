@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -47,7 +48,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
@@ -56,7 +56,7 @@ import org.apache.commons.io.FilenameUtils;
 
 import com.constambeys.load.MSIImage;
 import com.constambeys.load.Spectrum;
-import com.constambeys.python.BinEventlyDistributed;
+import com.constambeys.python.BinEvenlyDistributed;
 import com.constambeys.python.BinsPartsPerMillion;
 import com.constambeys.python.IBinResolution;
 import com.constambeys.python.ICheckLetter;
@@ -65,7 +65,6 @@ import com.constambeys.python.IsLetterV1;
 import com.constambeys.python.OptimalMz;
 import com.constambeys.python.OptimalMzV1;
 import com.constambeys.python.OptimalMzV2;
-import com.constambeys.ui.DialogGraph.MassPerCharge;
 import com.constambeys.ui.graph.PanelGraph;
 import com.constambeys.ui.graph.PanelVlines;
 
@@ -147,7 +146,7 @@ public class FrameMain extends JFrame {
 			boxSouth.add(btnOptimalMz2);
 			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
-			JButton btnTemplate = new JButton("Template");
+			JButton btnTemplate = new JButton("Overlay");
 			boxSouth.add(btnTemplate);
 			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
@@ -369,7 +368,11 @@ public class FrameMain extends JFrame {
 						Component component = tabbedPane.getComponentAt(selected);
 						if (component instanceof PanelGraph) {
 							PanelGraph pg = (PanelGraph) component;
-							BufferedImage imgGenerated = pg.getImage();
+							// BufferedImage imgGenerated = pg.getImage();
+							BufferedImage imgGenerated = new BufferedImage(pg.getWidth(), pg.getHeight(), BufferedImage.TYPE_INT_ARGB);
+							Graphics g = imgGenerated.createGraphics();
+							pg.paint(g);
+							g.dispose();
 							if (imgGenerated != null) {
 								JFileChooser fileChooser = new JFileChooser();
 								FileNameExtensionFilter filter = new FileNameExtensionFilter("png file", ".png");
@@ -433,10 +436,10 @@ public class FrameMain extends JFrame {
 		JLabel l;
 
 		Box box1 = new Box(BoxLayout.Y_AXIS);
-		box1.setBorder(BorderFactory.createTitledBorder("A"));
+		box1.setBorder(BorderFactory.createTitledBorder("Region"));
 		jradRect = new JRadioButton("Rectangle", true);
 		jradTempl = new JRadioButton("Template");
-		jradDraw = new JRadioButton("Draw");
+		jradDraw = new JRadioButton("Draw Region");
 		ButtonGroup group1 = new ButtonGroup();
 		group1.add(jradRect);
 		group1.add(jradTempl);
@@ -446,7 +449,7 @@ public class FrameMain extends JFrame {
 		box1.add(jradDraw);
 
 		Box box2 = new Box(BoxLayout.Y_AXIS);
-		box2.setBorder(BorderFactory.createTitledBorder("B"));
+		box2.setBorder(BorderFactory.createTitledBorder("Bins"));
 		jradEvenly = new JRadioButton("Evenly", true);
 		jradPPM = new JRadioButton("PPM");
 		ButtonGroup group2 = new ButtonGroup();
@@ -456,7 +459,7 @@ public class FrameMain extends JFrame {
 		box2.add(jradPPM);
 
 		Box box3 = new Box(BoxLayout.Y_AXIS);
-		box3.setBorder(BorderFactory.createTitledBorder("C"));
+		box3.setBorder(BorderFactory.createTitledBorder("Parameters"));
 		l = new JLabel("Graphs: ", JLabel.TRAILING);
 		NumberFormat format1 = NumberFormat.getInstance();
 		NumberFormatter formatter1 = new NumberFormatter(format1);
@@ -558,7 +561,7 @@ public class FrameMain extends JFrame {
 			dialog.addOkListener(new DialogGraph.IOkListener() {
 
 				@Override
-				public void actionPerformed(ActionEvent e, List<MassPerCharge> ranges) {
+				public void actionPerformed(ActionEvent e, List<MassRange> ranges) {
 					try {
 						if (ranges.size() == 0) {
 							return;
@@ -568,12 +571,13 @@ public class FrameMain extends JFrame {
 						double massrange[] = new double[ranges.size() * 2];
 
 						for (int i = 0; i < ranges.size(); i++) {
-							massrange[2 * i] = ranges.get(i).lowerMass;
-							massrange[2 * i + 1] = ranges.get(i).higherMass;
+							MassRange range = ranges.get(i);
+							massrange[2 * i] = range.lowerMass;
+							massrange[2 * i + 1] = range.higherMass;
 							if (i != 0) {
 								sb.append(", ");
 							}
-							sb.append(ranges.get(i).toString());
+							sb.append(range.toStringV2());
 						}
 
 						addGraphTab(sb.toString(), massrange);
@@ -654,7 +658,7 @@ public class FrameMain extends JFrame {
 						IBinResolution bins;
 						if (jradEvenly.isSelected()) {
 							int resolution = Integer.parseInt(dialog.getText("resolution"));
-							bins = new BinEventlyDistributed(lowerMass, higherMass, resolution);
+							bins = new BinEvenlyDistributed(lowerMass, higherMass, resolution);
 						} else {
 							int ppm = Integer.parseInt(dialog.getText("ppm"));
 							bins = new BinsPartsPerMillion(lowerMass, higherMass, ppm);
@@ -679,7 +683,7 @@ public class FrameMain extends JFrame {
 								addTextTab(optimalMz.printTopResults(n));
 
 								for (OptimalMz.Stats r : optimalMz.getTopResults(n)) {
-									createGraph(bins.getLowerMz(r.index), bins.getHigherMz(r.index));
+									addGraphTab(bins.getLowerMz(r.index), bins.getHigherMz(r.index));
 								}
 							}
 						};
@@ -911,9 +915,9 @@ public class FrameMain extends JFrame {
 	 * @param higherMass
 	 *            the upper mass per charge value
 	 */
-	private void createGraph(double lowerMass, double higherMass) {
-		String title = String.format("%sm/z - %sm/z", Double.toString(lowerMass), Double.toString(higherMass));
-		addGraphTab(title, lowerMass, higherMass);
+	private void addGraphTab(double lowerMass, double higherMass) {
+		MassRange range = new MassRange(lowerMass, higherMass);
+		addGraphTab(range.toStringV2(), lowerMass, higherMass);
 	}
 
 	/**
@@ -931,8 +935,8 @@ public class FrameMain extends JFrame {
 			@Override
 			public void run() throws Exception {
 				double[][] intensity = msiimage.getReduceSpec(progressTracker, massrange);
+				
 				PanelGraph panelGraph = new PanelGraph();
-
 				panelGraph.setTitle(title);
 				BufferedImage image = panelGraph.calculateImage(intensity);
 				panelGraph.draw(image, msiimage.getWidthMM(), msiimage.getHeightMM());

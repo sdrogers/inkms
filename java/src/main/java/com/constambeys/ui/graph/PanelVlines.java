@@ -223,24 +223,6 @@ public class PanelVlines extends JPanel {
 	}
 
 	/**
-	 * Calculates the interval's decimal places
-	 * <p>
-	 * for example 10 order 0, 1 order 0, 0.1 order 1 ...
-	 *
-	 * @param interval
-	 * @return order
-	 */
-	protected int calculateDesimalPlaces(double interval) {
-		int accuracy = 0;
-		while (interval < 1) {
-			interval = interval * 10;
-			accuracy++;
-		}
-
-		return accuracy;
-	}
-
-	/**
 	 * Updates input data statistical values min, max
 	 * 
 	 * @throws Exception
@@ -299,7 +281,7 @@ public class PanelVlines extends JPanel {
 		int yOffset = axisFontMetrics.getAscent() / 2;
 
 		int decimalPlaces = 0;
-		decimalPlaces = calculateDesimalPlaces(PixelsToY(1, 10));
+		decimalPlaces = Utilities.calculateFirstDesimalPlace(PixelsToY(1, 10));
 
 		// Draw y values
 		for (int i = 0; i <= 10; i++) {
@@ -310,7 +292,7 @@ public class PanelVlines extends JPanel {
 			g2d.drawString(value, MARGIN_X_LEFT - MARGIN_LABELS_Y, y + yOffset);
 		}
 
-		decimalPlaces = calculateDesimalPlaces(PixelsToX(1, 10) - xstart);
+		decimalPlaces = Utilities.calculateFirstDesimalPlace(PixelsToX(1, 10) - xstart);
 
 		// Draw x values
 		for (int i = 0; i <= 10; i++) {

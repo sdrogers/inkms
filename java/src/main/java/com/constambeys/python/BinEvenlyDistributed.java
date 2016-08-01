@@ -5,7 +5,7 @@ package com.constambeys.python;
  * 
  * @author Constambeys
  */
-public class BinEventlyDistributed implements IBinResolution {
+public class BinEvenlyDistributed implements IBinResolution {
 
 	private double mzRangeLower;
 	private double mzRangeHighest;
@@ -24,7 +24,7 @@ public class BinEventlyDistributed implements IBinResolution {
 	 * @param resolution
 	 *            the number of bins between {@code mzRangeLower} and {@code mzRangeHighest}
 	 */
-	public BinEventlyDistributed(double mzRangeLower, double mzRangeHighest, int resolution) {
+	public BinEvenlyDistributed(double mzRangeLower, double mzRangeHighest, int resolution) {
 		this.mzRangeLower = mzRangeLower;
 		this.mzRangeHighest = mzRangeHighest;
 		this.resolution = resolution;
