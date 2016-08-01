@@ -49,6 +49,8 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
@@ -84,17 +86,30 @@ public class FrameMain extends JFrame {
 	private JProgressBar progressBar;
 	private JTabbedPane tabbedPane;
 
-	private JCheckBox jcheckSettings;
 	private ICheckLetter isLetterTemplate;
 	private ICheckLetter isLetterDraw;
 
+	// Region
 	private JRadioButton jradRect;
-	private JRadioButton jradTempl;
+	private JRadioButton jradOverlay;
 	private JRadioButton jradDraw;
+
+	// Bins
 	private JRadioButton jradEvenly;
 	private JRadioButton jradPPM;
+
+	// Parameters
 	private JFormattedTextField jnumGraphs;
 	private JFormattedTextField jV2PixelsWeight;
+
+	// Buttons
+	private JButton btnGraph;
+	private JButton btnOptimalMz;
+	private JButton btnOptimalMz2;
+	private JButton btnOverlay;
+	private JButton btnDraw;
+	private JButton btnSpectrum;
+	private JCheckBox jcheckSettings;
 
 	private ExecutorService executorService;
 
@@ -130,113 +145,11 @@ public class FrameMain extends JFrame {
 			Box boxEast = createSettings();
 			background.add(BorderLayout.EAST, boxEast);
 
-			// JButton btnLoad = new JButton("Load");
-			// boxSouth.add(btnLoad);
-			// boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
-
-			JButton btnGraph = new JButton("Graph");
-			boxSouth.add(btnGraph);
-			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
-
-			JButton btnOptimalMz = new JButton("OptimalMz");
-			boxSouth.add(btnOptimalMz);
-			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
-
-			JButton btnOptimalMz2 = new JButton("OptimalMz2");
-			boxSouth.add(btnOptimalMz2);
-			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
-
-			JButton btnTemplate = new JButton("Overlay");
-			boxSouth.add(btnTemplate);
-			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
-
-			JButton btnDraw = new JButton("Draw");
-			boxSouth.add(btnDraw);
-			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
-
-			JButton btnSpectrum = new JButton("Spectrum");
-			boxSouth.add(btnSpectrum);
-			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
-
-			boxSouth.add(Box.createHorizontalGlue());
-			jcheckSettings = new JCheckBox("Settings");
-			jcheckSettings.setSelected(true);
-			boxSouth.add(jcheckSettings);
-			boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
-
-			addWindowListener(new WindowAdapter() {
-				@Override
-				public void windowClosing(WindowEvent e) {
-					super.windowClosing(e);
-				}
-
-			});
-
-			// btnLoad.addActionListener(new ActionListener() {
-
-			// @Override
-			// public void actionPerformed(ActionEvent e) {
-			// btnLoad(false);
-			// }
-			// });
-
-			btnGraph.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					btnGraph();
-				}
-			});
-
-			btnOptimalMz.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					btnOptimalMz(1);
-				}
-			});
-
-			btnOptimalMz2.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					btnOptimalMz(2);
-				}
-			});
-
-			btnTemplate.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					btnTemplate();
-				}
-			});
-
-			btnDraw.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					btnDraw();
-				}
-			});
-
-			btnSpectrum.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					btnSpectrum();
-				}
-			});
-
-			jcheckSettings.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					boxEast.setVisible(jcheckSettings.isSelected());
-				}
-			});
+			createJButtons(boxSouth);
+			addListeners(boxEast);
+			createMenuBar();
 
 			executorService = Executors.newFixedThreadPool(THREADS);
-			createMenuBar();
 
 			// User must load a file once the program is started
 			updateUI(new ITask() {
@@ -246,10 +159,213 @@ public class FrameMain extends JFrame {
 					btnLoad(false);
 				}
 			});
-			;
+
+			syncUI();
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	private Box createSettings() {
+
+		JLabel l;
+
+		Box box1 = new Box(BoxLayout.Y_AXIS);
+		box1.setBorder(BorderFactory.createTitledBorder("Region"));
+		jradRect = new JRadioButton("Rectangle", true);
+		jradOverlay = new JRadioButton("Overlay");
+		jradDraw = new JRadioButton("Draw Region");
+		ButtonGroup group1 = new ButtonGroup();
+		group1.add(jradRect);
+		group1.add(jradOverlay);
+		group1.add(jradDraw);
+		box1.add(jradRect);
+		box1.add(jradOverlay);
+		box1.add(jradDraw);
+
+		Box box2 = new Box(BoxLayout.Y_AXIS);
+		box2.setBorder(BorderFactory.createTitledBorder("Bins"));
+		jradEvenly = new JRadioButton("Evenly", true);
+		jradPPM = new JRadioButton("PPM");
+		ButtonGroup group2 = new ButtonGroup();
+		group2.add(jradEvenly);
+		group2.add(jradPPM);
+		box2.add(jradEvenly);
+		box2.add(jradPPM);
+
+		Box box3 = new Box(BoxLayout.Y_AXIS);
+		box3.setBorder(BorderFactory.createTitledBorder("Parameters"));
+		l = new JLabel("Graphs: ", JLabel.TRAILING);
+		NumberFormat format1 = NumberFormat.getInstance();
+		NumberFormatter formatter1 = new NumberFormatter(format1);
+		formatter1.setValueClass(Integer.class);
+		formatter1.setMinimum(0);
+		formatter1.setAllowsInvalid(true);
+		// If you want the value to be committed on each keystroke instead of
+		// focus lost
+		formatter1.setCommitsOnValidEdit(true);
+		jnumGraphs = new JFormattedTextField(formatter1);
+		jnumGraphs.setValue(GRAPHS);
+		Dimension maxsize1 = jnumGraphs.getMaximumSize();
+		Dimension prefsize1 = jnumGraphs.getPreferredSize();
+		maxsize1.height = prefsize1.height;
+		jnumGraphs.setMaximumSize(maxsize1);
+		l.setLabelFor(jnumGraphs);
+		box3.add(l);
+		box3.add(jnumGraphs);
+
+		l = new JLabel("OptMz2 Weight: ", JLabel.TRAILING);
+		NumberFormat format2 = NumberFormat.getInstance();
+		NumberFormatter formatter2 = new NumberFormatter(format2);
+		formatter2.setValueClass(Integer.class);
+		formatter2.setMinimum(0);
+		formatter2.setAllowsInvalid(true);
+		// If you want the value to be committed on each keystroke instead of
+		// focus lost
+		formatter2.setCommitsOnValidEdit(true);
+		jV2PixelsWeight = new JFormattedTextField(formatter2);
+		jV2PixelsWeight.setValue(2);
+		Dimension maxsize2 = jnumGraphs.getMaximumSize();
+		Dimension prefsize2 = jnumGraphs.getPreferredSize();
+		maxsize2.height = prefsize2.height;
+		jV2PixelsWeight.setMaximumSize(maxsize2);
+		l.setLabelFor(jV2PixelsWeight);
+		box3.add(l);
+		box3.add(jV2PixelsWeight);
+
+		Box main = new Box(BoxLayout.Y_AXIS);
+		main.add(box1);
+		main.add(Box.createRigidArea(new Dimension(0, 10)));
+		main.add(box2);
+		main.add(Box.createRigidArea(new Dimension(0, 10)));
+		main.add(box3);
+
+		ItemListener callSyncUI = new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					syncUI();
+				}
+			}
+		};
+		jradRect.addItemListener(callSyncUI);
+		jradOverlay.addItemListener(callSyncUI);
+		jradDraw.addItemListener(callSyncUI);
+		return main;
+	}
+
+	private void createJButtons(Box boxSouth) {
+		// JButton btnLoad = new JButton("Load");
+		// boxSouth.add(btnLoad);
+		// boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		btnGraph = new JButton("Graph");
+		boxSouth.add(btnGraph);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		btnOptimalMz = new JButton("OptimalMz");
+		btnOptimalMz.setEnabled(false);
+		boxSouth.add(btnOptimalMz);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		btnOptimalMz2 = new JButton("OptimalMz2");
+		btnOptimalMz2.setEnabled(false);
+		boxSouth.add(btnOptimalMz2);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		btnOverlay = new JButton("Overlay");
+		btnOverlay.setEnabled(false);
+		boxSouth.add(btnOverlay);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		btnDraw = new JButton("Draw");
+		btnDraw.setEnabled(false);
+		boxSouth.add(btnDraw);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		btnSpectrum = new JButton("Spectrum");
+		btnSpectrum.setEnabled(false);
+		boxSouth.add(btnSpectrum);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		boxSouth.add(Box.createHorizontalGlue());
+		jcheckSettings = new JCheckBox("Settings");
+		jcheckSettings.setSelected(true);
+		boxSouth.add(jcheckSettings);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+	}
+
+	private void addListeners(Box boxEast) {
+		// btnLoad.addActionListener(new ActionListener() {
+		// @Override
+		// public void actionPerformed(ActionEvent e) {
+		// btnLoad(false);
+		// }
+		// });
+
+		btnGraph.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnGraph();
+			}
+		});
+
+		btnOptimalMz.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnOptimalMz(1);
+			}
+		});
+
+		btnOptimalMz2.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnOptimalMz(2);
+			}
+		});
+
+		btnOverlay.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnTemplate();
+			}
+		});
+
+		btnDraw.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnDraw();
+			}
+		});
+
+		btnSpectrum.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnSpectrum();
+			}
+		});
+
+		tabbedPane.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				syncUI();
+			}
+		});
+
+		jcheckSettings.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				boxEast.setVisible(jcheckSettings.isSelected());
+			}
+		});
 	}
 
 	/**
@@ -431,83 +547,6 @@ public class FrameMain extends JFrame {
 		setJMenuBar(menubar);
 	}
 
-	private Box createSettings() {
-
-		JLabel l;
-
-		Box box1 = new Box(BoxLayout.Y_AXIS);
-		box1.setBorder(BorderFactory.createTitledBorder("Region"));
-		jradRect = new JRadioButton("Rectangle", true);
-		jradTempl = new JRadioButton("Template");
-		jradDraw = new JRadioButton("Draw Region");
-		ButtonGroup group1 = new ButtonGroup();
-		group1.add(jradRect);
-		group1.add(jradTempl);
-		group1.add(jradDraw);
-		box1.add(jradRect);
-		box1.add(jradTempl);
-		box1.add(jradDraw);
-
-		Box box2 = new Box(BoxLayout.Y_AXIS);
-		box2.setBorder(BorderFactory.createTitledBorder("Bins"));
-		jradEvenly = new JRadioButton("Evenly", true);
-		jradPPM = new JRadioButton("PPM");
-		ButtonGroup group2 = new ButtonGroup();
-		group2.add(jradEvenly);
-		group2.add(jradPPM);
-		box2.add(jradEvenly);
-		box2.add(jradPPM);
-
-		Box box3 = new Box(BoxLayout.Y_AXIS);
-		box3.setBorder(BorderFactory.createTitledBorder("Parameters"));
-		l = new JLabel("Graphs: ", JLabel.TRAILING);
-		NumberFormat format1 = NumberFormat.getInstance();
-		NumberFormatter formatter1 = new NumberFormatter(format1);
-		formatter1.setValueClass(Integer.class);
-		formatter1.setMinimum(0);
-		formatter1.setAllowsInvalid(true);
-		// If you want the value to be committed on each keystroke instead of
-		// focus lost
-		formatter1.setCommitsOnValidEdit(true);
-		jnumGraphs = new JFormattedTextField(formatter1);
-		jnumGraphs.setValue(GRAPHS);
-		Dimension maxsize1 = jnumGraphs.getMaximumSize();
-		Dimension prefsize1 = jnumGraphs.getPreferredSize();
-		maxsize1.height = prefsize1.height;
-		jnumGraphs.setMaximumSize(maxsize1);
-		l.setLabelFor(jnumGraphs);
-		box3.add(l);
-		box3.add(jnumGraphs);
-
-		l = new JLabel("OptMz2 Weight: ", JLabel.TRAILING);
-		NumberFormat format2 = NumberFormat.getInstance();
-		NumberFormatter formatter2 = new NumberFormatter(format2);
-		formatter2.setValueClass(Integer.class);
-		formatter2.setMinimum(0);
-		formatter2.setAllowsInvalid(true);
-		// If you want the value to be committed on each keystroke instead of
-		// focus lost
-		formatter2.setCommitsOnValidEdit(true);
-		jV2PixelsWeight = new JFormattedTextField(formatter2);
-		jV2PixelsWeight.setValue(2);
-		Dimension maxsize2 = jnumGraphs.getMaximumSize();
-		Dimension prefsize2 = jnumGraphs.getPreferredSize();
-		maxsize2.height = prefsize2.height;
-		jV2PixelsWeight.setMaximumSize(maxsize2);
-		l.setLabelFor(jV2PixelsWeight);
-		box3.add(l);
-		box3.add(jV2PixelsWeight);
-
-		Box main = new Box(BoxLayout.Y_AXIS);
-		main.add(box1);
-		main.add(Box.createRigidArea(new Dimension(0, 10)));
-		main.add(box2);
-		main.add(Box.createRigidArea(new Dimension(0, 10)));
-		main.add(box3);
-
-		return main;
-	}
-
 	/**
 	 * 
 	 * ActionListener of the Load button.
@@ -607,7 +646,7 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
-			if (jradTempl.isSelected() && isLetterTemplate == null) {
+			if (jradOverlay.isSelected() && isLetterTemplate == null) {
 				throw new Exception("Template Settings not loaded");
 			}
 
@@ -646,7 +685,7 @@ public class FrameMain extends JFrame {
 							double y_stop = Double.parseDouble(dialog.getText("ystop"));// 10
 
 							isLetter = new IsLetterV1(msiimage, x_start, x_stop, y_start, y_stop);
-						} else if (jradTempl.isSelected()) {
+						} else if (jradOverlay.isSelected()) {
 							isLetter = isLetterTemplate;
 						} else {
 							isLetter = isLetterDraw;
@@ -728,7 +767,8 @@ public class FrameMain extends JFrame {
 							@Override
 							public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
 								isLetterTemplate = isLetter;
-								jradTempl.setSelected(true);
+								jradOverlay.setSelected(true);
+								syncUI();
 							}
 						});
 						frame.setVisible(true);
@@ -775,6 +815,7 @@ public class FrameMain extends JFrame {
 							public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
 								isLetterDraw = isLetter;
 								jradDraw.setSelected(true);
+								syncUI();
 							}
 						});
 						frame.setVisible(true);
@@ -815,7 +856,7 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
-			if (jradTempl.isSelected() && isLetterTemplate == null) {
+			if (jradOverlay.isSelected() && isLetterTemplate == null) {
 				throw new Exception("Template Settings not loaded");
 			}
 
@@ -849,7 +890,7 @@ public class FrameMain extends JFrame {
 							double y_stop = Double.parseDouble(dialog.getText("ystop"));// 10
 
 							isLetter = new IsLetterV1(msiimage, x_start, x_stop, y_start, y_stop);
-						} else if (jradTempl.isSelected()) {
+						} else if (jradOverlay.isSelected()) {
 							isLetter = isLetterTemplate;
 						} else {
 							isLetter = isLetterDraw;
@@ -935,7 +976,7 @@ public class FrameMain extends JFrame {
 			@Override
 			public void run() throws Exception {
 				double[][] intensity = msiimage.getReduceSpec(progressTracker, massrange);
-				
+
 				PanelGraph panelGraph = new PanelGraph();
 				panelGraph.setTitle(title);
 				BufferedImage image = panelGraph.calculateImage(intensity);
@@ -1071,7 +1112,32 @@ public class FrameMain extends JFrame {
 				public void run() throws Exception {
 					progressBar.setValue(value);
 				}
+
 			});
 		}
 	};
+
+	private void syncUI() {
+		if (jradRect.isSelected() || (jradOverlay.isSelected() && isLetterTemplate != null) || (jradDraw.isSelected() && isLetterDraw != null)) {
+			btnOptimalMz.setEnabled(true);
+			btnOptimalMz2.setEnabled(true);
+			btnSpectrum.setEnabled(true);
+		} else {
+			btnOptimalMz.setEnabled(false);
+			btnOptimalMz2.setEnabled(false);
+			btnSpectrum.setEnabled(false);
+		}
+
+		int selected = tabbedPane.getSelectedIndex();
+		if (selected >= 0) {
+			Component component = tabbedPane.getComponentAt(selected);
+			if (component instanceof PanelGraph) {
+				btnOverlay.setEnabled(true);
+				btnDraw.setEnabled(true);
+			} else {
+				btnOverlay.setEnabled(false);
+				btnDraw.setEnabled(false);
+			}
+		}
+	}
 }
