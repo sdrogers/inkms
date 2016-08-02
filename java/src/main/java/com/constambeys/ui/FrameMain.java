@@ -9,8 +9,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,8 +54,6 @@ import javax.swing.text.NumberFormatter;
 
 import org.apache.commons.io.FilenameUtils;
 
-import com.constambeys.load.MSIImage;
-import com.constambeys.load.Spectrum;
 import com.constambeys.python.BinEvenlyDistributed;
 import com.constambeys.python.BinsPartsPerMillion;
 import com.constambeys.python.IBinResolution;
@@ -67,6 +63,11 @@ import com.constambeys.python.IsLetterV1;
 import com.constambeys.python.OptimalMz;
 import com.constambeys.python.OptimalMzV1;
 import com.constambeys.python.OptimalMzV2;
+import com.constambeys.readers.MSIImage;
+import com.constambeys.readers.Spectrum;
+import com.constambeys.ui.colormaps.Colormaps;
+import com.constambeys.ui.colormaps.Hot;
+import com.constambeys.ui.colormaps.IColormap;
 import com.constambeys.ui.graph.PanelGraph;
 import com.constambeys.ui.graph.PanelVlines;
 
@@ -166,6 +167,9 @@ public class FrameMain extends JFrame {
 		}
 	}
 
+	/**
+	 * @return the settings UI
+	 */
 	private Box createSettings() {
 
 		JLabel l;
@@ -255,6 +259,11 @@ public class FrameMain extends JFrame {
 		return main;
 	}
 
+	/**
+	 * initialises the UI buttons
+	 * 
+	 * @param boxSouth
+	 */
 	private void createJButtons(Box boxSouth) {
 		// JButton btnLoad = new JButton("Load");
 		// boxSouth.add(btnLoad);
@@ -296,6 +305,11 @@ public class FrameMain extends JFrame {
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 	}
 
+	/**
+	 * initialises the UI listeners
+	 * 
+	 * @param boxEast
+	 */
 	private void addListeners(Box boxEast) {
 		// btnLoad.addActionListener(new ActionListener() {
 		// @Override
@@ -554,15 +568,6 @@ public class FrameMain extends JFrame {
 	 */
 	private void btnLoad(boolean canClose) {
 		try {
-			if (Startup.DEBUG_FILE) {
-				try {
-					msiimage = Startup.loadMZML();
-				} catch (Exception ex) {
-					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-				}
-				return;
-			}
-
 			DialogLoad dialog = new DialogLoad(FrameMain.this, canClose);
 			dialog.pack();
 			dialog.addOkListener(new DialogLoad.OKListener() {
@@ -600,7 +605,7 @@ public class FrameMain extends JFrame {
 			dialog.addOkListener(new DialogGraph.IOkListener() {
 
 				@Override
-				public void actionPerformed(ActionEvent e, List<MassRange> ranges) {
+				public void actionPerformed(ActionEvent e, List<MassRange> ranges, IColormap colormap) {
 					try {
 						if (ranges.size() == 0) {
 							return;
@@ -619,7 +624,7 @@ public class FrameMain extends JFrame {
 							sb.append(range.toStringV2());
 						}
 
-						addGraphTab(sb.toString(), massrange);
+						addGraphTab(sb.toString(), colormap, massrange);
 
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -721,8 +726,8 @@ public class FrameMain extends JFrame {
 
 								addTextTab(optimalMz.printTopResults(n));
 
-								for (OptimalMz.Stats r : optimalMz.getTopResults(n)) {
-									addGraphTab(bins.getLowerMz(r.index), bins.getHigherMz(r.index));
+								for (OptimalMz.BinStatistics r : optimalMz.getTopResults(n)) {
+									addGraphTab(new Hot(), bins.getLowerMz(r.index), bins.getHigherMz(r.index));
 								}
 							}
 						};
@@ -760,9 +765,9 @@ public class FrameMain extends JFrame {
 					BufferedImage imgGenerated = pg.getImage();
 					if (imgGenerated != null) {
 
-						DialogTemplate frame = new DialogTemplate(msiimage, FrameMain.this, true);
+						DialogOverlay frame = new DialogOverlay(msiimage, FrameMain.this, true);
 						frame.setGraph(imgGenerated);
-						frame.addOkListener(new DialogTemplate.IOkListener() {
+						frame.addOkListener(new DialogOverlay.IOkListener() {
 
 							@Override
 							public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
@@ -861,91 +866,125 @@ public class FrameMain extends JFrame {
 			}
 
 			if (jradDraw.isSelected() && isLetterDraw == null) {
-				throw new Exception("Template Settings not loaded");
+				throw new Exception("Draw Settings not loaded");
 			}
 
-			DialogOptimalMz dialog = new DialogOptimalMz(FrameMain.this, "Set Parameters", true);
-
-			if (jradRect.isSelected()) {
-				dialog.addTextBox("xstart", "x start (mm)");
-				dialog.addTextBox("xstop", "x stop (mm)");
-				dialog.addTextBox("ystart", "y start (mm)");
-				dialog.addTextBox("ystop", "y stop (mm)");
-			}
-
-			dialog.addTextBox("ymin", "min intensity value");
-
-			dialog.pack();
-			dialog.addOkListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try {
-						ICheckLetter isLetter;
-
-						if (jradRect.isSelected()) {
-							double x_start = Double.parseDouble(dialog.getText("xstart")); // 30
-							double x_stop = Double.parseDouble(dialog.getText("xstop"));// 40
-							double y_start = Double.parseDouble(dialog.getText("ystart"));// 0
-							double y_stop = Double.parseDouble(dialog.getText("ystop"));// 10
-
-							isLetter = new IsLetterV1(msiimage, x_start, x_stop, y_start, y_stop);
-						} else if (jradOverlay.isSelected()) {
-							isLetter = isLetterTemplate;
-						} else {
-							isLetter = isLetterDraw;
-						}
-
-						int ymin = Integer.parseInt(dialog.getText("ymin"));
-
-						ITask task = new ITask() {
+			int selected = tabbedPane.getSelectedIndex();
+			if (selected >= 0) {
+				Component component = tabbedPane.getComponentAt(selected);
+				if (component instanceof PanelGraph) {
+					PanelGraph pg = (PanelGraph) component;
+					BufferedImage imgGenerated = pg.getImage();
+					if (imgGenerated != null) {
+						DialogDraw frame = new DialogDraw(msiimage, FrameMain.this, true);
+						frame.setTitle("Draw reference region");
+						frame.setGraph(imgGenerated);
+						frame.addOkListener(new DialogDraw.IOkListener() {
 
 							@Override
-							public void run() throws Exception {
-								PanelVlines panelVlines = new PanelVlines();
-
-								for (int line = 0; line < msiimage.getLines(); line++) {
-									if (progressTracker != null)
-										progressTracker.update((int) ((float) line / msiimage.getLines() * 100));
-
-									for (int x = 0; x < msiimage.getWidth(); x++) {
-										Spectrum spectrum = msiimage.getSpectrum(line, x);
-										boolean isLetterCheck = isLetter.check(x, line);
-
-										for (int s = 0; s < spectrum.mzs.length; s++) {
-											double mz = spectrum.mzs[s];
-											double i = spectrum.ints[s];
-											if (i >= ymin)
-												panelVlines.add(mz, i, isLetterCheck);
-										}
-									}
-								}
-
-								panelVlines.addCommit();
-
-								if (progressTracker != null)
-									progressTracker.update(100);
-
-								updateUI(new ITask() {
-									@Override
-									public void run() {
-										tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), panelVlines);
-									}
-								});
+							public void actionPerformed(ActionEvent e, ICheckLetter isLetter1) {
+								btnSpectrumHelp(isLetter1);
 							}
-						};
-						submitTask(task);
-
-					} catch (Exception ex) {
-						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+						});
+						frame.setVisible(true);
+					} else {
+						JOptionPane.showMessageDialog(null, "Something is wrong with the graph", "Error", JOptionPane.ERROR_MESSAGE);
 					}
+				} else {
+					JOptionPane.showMessageDialog(null, "Before draw load a graph", "Error", JOptionPane.ERROR_MESSAGE);
 				}
-			});
-			dialog.setVisible(true);
+			} else {
+				JOptionPane.showMessageDialog(null, "Before draw load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+			}
+
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 
+	}
+
+	private void btnSpectrumHelp(ICheckLetter isLetter1) {
+		DialogOptimalMz dialog = new DialogOptimalMz(FrameMain.this, "Set Parameters", true);
+
+		if (jradRect.isSelected()) {
+			dialog.addTextBox("xstart", "x start (mm)");
+			dialog.addTextBox("xstop", "x stop (mm)");
+			dialog.addTextBox("ystart", "y start (mm)");
+			dialog.addTextBox("ystop", "y stop (mm)");
+		}
+
+		dialog.addTextBox("ymin", "min intensity value", "0");
+
+		dialog.pack();
+		dialog.addOkListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					ICheckLetter isLetter0;
+
+					if (jradRect.isSelected()) {
+						double x_start = Double.parseDouble(dialog.getText("xstart")); // 30
+						double x_stop = Double.parseDouble(dialog.getText("xstop"));// 40
+						double y_start = Double.parseDouble(dialog.getText("ystart"));// 0
+						double y_stop = Double.parseDouble(dialog.getText("ystop"));// 10
+
+						isLetter0 = new IsLetterV1(msiimage, x_start, x_stop, y_start, y_stop);
+					} else if (jradOverlay.isSelected()) {
+						isLetter0 = isLetterTemplate;
+					} else {
+						isLetter0 = isLetterDraw;
+					}
+
+					int ymin = Integer.parseInt(dialog.getText("ymin"));
+
+					ITask task = new ITask() {
+
+						@Override
+						public void run() throws Exception {
+							PanelVlines panelVlines = new PanelVlines();
+
+							for (int line = 0; line < msiimage.getLines(); line++) {
+								if (progressTracker != null)
+									progressTracker.update((int) ((float) line / msiimage.getLines() * 100));
+
+								for (int x = 0; x < msiimage.getWidth(); x++) {
+									Spectrum spectrum = msiimage.getSpectrum(line, x);
+									boolean isLetterCheck0 = isLetter0.check(x, line);
+									boolean isLetterCheck1 = isLetter1.check(x, line);
+
+									if (isLetterCheck0 || isLetterCheck1) {
+										for (int s = 0; s < spectrum.mzs.length; s++) {
+											double mz = spectrum.mzs[s];
+											double i = spectrum.ints[s];
+											if (i >= ymin)
+												panelVlines.add(mz, i, isLetterCheck0);
+										}
+									}
+								}
+							}
+
+							panelVlines.addCommit();
+
+							if (progressTracker != null)
+								progressTracker.update(100);
+
+							updateUI(new ITask() {
+								@Override
+								public void run() {
+									tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), panelVlines);
+								}
+							});
+						}
+					};
+					submitTask(task);
+
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		dialog.setVisible(true);
 	}
 
 	/**
@@ -956,9 +995,9 @@ public class FrameMain extends JFrame {
 	 * @param higherMass
 	 *            the upper mass per charge value
 	 */
-	private void addGraphTab(double lowerMass, double higherMass) {
+	private void addGraphTab(IColormap colormap, double lowerMass, double higherMass) {
 		MassRange range = new MassRange(lowerMass, higherMass);
-		addGraphTab(range.toStringV2(), lowerMass, higherMass);
+		addGraphTab(range.toStringV2(), colormap, lowerMass, higherMass);
 	}
 
 	/**
@@ -969,7 +1008,7 @@ public class FrameMain extends JFrame {
 	 * @param mzrange
 	 *            the lower and upper mass per charge value. Arguments must be multiple of 2
 	 */
-	private void addGraphTab(String title, double... massrange) {
+	private void addGraphTab(String title, IColormap colormap, double... massrange) {
 
 		ITask task = new ITask() {
 
@@ -978,8 +1017,8 @@ public class FrameMain extends JFrame {
 				double[][] intensity = msiimage.getReduceSpec(progressTracker, massrange);
 
 				PanelGraph panelGraph = new PanelGraph();
-				panelGraph.setTitle(title);
-				BufferedImage image = panelGraph.calculateImage(intensity);
+				panelGraph.setGraphTitle(title);
+				BufferedImage image = Colormaps.calculateImage(intensity, colormap);
 				panelGraph.draw(image, msiimage.getWidthMM(), msiimage.getHeightMM());
 				panelGraph.setMetadata(intensity);
 

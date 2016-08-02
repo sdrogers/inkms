@@ -1,8 +1,9 @@
 package com.constambeys.python;
 
 import java.util.Arrays;
-import com.constambeys.load.MSIImage;
-import com.constambeys.load.Spectrum;
+
+import com.constambeys.readers.MSIImage;
+import com.constambeys.readers.Spectrum;
 
 /**
  * Find the optimal mass based on intensity differences and the number of pixels above average intensity
@@ -13,7 +14,13 @@ import com.constambeys.load.Spectrum;
 public class OptimalMzV2 extends OptimalMz {
 
 	public class Pixel {
+		/**
+		 * The sum intensity values of each pixel region 0 or 1
+		 */
 		public double i;
+		/**
+		 * The added intensity values of each pixel region 0 or 1
+		 */
 		public int c;
 	}
 
@@ -40,10 +47,10 @@ public class OptimalMzV2 extends OptimalMz {
 		long startTime = System.nanoTime();
 
 		int resolution = bins.getBinsCount();
-		stats = new Stats[resolution];
+		binStatistics = new BinStatistics[resolution];
 		for (int i = 0; i < resolution; i++) {
-			stats[i] = new Stats();
-			stats[i].index = i;
+			binStatistics[i] = new BinStatistics();
+			binStatistics[i].index = i;
 		}
 
 		double mzRangeLower = bins.getLowerBound();
@@ -65,17 +72,18 @@ public class OptimalMzV2 extends OptimalMz {
 				for (int s = 0; s < spectrum.mzs.length; s++) {
 					double mz = spectrum.mzs[s];
 					double i = spectrum.ints[s];
-					
+
 					if (mzRangeLower <= mz && mz <= mzRangeHighest) {
 						int indx = bins.getMassIndex(mz);
 
 						if (isLetterCheck) {
-							stats[indx].c += 1;
-							stats[indx].i += i;
+							binStatistics[indx].c += 1;
+							binStatistics[indx].i += i;
 						} else {
-							stats[indx].c1 += 1;
-							stats[indx].i1 += i;
+							binStatistics[indx].c1 += 1;
+							binStatistics[indx].i1 += i;
 						}
+
 						pixels[line][x][indx].i += i;
 						pixels[line][x][indx].c += 1;
 					}
@@ -84,10 +92,10 @@ public class OptimalMzV2 extends OptimalMz {
 		}
 
 		for (int i = 0; i < resolution; i++) {
-			if (stats[i].c != 0)
-				stats[i].i = stats[i].i / stats[i].c;
-			if (stats[i].c1 != 0)
-				stats[i].i1 = stats[i].i1 / stats[i].c1;
+			if (binStatistics[i].c != 0)
+				binStatistics[i].i = binStatistics[i].i / binStatistics[i].c;
+			if (binStatistics[i].c1 != 0)
+				binStatistics[i].i1 = binStatistics[i].i1 / binStatistics[i].c1;
 		}
 
 		for (int line = 0; line < msiimage.getLines(); line++) {
@@ -102,15 +110,15 @@ public class OptimalMzV2 extends OptimalMz {
 					continue;
 
 				for (int i = 0; i < resolution; i++) {
-					if (pixels[line][x][i].c > 0 && pixels[line][x][i].i / pixels[line][x][i].c > stats[i].i1) {
-						stats[i].diff = stats[i].diff + 1;
+					if (pixels[line][x][i].c > 0 && pixels[line][x][i].i / pixels[line][x][i].c > binStatistics[i].i1) {
+						binStatistics[i].diff = binStatistics[i].diff + 1;
 					}
 				}
 			}
 		}
 
 		for (int i = 0; i < resolution; i++) {
-			stats[i].diff = -(stats[i].i - stats[i].i1) * Math.pow(stats[i].diff, pixelWeight);
+			binStatistics[i].diff = -(binStatistics[i].i - binStatistics[i].i1) * Math.pow(binStatistics[i].diff, pixelWeight);
 		}
 
 		if (callback != null)
@@ -118,6 +126,6 @@ public class OptimalMzV2 extends OptimalMz {
 		long end = System.nanoTime() - startTime;
 		System.out.println(String.format("%.2fs", end / 1000000000.0));
 
-		Arrays.sort(stats);
+		Arrays.sort(binStatistics);
 	}
 }

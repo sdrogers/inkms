@@ -8,9 +8,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import com.constambeys.load.MSIImage;
+import com.constambeys.readers.MSIImage;
 import com.constambeys.ui.graph.PanelGraph;
 
+/**
+ * Displays the generated image in a new window
+ * 
+ * @author Constambeys
+ *
+ */
 public class FrameGraph extends JFrame {
 
 	private MSIImage msiimage;
@@ -47,10 +53,15 @@ public class FrameGraph extends JFrame {
 
 	}
 
+	/**
+	 * Sets the generated image and the window title
+	 * 
+	 * @param imgGenerated
+	 */
 	public void setGraph(String title, BufferedImage imgGenerated) {
 		try {
 			setTitle(title);
-			panelGraph.setTitle(title);
+			panelGraph.setGraphTitle(title);
 			panelGraph.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);

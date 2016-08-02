@@ -9,8 +9,9 @@ public interface ILoadPattern {
 
 	/**
 	 * @return a 2d array mapping the spectrum index of each pixel
+	 * @throws Exception 
 	 */
-	int[][] getDataStructure();
+	int[][] getDataStructure() throws Exception;
 
 	/**
 	 * @return the width in millimetres of the image

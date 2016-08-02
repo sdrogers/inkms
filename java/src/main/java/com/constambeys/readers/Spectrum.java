@@ -1,4 +1,4 @@
-package com.constambeys.load;
+package com.constambeys.readers;
 
 public class Spectrum {
 

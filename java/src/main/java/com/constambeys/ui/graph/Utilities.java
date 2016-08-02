@@ -5,7 +5,7 @@ public class Utilities {
 	/**
 	 * Calculates the interval's decimal places
 	 * <p>
-	 * for example 10 order 0, 1 order 0, 0.12 order 1 ...
+	 * for example 10 interval has order 0, 1 interval has order 0, 0.12 interval has order 1 ...
 	 *
 	 * @param interval
 	 * @return order
@@ -23,7 +23,7 @@ public class Utilities {
 	/**
 	 * Calculates the interval's decimal places
 	 * <p>
-	 * for example 1.23 order 2 ...
+	 * for example 1.23 interval has order 2 ...
 	 *
 	 * @param interval
 	 * @return order

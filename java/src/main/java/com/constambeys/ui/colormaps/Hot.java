@@ -1,9 +1,15 @@
-package com.constambeys.ui.graph;
+package com.constambeys.ui.colormaps;
 
 import java.awt.Color;
 
 import com.constambeys.ui.Startup;
 
+/**
+ * Hot colour map
+ * 
+ * @author Constambeys
+ *
+ */
 public class Hot implements IColormap {
 
 	private static int[] hot = null;

@@ -1,4 +1,4 @@
-package com.constambeys.ui.graph;
+package com.constambeys.ui.colormaps;
 
 public interface IColormap {
 

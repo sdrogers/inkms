@@ -1,6 +1,6 @@
 package com.constambeys.patterns;
 
-import com.constambeys.load.IReader;
+import com.constambeys.filtering.IFiltering;
 
 /**
  * Implements normal pattern left-> right
@@ -24,23 +24,7 @@ public class Pattern2 implements ILoadPattern {
 	 */
 	private int step;
 
-	/**
-	 * Specifies the spectrum selection algorithm
-	 */
-	public static enum Type {
-		ALL("ALL"), ODD("ODD 1,3,..."), EVEN("EVEN 2,4,...");
-
-		String name;
-
-		private Type(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String toString() {
-			return name;
-		}
-	}
+	private IFiltering reader;
 
 	/**
 	 * Specifies the file parameters
@@ -63,40 +47,38 @@ public class Pattern2 implements ILoadPattern {
 	 * @throws Exception
 	 */
 
-	public Pattern2(IReader reader, Param param, Type type) throws Exception {
+	public Pattern2(IFiltering reader, Param param) throws Exception {
 
 		this.param = param;
+		this.reader = reader;
 		this.scansTotal = reader.getSpectraCount();
 
-		if (type == Type.ODD) { // Positive
-			this.scansTotal = (int) Math.ceil(scansTotal / 2);
-			this.startIndex = 1;
-			this.step = 2;
-		} else if (type == Type.EVEN) { // Negative
-			this.scansTotal = (int) Math.floor(scansTotal / 2);
-			this.startIndex = 2;
-			this.step = 2;
-		} else if (type == Type.ALL) {
-			this.startIndex = 1;
-			this.step = 1;
-		} else {
-			throw new Exception("Invalid Type: normal, positive or negative");
-		}
+		this.startIndex = 1;
+		this.step = 1;
 	}
 
 	@Override
-	public int[][] getDataStructure() {
+	public int[][] getDataStructure() throws Exception {
+
+		if (param.lines == 0) {
+			throw new Exception("Invalid input data. Line parameter cannot be 0");
+		}
+
 		float scansPerLineFloat = (float) scansTotal / param.lines;
 		int scansPerLine = (int) scansPerLineFloat;
 		int skip = scansTotal - param.lines * scansPerLine;
 		int skipPerLine = skip / param.lines;
 		int remaining = skip - skipPerLine * param.lines;
 
+		if (scansPerLine <= 0) {
+			throw new Exception("Invalid input data. Calculated scans per line cannot be 0");
+		}
+
 		int[][] data = new int[param.lines][scansPerLine];
 		int index = startIndex;
 		for (int line = 0; line < param.lines; line++) {
 			for (int i = 0; i < scansPerLine; i++) {
-				data[line][i] = index;
+				data[line][i] = reader.getRealIndex(index);
 				index = index + step;
 			}
 

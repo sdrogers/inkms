@@ -27,15 +27,20 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.constambeys.filtering.IFiltering;
+import com.constambeys.filtering.NoFiltering;
+import com.constambeys.filtering.PolarityFiltering;
 import com.constambeys.layout.SpringUtilities;
-import com.constambeys.load.IReader;
-import com.constambeys.load.ImzMLProxy;
-import com.constambeys.load.MSIImage;
-import com.constambeys.load.MzJavaProxy;
-import com.constambeys.load.MzMLProxy;
 import com.constambeys.patterns.ILoadPattern;
 import com.constambeys.patterns.Pattern1;
 import com.constambeys.patterns.Pattern2;
+import com.constambeys.readers.IReader;
+import com.constambeys.readers.IReader.ScanType;
+import com.constambeys.readers.ImzMLProxy;
+import com.constambeys.readers.MSIImage;
+import com.constambeys.readers.MzJavaProxy;
+import com.constambeys.readers.MzMLProxy;
+
 import javax.swing.JFileChooser;
 import java.io.File;
 import java.io.IOException;
@@ -46,10 +51,28 @@ import java.io.IOException;
  * @author Constambeys
  *
  */
-public class DialogLoad extends JDialog implements MouseListener {
+public class DialogLoad extends JDialog {
 
 	public interface OKListener {
 		public void actionPerformed(ActionEvent e, MSIImage msiimage);
+	}
+
+	/**
+	 * Specifies the spectrum selection algorithm
+	 */
+	private static enum Filtering {
+		ALL("ALL"), POSITIVE("POSITIVE"), NEGATIVE("NEGATIVE");
+
+		String name;
+
+		private Filtering(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
 	}
 
 	private enum Pattern {
@@ -70,7 +93,7 @@ public class DialogLoad extends JDialog implements MouseListener {
 	private JTextField jtextWidth;
 	private JTextField jtextHeight;
 	private JTextField jtextDownMotion;
-	private JComboBox jcomboType;
+	private JComboBox<Filtering> jcomboType;
 
 	private IReader reader;
 	private Thread tread;
@@ -78,7 +101,7 @@ public class DialogLoad extends JDialog implements MouseListener {
 
 	private JRadioButton jradMeandering;
 	private JRadioButton jradNormal;
-	private JLabel image;
+	private JLabel jlabelImage;
 
 	/**
 	 * Initialises a new user interface dialog
@@ -110,9 +133,7 @@ public class DialogLoad extends JDialog implements MouseListener {
 		setMinimumSize(getSize());
 		getContentPane().setLayout(new BorderLayout());
 
-		// Create and populate the panel.
-		JPanel panelCenter = new JPanel(new SpringLayout());
-		getContentPane().add(panelCenter, BorderLayout.CENTER);
+		getContentPane().add(createPanelCenter(), BorderLayout.CENTER);
 
 		JPanel panelSouth = new JPanel();
 		panelSouth.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -122,13 +143,56 @@ public class DialogLoad extends JDialog implements MouseListener {
 		Box boxEast = new Box(BoxLayout.Y_AXIS);
 		getContentPane().add(boxEast, BorderLayout.EAST);
 
+		if (canClose) {
+			JButton buttonCancel = new JButton("Cancel");
+			buttonCancel.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					setVisible(false);
+					dispose();
+				}
+			});
+			panelSouth.add(buttonCancel);
+		} else {
+			// Close button is clicked
+			addWindowListener(new java.awt.event.WindowAdapter() {
+				@Override
+				public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+					System.exit(0);
+				}
+			});
+		}
+
+		panelSouth.add(buttonOK);
+
+		jradMeandering = new JRadioButton("Meandering", true);
+		jradNormal = new JRadioButton("Normal");
+		ButtonGroup group1 = new ButtonGroup();
+		group1.add(jradMeandering);
+		group1.add(jradNormal);
+		boxEast.add(jradMeandering);
+		boxEast.add(jradNormal);
+		boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
+
+		jlabelImage = new JLabel();
+		boxEast.add(jlabelImage);
+		setPattern(Pattern.Pattern1);
+
+		addListeners();
+		getRootPane().setDefaultButton(buttonOK);
+	}
+
+	private JPanel createPanelCenter() {
+		// Create and populate the panel.
+		JPanel panelCenter = new JPanel(new SpringLayout());
+
 		JLabel l;
 
 		l = new JLabel("File", JLabel.TRAILING);
 		panelCenter.add(l);
 		jFilePath = new JTextField(10);
 		jFilePath.setEditable(false);
-		jFilePath.addMouseListener(this);
 		l.setLabelFor(jFilePath);
 		panelCenter.add(jFilePath);
 
@@ -156,9 +220,11 @@ public class DialogLoad extends JDialog implements MouseListener {
 		l.setLabelFor(jtextDownMotion);
 		panelCenter.add(jtextDownMotion);
 
-		l = new JLabel("Indexes:", JLabel.TRAILING);
+		l = new JLabel("Filtering:", JLabel.TRAILING);
 		panelCenter.add(l);
-		jcomboType = new JComboBox<Object>();
+		DefaultComboBoxModel<Filtering> model = new DefaultComboBoxModel<Filtering>(Filtering.values());
+		jcomboType = new JComboBox<Filtering>();
+		jcomboType.setModel(model);
 		l.setLabelFor(jcomboType);
 		panelCenter.add(jcomboType);
 
@@ -166,27 +232,96 @@ public class DialogLoad extends JDialog implements MouseListener {
 		SpringUtilities.makeCompactGrid(panelCenter, 6, 2, // rows, cols
 				6, 6, // initX, initY
 				6, 6); // xPad, yPad
+		return panelCenter;
+	}
 
-		if (canClose) {
-			JButton buttonCancel = new JButton("Cancel");
-			buttonCancel.addActionListener(new ActionListener() {
+	private void addListeners() {
 
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					setVisible(false);
-					dispose();
+		jFilePath.addMouseListener(new MouseListener() {
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				try {
+					if (tread != null && tread.isAlive()) {
+						JOptionPane.showMessageDialog(null, "Please wait until file loading is completed", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+
+					Settings settings = new Settings();
+					JFileChooser fileChooser = new JFileChooser();
+					FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML | mzXML | imzML files", "mzML", "mzXML", "imzML");
+					fileChooser.setFileFilter(filter);
+					if (settings.get("load_dir") != null) {
+						fileChooser.setCurrentDirectory(new File(settings.get("load_dir")));
+					}
+					int result = fileChooser.showOpenDialog(DialogLoad.this);
+					if (result == JFileChooser.APPROVE_OPTION) {
+
+						jFilePath.setText("Loading ...");
+
+						File selectedFile = fileChooser.getSelectedFile();
+
+						tread = new Thread(new Runnable() {
+
+							@Override
+							public void run() {
+								try {
+									loadfile(selectedFile);
+								} catch (Exception ex) {
+									JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+								}
+							}
+						});
+						tread.start();
+
+						settings.put("load_dir", fileChooser.getCurrentDirectory().getAbsolutePath());
+						try {
+							settings.save();
+						} catch (IOException ex) {
+							System.err.println("Error saving settings file");
+						}
+					}
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 				}
-			});
-			panelSouth.add(buttonCancel);
-		} else {
-			// Close button is clicked
-			addWindowListener(new java.awt.event.WindowAdapter() {
-				@Override
-				public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-					System.exit(0);
+			}
+		});
+
+		jradMeandering.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					setPattern(Pattern.Pattern1);
+				} else if (e.getStateChange() == ItemEvent.DESELECTED) {
+					setPattern(Pattern.Pattern2);
 				}
-			});
-		}
+			}
+		});
 
 		buttonOK.addActionListener(new ActionListener() {
 
@@ -201,6 +336,22 @@ public class DialogLoad extends JDialog implements MouseListener {
 						return;
 					}
 
+					Filtering type = (Filtering) jcomboType.getSelectedItem();
+					IFiltering readerWithFiltering;
+					if (type == Filtering.ALL) {
+						readerWithFiltering = new NoFiltering(reader);
+					} else if (type == Filtering.POSITIVE) {
+						readerWithFiltering = new PolarityFiltering(reader, ScanType.POSITIVE);
+					} else if (type == Filtering.NEGATIVE) {
+						readerWithFiltering = new PolarityFiltering(reader, ScanType.NEGATIVE);
+					} else {
+						throw new Exception(String.format("Filtering type %s not supported", type.toString()));
+					}
+
+					if (readerWithFiltering.getSpectraCount() == 0) {
+						throw new Exception(String.format("File does not contain %s scans", type.toString()));
+					}
+
 					ILoadPattern p;
 					if (pattern == Pattern.Pattern1) {
 						Pattern1.Param param = new Pattern1.Param();
@@ -208,16 +359,15 @@ public class DialogLoad extends JDialog implements MouseListener {
 						param.widthInMM = Integer.parseInt(jtextWidth.getText());
 						param.heightInMM = Integer.parseInt(jtextHeight.getText());
 						param.downMotionInMM = Float.parseFloat(jtextDownMotion.getText());
-						Pattern1.Type type = (Pattern1.Type) jcomboType.getSelectedItem();
-						p = new Pattern1(reader, param, type);
+						p = new Pattern1(readerWithFiltering, param);
 					} else {
 						Pattern2.Param param = new Pattern2.Param();
 						param.lines = Integer.parseInt(jtextLines.getText());
 						param.widthInMM = Integer.parseInt(jtextWidth.getText());
 						param.heightInMM = Integer.parseInt(jtextHeight.getText());
-						Pattern2.Type type = (Pattern2.Type) jcomboType.getSelectedItem();
-						p = new Pattern2(reader, param, type);
+						p = new Pattern2(readerWithFiltering, param);
 					}
+
 					MSIImage msiimage = new MSIImage(reader, p);
 
 					setVisible(false);
@@ -229,36 +379,14 @@ public class DialogLoad extends JDialog implements MouseListener {
 				}
 			}
 		});
-		panelSouth.add(buttonOK);
-
-		getRootPane().setDefaultButton(buttonOK);
-
-		jradMeandering = new JRadioButton("Meandering", true);
-		jradNormal = new JRadioButton("Normal");
-		ButtonGroup group1 = new ButtonGroup();
-		group1.add(jradMeandering);
-		group1.add(jradNormal);
-		boxEast.add(jradMeandering);
-		boxEast.add(jradNormal);
-		boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
-
-		jradMeandering.addItemListener(new ItemListener() {
-
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					setPattern(Pattern.Pattern1);
-				} else if (e.getStateChange() == ItemEvent.DESELECTED) {
-					setPattern(Pattern.Pattern2);
-				}
-			}
-		});
-
-		image = new JLabel();
-		boxEast.add(image);
-		setPattern(Pattern.Pattern1);
 	}
 
+	/**
+	 * Load the selected file and update UI
+	 * 
+	 * @param selectedFile
+	 * @throws Exception
+	 */
 	private void loadfile(File selectedFile) throws Exception {
 
 		long startTime = System.nanoTime();
@@ -286,7 +414,6 @@ public class DialogLoad extends JDialog implements MouseListener {
 				if (reader instanceof ImzMLProxy) {
 					jtextLines.setText(Integer.toString(((ImzMLProxy) reader).getLines()));
 					jtextLines.setEditable(false);
-					jtextDownMotion.setText("0");
 				} else {
 					jtextLines.setEditable(true);
 				}
@@ -305,97 +432,24 @@ public class DialogLoad extends JDialog implements MouseListener {
 		ok = l;
 	}
 
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		try {
-			if (tread != null && tread.isAlive()) {
-				JOptionPane.showMessageDialog(null, "Please wait until file loading is completed", "Error", JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-
-			Settings settings = new Settings();
-			JFileChooser fileChooser = new JFileChooser();
-			FileNameExtensionFilter filter = new FileNameExtensionFilter("mzML | mzXML | imzML files", "mzML", "mzXML", "imzML");
-			fileChooser.setFileFilter(filter);
-			if (settings.get("load_dir") != null) {
-				fileChooser.setCurrentDirectory(new File(settings.get("load_dir")));
-			}
-			int result = fileChooser.showOpenDialog(DialogLoad.this);
-			if (result == JFileChooser.APPROVE_OPTION) {
-
-				jFilePath.setText("Loading ...");
-
-				File selectedFile = fileChooser.getSelectedFile();
-
-				tread = new Thread(new Runnable() {
-
-					@Override
-					public void run() {
-						try {
-							loadfile(selectedFile);
-						} catch (Exception ex) {
-							JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-						}
-					}
-				});
-				tread.start();
-
-				settings.put("load_dir", fileChooser.getCurrentDirectory().getAbsolutePath());
-				try {
-					settings.save();
-				} catch (IOException e1) {
-					System.err.println("Error saving");
-				}
-			}
-		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-		}
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
 	private void setPattern(Pattern p) {
 		if (p == Pattern.Pattern1) {
-			DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<Object>(Pattern1.Type.values());
-			jcomboType.setModel(model);
 			pattern = Pattern.Pattern1;
+			jtextDownMotion.setText("");
+			jtextDownMotion.setEditable(true);
 			try {
-				image.setIcon(Startup.loadIcon("pattern1.png", 200, 200));
+				jlabelImage.setIcon(Startup.loadIcon("pattern1.png", 200, 200));
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				System.err.println("Cannot load pattern1.png");
 			}
 		} else if (p == Pattern.Pattern2) {
-			DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<Object>(Pattern2.Type.values());
-			jcomboType.setModel(model);
 			pattern = Pattern.Pattern2;
+			jtextDownMotion.setText("0");
+			jtextDownMotion.setEditable(false);
 			try {
-				image.setIcon(Startup.loadIcon("pattern2.png", 200, 200));
+				jlabelImage.setIcon(Startup.loadIcon("pattern2.png", 200, 200));
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				System.err.println("Cannot load pattern2.png");
 			}
 		}
 	}

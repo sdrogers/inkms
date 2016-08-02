@@ -2,6 +2,11 @@ package com.constambeys.ui;
 
 import com.constambeys.ui.graph.Utilities;
 
+/**
+ * Displays a mass range in two coded formats
+ * 
+ * @author Constambeys
+ */
 public class MassRange {
 	double lowerMass;
 	double higherMass;
@@ -38,7 +43,7 @@ public class MassRange {
 
 	public String toStringV2() {
 		double average = (higherMass + lowerMass) / 2;
-		String title = String.format("%." + decimalPlaces + "f \u00B1 %." + decimalPlaces + "f m/z", average, average - lowerMass);
+		String title = String.format("%." + (decimalPlaces + 1) + "f \u00B1 %." + (decimalPlaces + 1) + "f m/z", average, average - lowerMass);
 		return title;
 	}
 }

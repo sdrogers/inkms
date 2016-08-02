@@ -31,10 +31,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
-import com.constambeys.load.MSIImage;
 import com.constambeys.python.ICheckLetter;
 import com.constambeys.python.IProgress;
 import com.constambeys.python.IsLetterV2;
+import com.constambeys.readers.MSIImage;
 import com.constambeys.ui.graph.PanelGraphDraw;
 
 /**
@@ -55,20 +55,6 @@ public class DialogDraw extends JDialog {
 	private MSIImage msiimage;
 	private PanelGraphDraw panelGraph;
 	private JFormattedTextField jRectSize;
-
-	/**
-	 * Initialises a new user interface dialog
-	 * 
-	 * @param owner
-	 *            the Frame from which the dialog is displayed
-	 * @param modal
-	 *            specifies whether dialog blocks user input to other top-level windows when shown
-	 * @throws Exception
-	 */
-	public DialogDraw(Frame owner, boolean modal) throws Exception {
-		super(owner, modal);
-		setupUI(Startup.loadMZML());
-	}
 
 	/**
 	 * Initialises a new user interface dialog using the given image file

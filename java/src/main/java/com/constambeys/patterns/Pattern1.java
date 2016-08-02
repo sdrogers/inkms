@@ -1,6 +1,6 @@
 package com.constambeys.patterns;
 
-import com.constambeys.load.IReader;
+import com.constambeys.filtering.IFiltering;
 
 /**
  * Implements meandering pattern left-> right -> down -> left
@@ -24,23 +24,7 @@ public class Pattern1 implements ILoadPattern {
 	 */
 	private int step;
 
-	/**
-	 * Specifies the spectrum selection algorithm
-	 */
-	public static enum Type {
-		ALL("ALL"), ODD("ODD 1,3,..."), EVEN("EVEN 2,4,...");
-
-		String name;
-
-		private Type(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String toString() {
-			return name;
-		}
-	}
+	private IFiltering reader;
 
 	/**
 	 * Specifies the file parameters
@@ -63,29 +47,22 @@ public class Pattern1 implements ILoadPattern {
 	 *            the selection algorithm
 	 * @throws Exception
 	 */
-	public Pattern1(IReader reader, Param param, Type type) throws Exception {
+	public Pattern1(IFiltering reader, Param param) throws Exception {
 
 		this.param = param;
+		this.reader = reader;
 		this.scansTotal = reader.getSpectraCount();
 
-		if (type == Type.ODD) { // Positive
-			this.scansTotal = (int) Math.ceil(scansTotal / 2);
-			this.startIndex = 1;
-			this.step = 2;
-		} else if (type == Type.EVEN) { // Negative
-			this.scansTotal = (int) Math.floor(scansTotal / 2);
-			this.startIndex = 2;
-			this.step = 2;
-		} else if (type == Type.ALL) {
-			this.startIndex = 1;
-			this.step = 1;
-		} else {
-			throw new Exception("Invalid Type: normal, positive or negative");
-		}
+		this.startIndex = 1;
+		this.step = 1;
 	}
 
 	@Override
-	public int[][] getDataStructure() {
+	public int[][] getDataStructure() throws Exception {
+
+		if (param.lines == 0) {
+			throw new Exception("Invalid input data. Line parameter cannot be 0");
+		}
 
 		float scansPerLineFloat = (float) scansTotal / param.lines;
 		// if not scansPerLine.is_integer():
@@ -96,6 +73,9 @@ public class Pattern1 implements ILoadPattern {
 		int skipPerLine = skip / param.lines;
 		int remaining = skip - skipPerLine * param.lines;
 
+		if (scansPerLine <= 0) {
+			throw new Exception("Invalid input data. Calculated scans per line cannot be 0");
+		}
 		// -----------------------------------------------------------------------
 
 		int[][] data = new int[param.lines][scansPerLine];
@@ -104,12 +84,12 @@ public class Pattern1 implements ILoadPattern {
 		for (int line = 0; line < param.lines; line++) {
 			if (direction) {
 				for (int i = 0; i < scansPerLine; i++) {
-					data[line][i] = index;
+					data[line][i] = reader.getRealIndex(index);
 					index = index + step;
 				}
 			} else {
 				for (int j = 0, i = scansPerLine - 1; i >= 0; i--, j++) {
-					data[line][j] = index + (i * step);
+					data[line][j] = reader.getRealIndex(index + (i * step));
 				}
 				index = index + (scansPerLine * step);
 			}

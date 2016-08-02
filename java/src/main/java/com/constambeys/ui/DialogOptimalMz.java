@@ -136,6 +136,33 @@ public class DialogOptimalMz extends JDialog {
 	}
 
 	/**
+	 * Add text box
+	 * 
+	 * @param id
+	 *            used as a key
+	 * @param title
+	 *            The text to be displayed by the label
+	 * @param defaultValue
+	 *            The text to be displayed by the text box
+	 * 
+	 */
+	public void addTextBox(String id, String title, String defaultValue) {
+		JTextField jtextField = new JTextField(10);
+		jtextField.setText(defaultValue);
+		JLabel l = new JLabel(title, JLabel.TRAILING);
+		panelCenter.add(l);
+		l.setLabelFor(jtextField);
+		panelCenter.add(jtextField);
+
+		map.put(id, jtextField);
+
+		// Lay out the panel.
+		SpringUtilities.makeCompactGrid(panelCenter, map.size(), 2, // rows, cols
+				6, 6, // initX, initY
+				6, 6); // xPad, yPad
+	}
+
+	/**
 	 * Get value
 	 * 
 	 * @param id

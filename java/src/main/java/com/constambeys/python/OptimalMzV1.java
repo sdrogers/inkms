@@ -1,8 +1,9 @@
 package com.constambeys.python;
 
 import java.util.Arrays;
-import com.constambeys.load.MSIImage;
-import com.constambeys.load.Spectrum;
+
+import com.constambeys.readers.MSIImage;
+import com.constambeys.readers.Spectrum;
 
 /**
  * Finds the optimal mass based on intensity differences
@@ -30,10 +31,10 @@ public class OptimalMzV1 extends OptimalMz {
 		long startTime = System.nanoTime();
 
 		int resolution = bins.getBinsCount();
-		stats = new Stats[resolution];
+		binStatistics = new BinStatistics[resolution];
 		for (int i = 0; i < resolution; i++) {
-			stats[i] = new Stats();
-			stats[i].index = i;
+			binStatistics[i] = new BinStatistics();
+			binStatistics[i].index = i;
 		}
 
 		double mzRangeLower = bins.getLowerBound();
@@ -54,23 +55,23 @@ public class OptimalMzV1 extends OptimalMz {
 					if (mzRangeLower <= mz && mz <= mzRangeHighest) {
 						if (isLetterCheck) {
 							int indx = bins.getMassIndex(mz);
-							stats[indx].c += 1;
-							stats[indx].i += i;
+							binStatistics[indx].c += 1;
+							binStatistics[indx].i += i;
 						} else {
 							int indx = bins.getMassIndex(mz);
-							stats[indx].c1 += 1;
-							stats[indx].i1 += i;
+							binStatistics[indx].c1 += 1;
+							binStatistics[indx].i1 += i;
 						}
 					}
 				}
 			}
 		}
 		for (int i = 0; i < resolution; i++) {
-			if (stats[i].c != 0)
-				stats[i].i = stats[i].i / stats[i].c;
-			if (stats[i].c1 != 0)
-				stats[i].i1 = stats[i].i1 / stats[i].c1;
-			stats[i].diff = stats[i].i1 - stats[i].i;
+			if (binStatistics[i].c != 0)
+				binStatistics[i].i = binStatistics[i].i / binStatistics[i].c;
+			if (binStatistics[i].c1 != 0)
+				binStatistics[i].i1 = binStatistics[i].i1 / binStatistics[i].c1;
+			binStatistics[i].diff = binStatistics[i].i1 - binStatistics[i].i;
 		}
 
 		if (callback != null)
@@ -79,7 +80,7 @@ public class OptimalMzV1 extends OptimalMz {
 		long end = System.nanoTime() - startTime;
 		System.out.println(String.format("%.2fs", end / 1000000000.0));
 
-		Arrays.sort(stats);
+		Arrays.sort(binStatistics);
 	}
 
 }

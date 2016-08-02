@@ -122,7 +122,6 @@ public class PanelGraph extends JPanel {
 	protected int widthInMM;
 	protected int heightInMM;
 	protected BufferedImage bufferImage;
-	protected IColormap colormap;
 
 	// Mouse Listener transform x,y relative to image
 	protected int margin_y_top;
@@ -138,7 +137,6 @@ public class PanelGraph extends JPanel {
 	 */
 	public PanelGraph() {
 		super();
-		colormap = new Hot();
 		fontTitle = new Font("SansSerif", Font.BOLD, 15);
 		fontAxis = new Font("SansSerif", Font.BOLD, 10);
 
@@ -151,7 +149,7 @@ public class PanelGraph extends JPanel {
 	 * 
 	 * @param title
 	 */
-	public void setTitle(String title) {
+	public void setGraphTitle(String title) {
 		this.title = title;
 		this.repaint();
 	}
@@ -182,43 +180,6 @@ public class PanelGraph extends JPanel {
 
 		this.bufferImage = img;
 		this.repaint();
-	}
-
-	/**
-	 * Converts a 2d array to buffered image. Uses hot colour map
-	 * 
-	 * @param intensity
-	 * @return
-	 */
-	public BufferedImage calculateImage(double[][] intensity) {
-
-		int height = intensity.length;
-		int width = intensity[0].length;
-
-		double max = intensity[0][0];
-
-		for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
-				if (max < intensity[i][j]) {
-					max = intensity[i][j];
-				}
-			}
-		}
-
-		int resolution = colormap.getMaxIndex();
-		BufferedImage bufferImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
-				// Color Image
-				// int value = (int) (intensity[j][i] / max * 255);
-				// Color color = new Color(value, value, value);
-				// bufferImage.setRGB(i, j, color.getRGB());
-				int indx = (int) (intensity[j][i] / max * resolution);
-				bufferImage.setRGB(i, j, colormap.get(indx));
-			}
-		}
-
-		return bufferImage;
 	}
 
 	/**

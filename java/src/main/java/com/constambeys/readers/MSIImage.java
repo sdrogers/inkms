@@ -1,4 +1,4 @@
-package com.constambeys.load;
+package com.constambeys.readers;
 
 import com.constambeys.patterns.ILoadPattern;
 import com.constambeys.python.IProgress;

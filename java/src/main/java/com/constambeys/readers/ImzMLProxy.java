@@ -1,8 +1,6 @@
-package com.constambeys.load;
+package com.constambeys.readers;
 
 import java.io.File;
-import java.io.IOException;
-
 import imzML.ImzML;
 
 /**
@@ -15,10 +13,12 @@ public class ImzMLProxy implements IReader {
 	private int nColumns;
 	private int nRows;
 
-	public ImzMLProxy(File mzML) throws IOException {
+	public ImzMLProxy(File mzML) throws Exception {
 		long start = System.nanoTime();
 
 		imzML = imzMLConverter.ImzMLHandler.parseimzML(mzML.getAbsolutePath());
+		if (!imzML.isProcessed())
+			throw new Exception("imzml file cannot be processed");
 
 		nColumns = imzML.getWidth();
 		nRows = imzML.getHeight();
@@ -39,6 +39,25 @@ public class ImzMLProxy implements IReader {
 
 		Spectrum s = new Spectrum(mzs, ints);
 		return s;
+	}
+
+	@Override
+	public ScanType getSpectraPolarity(int index) throws Exception {
+		index--;
+
+		int y = index / nColumns + 1;
+		int x = index % nColumns + 1;
+
+		mzML.Spectrum spectrum = imzML.getSpectrum(x, y);
+
+		if (spectrum.getCVParam("MS:1000130") != null) {
+			return IReader.ScanType.POSITIVE;
+		} else if (spectrum.getCVParam("MS:1000129") != null) {
+			return IReader.ScanType.NEGATIVE;
+		} else {
+			throw new Exception("Error while retrieving scan polarity");
+		}
+
 	}
 
 	@Override

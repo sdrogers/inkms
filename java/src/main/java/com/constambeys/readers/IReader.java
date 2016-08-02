@@ -1,34 +1,32 @@
 package com.constambeys.readers;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Represents a general file reader
- * 
- * @author Constambeys
- *
- */
 public interface IReader {
 
-	class Spectrum {
-		List<Double> mz = new ArrayList<Double>();
-		List<Double> i = new ArrayList<Double>();;
+	/**
+	 * Used to filter spectrums based on charge current
+	 *
+	 */
+	enum ScanType {
+		POSITIVE, NEGATIVE;
 	}
 
 	/**
-	 * 
-	 * @return the number of spectra in the file
+	 * @param index
+	 *            1 based index
+	 * @return
 	 */
-	public int getSpectraCount();
+	Spectrum getSpectrumByIndex(int index);
 
 	/**
-	 * Returns the spectrum based on its 1-based index in the file.
-	 * 
 	 * @param index
-	 *            The 1-based index of the spectrum in the file.
-	 * @return A Spectrum or null in case a spectrum with the given index doesn't exist.
-	 * @throws Exception
+	 *            1 based index
+	 * @return
 	 */
-	public Spectrum getSpectrumByIndex(int index) throws Exception;
+	ScanType getSpectraPolarity(int index) throws Exception;
+
+	/**
+	 * @return the number of spectra in the given file
+	 */
+	int getSpectraCount();
+
 }

@@ -3,7 +3,7 @@ package com.constambeys.python;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constambeys.load.MSIImage;
+import com.constambeys.readers.MSIImage;
 
 /**
  * Abstract class that provides basic functionality for optimal mass detection
@@ -13,21 +13,39 @@ import com.constambeys.load.MSIImage;
  */
 public abstract class OptimalMz {
 
-	public class Stats implements Comparable<Stats> {
+	public class BinStatistics implements Comparable<BinStatistics> {
+		/**
+		 * Saves bin index used to retrieve bin information
+		 */
 		public int index;
+		/**
+		 * The rank of this bin used for sorting the bins
+		 */
 		public double diff;
+		/**
+		 * The added intensity values of selected region - 0
+		 */
 		public int c;
+		/**
+		 * The sum or average intensity of selected region 0
+		 */
 		public double i;
+		/**
+		 * The added intensity values of remaining region - 1
+		 */
 		public int c1;
+		/**
+		 * The sum or average intensity of remaining region - 1
+		 */
 		public double i1;
 
 		@Override
-		public int compareTo(Stats o) {
+		public int compareTo(BinStatistics o) {
 			return Double.compare(diff, o.diff);
 		}
 	}
 
-	protected Stats[] stats;
+	protected BinStatistics[] binStatistics;
 
 	protected MSIImage msiimage;
 	protected ICheckLetter isLetter;
@@ -64,16 +82,16 @@ public abstract class OptimalMz {
 	 *            intesity threshold
 	 * @return a list of results
 	 */
-	public List<Stats> getTopResults(int n, int threshold_i) {
+	public List<BinStatistics> getTopResults(int n, int threshold_i) {
 
-		ArrayList<Stats> result = new ArrayList<Stats>(n);
+		ArrayList<BinStatistics> result = new ArrayList<BinStatistics>(n);
 
-		for (int i = 0; i < stats.length; i++) {
+		for (int i = 0; i < binStatistics.length; i++) {
 			if (result.size() == n)
 				break;
 
-			if (stats[i].i >= threshold_i && stats[i].i1 >= threshold_i) {
-				result.add(stats[i]);
+			if (binStatistics[i].i >= threshold_i && binStatistics[i].i1 >= threshold_i) {
+				result.add(binStatistics[i]);
 			}
 		}
 
@@ -87,7 +105,7 @@ public abstract class OptimalMz {
 	 *            the number of results returned
 	 * @return a list of results
 	 */
-	public List<Stats> getTopResults(int n) {
+	public List<BinStatistics> getTopResults(int n) {
 		return getTopResults(n, 0);
 	}
 
@@ -100,8 +118,8 @@ public abstract class OptimalMz {
 	 */
 	public String printTopResults(int n) {
 		StringBuffer sb = new StringBuffer();
-		List<Stats> result = getTopResults(n);
-		for (Stats r : result) {
+		List<BinStatistics> result = getTopResults(n);
+		for (BinStatistics r : result) {
 			sb.append(String.format("mz: %f - %f , i: %f - %f, c: %d - %d \n", bins.getLowerMz(r.index), bins.getHigherMz(r.index), r.i, r.i1, r.c, r.c1));
 			sb.append(String.format("i1 - i: "));
 			sb.append(String.format("%f\n", r.diff));

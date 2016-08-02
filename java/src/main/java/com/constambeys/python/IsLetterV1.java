@@ -1,6 +1,6 @@
 package com.constambeys.python;
 
-import com.constambeys.load.MSIImage;
+import com.constambeys.readers.MSIImage;
 
 /**
  * Identifies letters at a specified rectangle area

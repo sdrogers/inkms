@@ -1,42 +1,89 @@
 package com.constambeys.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+import com.constambeys.ui.colormaps.ColormapShow;
+import com.constambeys.ui.colormaps.Custom;
+import com.constambeys.ui.colormaps.Hot;
+import com.constambeys.ui.colormaps.IColormap;
 
+/**
+ * The graph dialog allows the user to plot an image
+ * 
+ * @author Constambeys
+ *
+ */
 public class DialogGraph extends JDialog {
 
 	interface IOkListener {
-		public void actionPerformed(ActionEvent e, List<MassRange> ranges);
+		public void actionPerformed(ActionEvent e, List<MassRange> ranges, IColormap colormap);
 	}
 
-	private IOkListener ok;
+	/**
+	 * Specifies the available colormaps
+	 */
+	private static enum Colormap {
+		HOT("HOT"), CUSTOM("CUSTOM");
+
+		String name;
+
+		private Colormap(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
+	}
+
+	// Mass Range
 	private JTextField jLowerMass;
 	private JTextField jHigherMass;
 	private DefaultListModel<MassRange> jListModel;
 	private JList<MassRange> jList;
+
+	// Colormap
+	private JComboBox<Colormap> jcomboColor;
+	private ColormapShow colormapShow;
+
+	// Buttons
+	private JButton jbtnRight;
+	private JButton jbtnLeft;
+	private JButton buttonOK;
+	private IOkListener ok;
 
 	/**
 	 * The {@code DialogGraph} class allows the user to draw a mass range
@@ -81,10 +128,50 @@ public class DialogGraph extends JDialog {
 		setBounds(100, 100, 400, 200);
 		setMinimumSize(getSize());
 
-		GroupLayout layout = new GroupLayout(getContentPane());
-		getContentPane().setLayout(layout);
-		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
+		JPanel background = new JPanel();
+		setContentPane(background);
+
+		background.setBorder(new EmptyBorder(5, 5, 5, 5));
+		// Border Layout North, South,East,West
+		background.setLayout(new BorderLayout(0, 0));
+
+		background.add(createCenterPanel(), BorderLayout.CENTER);
+		colormapShow = new ColormapShow();
+		background.add(colormapShow, BorderLayout.EAST);
+
+		Box boxSouth = new Box(BoxLayout.X_AXIS);
+		boxSouth.setBorder(new EmptyBorder(5, 5, 5, 5));
+		background.add(boxSouth, BorderLayout.SOUTH);
+
+		JLabel l = new JLabel("Colormap:", JLabel.TRAILING);
+		boxSouth.add(l);
+		DefaultComboBoxModel<Colormap> model = new DefaultComboBoxModel<Colormap>(Colormap.values());
+		jcomboColor = new JComboBox<Colormap>();
+		jcomboColor.setModel(model);
+		l.setLabelFor(jcomboColor);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+		boxSouth.add(jcomboColor);
+
+		boxSouth.add(Box.createHorizontalGlue());
+		buttonOK = new JButton("OK");
+		buttonOK.setFocusable(false);
+		boxSouth.add(buttonOK);
+		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
+
+		addListeners();
+		changeColormap((Colormap) jcomboColor.getSelectedItem());
+		getRootPane().setDefaultButton(buttonOK);
+
+	}
+
+	private JPanel createCenterPanel() throws IOException {
+
+		JPanel panelCenter = new JPanel();
+		GroupLayout layoutCenter = new GroupLayout(panelCenter);
+		panelCenter.setLayout(layoutCenter);
+
+		layoutCenter.setAutoCreateGaps(true);
+		layoutCenter.setAutoCreateContainerGaps(true);
 
 		JLabel l1 = new JLabel("Lower Mass", JLabel.TRAILING);
 		l1.setFocusable(false);
@@ -105,62 +192,57 @@ public class DialogGraph extends JDialog {
 		jScrollList.setPreferredSize(new Dimension(80, 80));
 		jScrollList.setViewportView(jList);
 
-		JButton jbtnRight = new JButton();
+		jbtnRight = new JButton();
 		int height = (int) jbtnRight.getPreferredSize().getHeight();
 		jbtnRight.setIcon(Startup.loadIcon("right128.png", height, height));
 		jbtnRight.setFocusable(false);
-		JButton jbtnLeft = new JButton();
+
+		jbtnLeft = new JButton();
 		jbtnLeft.setIcon(Startup.loadIcon("left128.png", height, height));
 		jbtnLeft.setFocusable(false);
-		JButton buttonOK = new JButton("OK");
-		buttonOK.setFocusable(false);
 
-		ParallelGroup h1 = layout.createParallelGroup(GroupLayout.Alignment.LEADING);
+		ParallelGroup h1 = layoutCenter.createParallelGroup(GroupLayout.Alignment.LEADING);
 		h1.addComponent(l1);
 		h1.addComponent(jLowerMass);
 		h1.addComponent(l2);
 		h1.addComponent(jHigherMass);
 
-		ParallelGroup h2 = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
+		ParallelGroup h2 = layoutCenter.createParallelGroup(GroupLayout.Alignment.CENTER);
 		h2.addComponent(jbtnRight);
 		h2.addComponent(jbtnLeft);
 
-		ParallelGroup h3 = layout.createParallelGroup(GroupLayout.Alignment.TRAILING);
-		h3.addComponent(jScrollList);
-		h3.addComponent(buttonOK);
-
-		SequentialGroup h = layout.createSequentialGroup();
+		SequentialGroup h = layoutCenter.createSequentialGroup();
 		h.addGroup(h1);
 		h.addGroup(h2);
-		h.addGroup(h3);
-		layout.setHorizontalGroup(h);
+		h.addComponent(jScrollList);
+		layoutCenter.setHorizontalGroup(h);
 
-		layout.linkSize(SwingConstants.HORIZONTAL, jbtnRight, jbtnLeft);
+		layoutCenter.linkSize(SwingConstants.HORIZONTAL, jbtnRight, jbtnLeft);
 
-		SequentialGroup v1 = layout.createSequentialGroup();
+		SequentialGroup v1 = layoutCenter.createSequentialGroup();
 		v1.addComponent(l1);
 		v1.addComponent(jLowerMass);
 		v1.addComponent(l2);
 		v1.addComponent(jHigherMass);
 
-		SequentialGroup v2 = layout.createSequentialGroup();
+		SequentialGroup v2 = layoutCenter.createSequentialGroup();
 		v2.addComponent(jbtnRight);
 		v2.addComponent(jbtnLeft);
 
-		ParallelGroup v3 = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
+		ParallelGroup v3 = layoutCenter.createParallelGroup(GroupLayout.Alignment.CENTER);
 		v3.addComponent(jScrollList);
 
-		ParallelGroup v4 = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
-		v4.addGroup(v1);
-		v4.addGroup(v2);
-		v4.addGroup(v3);
+		ParallelGroup v = layoutCenter.createParallelGroup(GroupLayout.Alignment.CENTER);
+		v.addGroup(v1);
+		v.addGroup(v2);
+		v.addGroup(v3);
 
-		SequentialGroup v = layout.createSequentialGroup();
-		v.addGroup(v4);
-		v.addComponent(buttonOK);
+		layoutCenter.setVerticalGroup(v);
 
-		layout.setVerticalGroup(v);
+		return panelCenter;
+	}
 
+	private void addListeners() {
 		jbtnRight.addActionListener(new ActionListener() {
 
 			@Override
@@ -205,7 +287,7 @@ public class DialogGraph extends JDialog {
 							MassRange item = jListModel.getElementAt(i);
 							list.add(item);
 						}
-						ok.actionPerformed(event, list);
+						ok.actionPerformed(event, list, colormapShow.getColormap());
 					}
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -213,8 +295,25 @@ public class DialogGraph extends JDialog {
 			}
 		});
 
-		getRootPane().setDefaultButton(buttonOK);
+		jcomboColor.addItemListener(new ItemListener() {
 
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					changeColormap((Colormap) e.getItem());
+				}
+			}
+		});
+
+	}
+
+	private void changeColormap(Colormap c) {
+		if (c == Colormap.HOT) {
+			colormapShow.setColormap(new Hot());
+		} else {
+			String input = JOptionPane.showInputDialog("Enter hue value between 0 and 1", 0.5);
+			colormapShow.setColormap(new Custom(Float.parseFloat(input)));
+		}
 	}
 
 	/**

@@ -31,27 +31,24 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
-import org.apache.mesos.containerizer.Protos.Wait;
-
-import com.constambeys.load.MSIImage;
 import com.constambeys.python.ICheckLetter;
 import com.constambeys.python.IProgress;
 import com.constambeys.python.IsLetterV2;
+import com.constambeys.readers.MSIImage;
 import com.constambeys.ui.graph.PanelGraph;
 import com.constambeys.ui.graph.PanelGraphWithMarkers;
 
 /**
- * The {@code DialogTemplate} class allows the user to specify Template settings
+ * The {@code DialogOverlay} class allows the user to align the overlay image with the generated image
  * 
  * @author Constambeys
  * 
  */
-public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
+public class DialogOverlay extends JDialog implements PanelGraph.ImageClicked {
 	enum State {
 		NONE, GENERATED, TEMPLATE, BOTH
 	}
@@ -126,20 +123,6 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	/**
 	 * Initialises a new user interface dialog
 	 * 
-	 * @param owner
-	 *            the Frame from which the dialog is displayed
-	 * @param modal
-	 *            specifies whether dialog blocks user input to other top-level windows when shown
-	 * @throws Exception
-	 */
-	public DialogTemplate(Frame owner, boolean modal) throws Exception {
-		super(owner, modal);
-		setupUI(Startup.loadMZML());
-	}
-
-	/**
-	 * Initialises a new user interface dialog
-	 * 
 	 * @param msiimage
 	 *            the loaded mass spectrometry image
 	 * @param owner
@@ -148,7 +131,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 	 *            specifies whether dialog blocks user input to other top-level windows when shown
 	 * @throws Exception
 	 */
-	public DialogTemplate(MSIImage msiimage, Frame owner, boolean modal) throws Exception {
+	public DialogOverlay(MSIImage msiimage, Frame owner, boolean modal) throws Exception {
 		super(owner, modal);
 		setupUI(msiimage);
 	}
@@ -363,6 +346,11 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		jTransparency.addPropertyChangeListener("value", callSyncUI);
 	}
 
+	/**
+	 * Sets the generated image
+	 * 
+	 * @param imgGenerated
+	 */
 	public void setGraph(BufferedImage imgGenerated) {
 		try {
 			this.imgGenerated = imgGenerated;
@@ -383,23 +371,19 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 
 		try {
 			File selectedFile;
-			if (Startup.DEBUG_FILE) {
-				selectedFile = new File("E:\\Enironments\\data\\abcdef.png");
-			} else {
 
-				Settings settings = new Settings();
-				JFileChooser fileChooser = new JFileChooser();
-				FileNameExtensionFilter imageFilter = new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes());
-				fileChooser.setFileFilter(imageFilter);
-				if (settings.get("load_dir") != null) {
-					fileChooser.setCurrentDirectory(new File(settings.get("load_dir")));
-				}
-				int result = fileChooser.showOpenDialog(DialogTemplate.this);
-				if (result == JFileChooser.APPROVE_OPTION) {
-					selectedFile = fileChooser.getSelectedFile();
-				} else {
-					return;
-				}
+			Settings settings = new Settings();
+			JFileChooser fileChooser = new JFileChooser();
+			FileNameExtensionFilter imageFilter = new FileNameExtensionFilter("Image files", ImageIO.getReaderFileSuffixes());
+			fileChooser.setFileFilter(imageFilter);
+			if (settings.get("load_dir") != null) {
+				fileChooser.setCurrentDirectory(new File(settings.get("load_dir")));
+			}
+			int result = fileChooser.showOpenDialog(DialogOverlay.this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				selectedFile = fileChooser.getSelectedFile();
+			} else {
+				return;
 			}
 
 			imgTemplate = ImageIO.read(selectedFile);
@@ -449,7 +433,7 @@ public class DialogTemplate extends JDialog implements PanelGraph.ImageClicked {
 		try {
 			if (imgGenerated != null) {
 				JFileChooser fileChooser = new JFileChooser();
-				if (fileChooser.showSaveDialog(DialogTemplate.this) == JFileChooser.APPROVE_OPTION) {
+				if (fileChooser.showSaveDialog(DialogOverlay.this) == JFileChooser.APPROVE_OPTION) {
 					File file = fileChooser.getSelectedFile();
 					if (!file.getName().endsWith(".png"))
 						file = new File(file.getAbsolutePath() + ".png");
