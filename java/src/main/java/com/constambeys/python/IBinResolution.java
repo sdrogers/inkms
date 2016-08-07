@@ -48,9 +48,5 @@ public interface IBinResolution {
 	 */
 	double getHigherMz(int index);
 
-	/**
-	 * @return the bin resolution - size
-	 */
-	double getRange();
 
 }

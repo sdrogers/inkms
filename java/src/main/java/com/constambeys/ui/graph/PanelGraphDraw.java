@@ -103,9 +103,10 @@ public class PanelGraphDraw extends PanelGraph {
 	 */
 	private void imageClickedDragged(Point p) {
 
+		// WARNGING: If you change the letter colour then change IsLetterV2 colour
 		if (drawing) {
 			// reset composite
-			g2dOverlay.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+			g2dOverlay.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
 			g2dOverlay.setColor(Color.WHITE);
 		} else {
 			// http://stackoverflow.com/questions/5672697/java-filling-a-bufferedimage-with-transparent-pixels

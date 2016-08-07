@@ -52,6 +52,13 @@ public class DialogDraw extends JDialog {
 	private JProgressBar progressBar;
 
 	private IOkListener ok;
+	private JButton buttonOK;
+	private JButton buttonUp;
+	private JButton buttonDown;
+
+	private JRadioButton radDraw;
+	private JRadioButton radErase;
+
 	private MSIImage msiimage;
 	private PanelGraphDraw panelGraph;
 	private JFormattedTextField jRectSize;
@@ -109,27 +116,27 @@ public class DialogDraw extends JDialog {
 		Box boxEast = new Box(BoxLayout.Y_AXIS);
 		background.add(BorderLayout.EAST, boxEast);
 
-		JButton buttonOK = new JButton("OK");
+		buttonOK = new JButton("OK");
 		// fills the empty gap
 		boxSouth.add(Box.createHorizontalGlue());
 		boxSouth.add(buttonOK);
 
-		JRadioButton radDraw = new JRadioButton("Draw", true);
-		JRadioButton radErase = new JRadioButton("Erase");
+		radDraw = new JRadioButton("Draw", true);
+		radErase = new JRadioButton("Erase");
 		ButtonGroup group = new ButtonGroup();
 		group.add(radDraw);
 		group.add(radErase);
 		boxEast.add(radDraw);
 		boxEast.add(radErase);
 
-		JButton buttonUp = new JButton(Startup.loadIcon("up128.png", 30, 30));
+		buttonUp = new JButton(Startup.loadIcon("up128.png", 30, 30));
 		// http://stackoverflow.com/questions/4898584/java-using-an-image-as-a-button
 		buttonUp.setBorder(BorderFactory.createEmptyBorder());
 		buttonUp.setContentAreaFilled(false);
 		boxEast.add(Box.createRigidArea(new Dimension(0, 10)));
 		boxEast.add(buttonUp);
 
-		JButton buttonDown = new JButton(Startup.loadIcon("down128.png", 30, 30));
+		buttonDown = new JButton(Startup.loadIcon("down128.png", 30, 30));
 		// http://stackoverflow.com/questions/4898584/java-using-an-image-as-a-button
 		buttonDown.setBorder(BorderFactory.createEmptyBorder());
 		buttonDown.setContentAreaFilled(false);
@@ -153,6 +160,11 @@ public class DialogDraw extends JDialog {
 		boxEast.add(l);
 		boxEast.add(jRectSize);
 
+		addListeners();
+
+	}
+
+	private void addListeners() {
 		buttonOK.addActionListener(new ActionListener() {
 
 			@Override
@@ -194,7 +206,6 @@ public class DialogDraw extends JDialog {
 		};
 
 		jRectSize.addPropertyChangeListener("value", callSyncUI);
-
 	}
 
 	public void setGraph(BufferedImage imgGenerated) {
@@ -215,8 +226,8 @@ public class DialogDraw extends JDialog {
 		try {
 
 			BufferedImage overlay = panelGraph.getTemplateOverlay();
-
-			ICheckLetter isLetter = new IsLetterV2(overlay, Color.WHITE);
+			// Check Panel Graph Draw colour
+			ICheckLetter isLetter = new IsLetterV2(overlay, new Color(255, 255, 255, 128));
 			setVisible(false);
 			dispose();
 			if (ok != null)

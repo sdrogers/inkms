@@ -579,8 +579,6 @@ public class PanelVlines extends JPanel {
 	 * <p>
 	 * Does not include margin constants
 	 * 
-	 * @param x
-	 * @return coordinate
 	 */
 	protected int xToPixels(double x) {
 		return (int) (zoom * (x - xstart) / (xmax - xmin) * available_width);
@@ -591,8 +589,6 @@ public class PanelVlines extends JPanel {
 	 * <p>
 	 * Does not include margin constants
 	 *
-	 * @param y
-	 * @return coordinate
 	 */
 	protected int yToPixels(double y) {
 		return (int) (zoom * (y) / (ymax - ymin) * available_height);
@@ -603,8 +599,6 @@ public class PanelVlines extends JPanel {
 	 * <p>
 	 * Does not include margin constants
 	 *
-	 * @param x
-	 * @return coordinate
 	 */
 	protected double PixelsToX(int x) {
 		return xstart + x * (xmax - xmin) / zoom / available_width;
@@ -615,8 +609,6 @@ public class PanelVlines extends JPanel {
 	 * <p>
 	 * Does not include margin constants
 	 *
-	 * @param x
-	 * @return coordinate
 	 */
 	protected double PixelsToX(int i, int max) {
 		// int x1 = (int) (zoom * (x - xx) / (xmax - xmin) * available_width);
@@ -629,8 +621,6 @@ public class PanelVlines extends JPanel {
 	 * <p>
 	 * Does not include margin constants
 	 *
-	 * @param y
-	 * @return coordinate
 	 */
 	protected double PixelsToY(int y) {
 		return y * (ymax - ymin) / zoom / available_height;
@@ -641,8 +631,6 @@ public class PanelVlines extends JPanel {
 	 * <p>
 	 * Does not include margin constants
 	 *
-	 * @param y
-	 * @return coordinate
 	 */
 	protected double PixelsToY(int i, int max) {
 		// int y1 = (int) (zoom * (y) / (ymax - ymin) * available_height);

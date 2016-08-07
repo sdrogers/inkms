@@ -37,7 +37,10 @@ public class BinEvenlyDistributed implements IBinResolution {
 		}
 	}
 
-	@Override
+
+	/**
+	 * @return the bin size
+	 */
 	public double getRange() {
 		return range;
 	}

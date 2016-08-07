@@ -34,10 +34,16 @@ public class ImzMLProxy implements IReader {
 		int y = index / nColumns + 1;
 		int x = index % nColumns + 1;
 
-		double[] mzs = imzML.getSpectrum(x, y).getmzArray();
-		double[] ints = imzML.getSpectrum(x, y).getIntensityArray();
+		mzML.Spectrum orgS = imzML.getSpectrum(x, y);
+		Spectrum s;
+		if (orgS != null) {
+			double[] mzs = orgS.getmzArray();
+			double[] ints = orgS.getIntensityArray();
+			s = new Spectrum(mzs, ints);
+		} else {
+			s = new Spectrum(0);
+		}
 
-		Spectrum s = new Spectrum(mzs, ints);
 		return s;
 	}
 

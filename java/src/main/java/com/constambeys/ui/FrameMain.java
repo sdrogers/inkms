@@ -18,7 +18,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,8 +46,6 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 
@@ -161,7 +158,6 @@ public class FrameMain extends JFrame {
 				}
 			});
 
-			syncUI();
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
@@ -244,18 +240,6 @@ public class FrameMain extends JFrame {
 		main.add(Box.createRigidArea(new Dimension(0, 10)));
 		main.add(box3);
 
-		ItemListener callSyncUI = new ItemListener() {
-
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					syncUI();
-				}
-			}
-		};
-		jradRect.addItemListener(callSyncUI);
-		jradOverlay.addItemListener(callSyncUI);
-		jradDraw.addItemListener(callSyncUI);
 		return main;
 	}
 
@@ -274,27 +258,22 @@ public class FrameMain extends JFrame {
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		btnOptimalMz = new JButton("OptimalMz");
-		btnOptimalMz.setEnabled(false);
 		boxSouth.add(btnOptimalMz);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		btnOptimalMz2 = new JButton("OptimalMz2");
-		btnOptimalMz2.setEnabled(false);
 		boxSouth.add(btnOptimalMz2);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		btnOverlay = new JButton("Overlay");
-		btnOverlay.setEnabled(false);
 		boxSouth.add(btnOverlay);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		btnDraw = new JButton("Draw");
-		btnDraw.setEnabled(false);
 		boxSouth.add(btnDraw);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
 		btnSpectrum = new JButton("Spectrum");
-		btnSpectrum.setEnabled(false);
 		boxSouth.add(btnSpectrum);
 		boxSouth.add(Box.createRigidArea(new Dimension(10, 0)));
 
@@ -346,7 +325,7 @@ public class FrameMain extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				btnTemplate();
+				btnOverlay();
 			}
 		});
 
@@ -363,14 +342,6 @@ public class FrameMain extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				btnSpectrum();
-			}
-		});
-
-		tabbedPane.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				syncUI();
 			}
 		});
 
@@ -447,7 +418,7 @@ public class FrameMain extends JFrame {
 						Component component = tabbedPane.getComponentAt(selected);
 						if (component instanceof PanelGraph) {
 							PanelGraph pg = (PanelGraph) component;
-							double[][] intensity = (double[][]) pg.getMetadata();
+							double[][] intensity = ((GraphMetadata) pg.getMetadata()).intensity;
 							if (intensity != null) {
 								JFileChooser fileChooser = new JFileChooser();
 								FileNameExtensionFilter filter = new FileNameExtensionFilter("csv file", "csv");
@@ -498,10 +469,14 @@ public class FrameMain extends JFrame {
 						Component component = tabbedPane.getComponentAt(selected);
 						if (component instanceof PanelGraph) {
 							PanelGraph pg = (PanelGraph) component;
-							// BufferedImage imgGenerated = pg.getImage();
-							BufferedImage imgGenerated = new BufferedImage(pg.getWidth(), pg.getHeight(), BufferedImage.TYPE_INT_ARGB);
+							PanelGraph pgNew = new PanelGraph();
+							pgNew.setGraphTitle(pg.getTitle());
+							pgNew.draw(pg.getImage(), msiimage.getWidthMM(), msiimage.getHeightMM());
+							pgNew.setSize(new Dimension(1920, 1080));
+
+							BufferedImage imgGenerated = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_ARGB);
 							Graphics g = imgGenerated.createGraphics();
-							pg.paint(g);
+							pgNew.paint(g);
 							g.dispose();
 							if (imgGenerated != null) {
 								JFileChooser fileChooser = new JFileChooser();
@@ -599,32 +574,44 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
+			GraphMetadata metadata = null;
+			int selected = tabbedPane.getSelectedIndex();
+			if (selected >= 0) {
+				Component component = tabbedPane.getComponentAt(selected);
+				if (component instanceof PanelGraph) {
+					PanelGraph pg = (PanelGraph) component;
+					metadata = (GraphMetadata) pg.getMetadata();
+				}
+			}
+
 			DialogGraph dialog = new DialogGraph(FrameMain.this, "Set Parameters", true);
+			if (metadata != null && metadata.massrange != null) {
+				dialog.addMassRange(metadata.massrange);
+			}
+			if (metadata != null && metadata.colormap != null) {
+				dialog.setColormap(metadata.colormap);
+			}
 			dialog.setLocationRelativeTo(this);
 			dialog.pack();
 			dialog.addOkListener(new DialogGraph.IOkListener() {
 
 				@Override
-				public void actionPerformed(ActionEvent e, List<MassRange> ranges, IColormap colormap) {
+				public void actionPerformed(ActionEvent e, MassRange ranges[], IColormap colormap) {
 					try {
-						if (ranges.size() == 0) {
+						if (ranges.length == 0) {
 							return;
 						}
 
 						StringBuilder sb = new StringBuilder();
-						double massrange[] = new double[ranges.size() * 2];
-
-						for (int i = 0; i < ranges.size(); i++) {
-							MassRange range = ranges.get(i);
-							massrange[2 * i] = range.lowerMass;
-							massrange[2 * i + 1] = range.higherMass;
+						for (int i = 0; i < ranges.length; i++) {
+							MassRange range = ranges[i];
 							if (i != 0) {
 								sb.append(", ");
 							}
 							sb.append(range.toStringV2());
 						}
 
-						addGraphTab(sb.toString(), colormap, massrange);
+						addGraphTab(sb.toString(), colormap, ranges);
 
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -652,11 +639,11 @@ public class FrameMain extends JFrame {
 			}
 
 			if (jradOverlay.isSelected() && isLetterTemplate == null) {
-				throw new Exception("Template Settings not loaded");
+				throw new Exception("Click Overlay before OptimalMz to specify overlay");
 			}
 
 			if (jradDraw.isSelected() && isLetterDraw == null) {
-				throw new Exception("Template Settings not loaded");
+				throw new Exception("Click Draw before OptimalMz to specify draw");
 			}
 
 			DialogOptimalMz dialog = new DialogOptimalMz(FrameMain.this, "Set Parameters", true);
@@ -745,10 +732,10 @@ public class FrameMain extends JFrame {
 	}
 
 	/**
-	 * ActionListener of the Template button.
+	 * ActionListener of the Overlay button.
 	 * 
 	 */
-	private void btnTemplate() {
+	private void btnOverlay() {
 
 		try {
 
@@ -773,7 +760,6 @@ public class FrameMain extends JFrame {
 							public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
 								isLetterTemplate = isLetter;
 								jradOverlay.setSelected(true);
-								syncUI();
 							}
 						});
 						frame.setVisible(true);
@@ -781,10 +767,10 @@ public class FrameMain extends JFrame {
 						JOptionPane.showMessageDialog(null, "Something is wrong with the graph", "Error", JOptionPane.ERROR_MESSAGE);
 					}
 				} else {
-					JOptionPane.showMessageDialog(null, "Before template load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, "Draw a graph before overlay", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
-				JOptionPane.showMessageDialog(null, "Before template load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null, "Draw a graph before overlay", "Error", JOptionPane.ERROR_MESSAGE);
 			}
 
 		} catch (Exception ex) {
@@ -820,7 +806,6 @@ public class FrameMain extends JFrame {
 							public void actionPerformed(ActionEvent e, ICheckLetter isLetter) {
 								isLetterDraw = isLetter;
 								jradDraw.setSelected(true);
-								syncUI();
 							}
 						});
 						frame.setVisible(true);
@@ -828,10 +813,10 @@ public class FrameMain extends JFrame {
 						JOptionPane.showMessageDialog(null, "Something is wrong with the graph", "Error", JOptionPane.ERROR_MESSAGE);
 					}
 				} else {
-					JOptionPane.showMessageDialog(null, "Before draw load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, "Draw a graph before draw", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
-				JOptionPane.showMessageDialog(null, "Before draw load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null, "Draw a graph before draw", "Error", JOptionPane.ERROR_MESSAGE);
 			}
 
 		} catch (Exception ex) {
@@ -862,11 +847,11 @@ public class FrameMain extends JFrame {
 			}
 
 			if (jradOverlay.isSelected() && isLetterTemplate == null) {
-				throw new Exception("Template Settings not loaded");
+				throw new Exception("Click Overlay before Spectrum to specify overlay");
 			}
 
 			if (jradDraw.isSelected() && isLetterDraw == null) {
-				throw new Exception("Draw Settings not loaded");
+				throw new Exception("Click Draw before Spectrum to specify draw");
 			}
 
 			int selected = tabbedPane.getSelectedIndex();
@@ -891,10 +876,10 @@ public class FrameMain extends JFrame {
 						JOptionPane.showMessageDialog(null, "Something is wrong with the graph", "Error", JOptionPane.ERROR_MESSAGE);
 					}
 				} else {
-					JOptionPane.showMessageDialog(null, "Before draw load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, "Draw a graph before spectrum", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
-				JOptionPane.showMessageDialog(null, "Before draw load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null, "Draw a graph before spectrum", "Error", JOptionPane.ERROR_MESSAGE);
 			}
 
 		} catch (Exception ex) {
@@ -948,17 +933,17 @@ public class FrameMain extends JFrame {
 								if (progressTracker != null)
 									progressTracker.update((int) ((float) line / msiimage.getLines() * 100));
 
-								for (int x = 0; x < msiimage.getWidth(); x++) {
+								for (int x = 0; x < msiimage.getWidthPixels(); x++) {
 									Spectrum spectrum = msiimage.getSpectrum(line, x);
-									boolean isLetterCheck0 = isLetter0.check(x, line);
-									boolean isLetterCheck1 = isLetter1.check(x, line);
+									boolean isRegion0 = isLetter0.check(x, line);
+									boolean isRegion1 = isLetter1.check(x, line);
 
-									if (isLetterCheck0 || isLetterCheck1) {
+									if (isRegion0 || isRegion1) {
 										for (int s = 0; s < spectrum.mzs.length; s++) {
 											double mz = spectrum.mzs[s];
 											double i = spectrum.ints[s];
 											if (i >= ymin)
-												panelVlines.add(mz, i, isLetterCheck0);
+												panelVlines.add(mz, i, isRegion0);
 										}
 									}
 								}
@@ -997,7 +982,7 @@ public class FrameMain extends JFrame {
 	 */
 	private void addGraphTab(IColormap colormap, double lowerMass, double higherMass) {
 		MassRange range = new MassRange(lowerMass, higherMass);
-		addGraphTab(range.toStringV2(), colormap, lowerMass, higherMass);
+		addGraphTab(range.toStringV2(), colormap, range);
 	}
 
 	/**
@@ -1008,19 +993,24 @@ public class FrameMain extends JFrame {
 	 * @param mzrange
 	 *            the lower and upper mass per charge value. Arguments must be multiple of 2
 	 */
-	private void addGraphTab(String title, IColormap colormap, double... massrange) {
+	private void addGraphTab(String title, IColormap colormap, MassRange... massrange) {
 
 		ITask task = new ITask() {
 
 			@Override
 			public void run() throws Exception {
-				double[][] intensity = msiimage.getReduceSpec(progressTracker, massrange);
+				double[][] intensity = msiimage.getTotalIntensity(progressTracker, MassRange.convertToDouble(massrange));
+
+				GraphMetadata metadata = new GraphMetadata();
+				metadata.intensity = intensity;
+				metadata.colormap = colormap;
+				metadata.massrange = massrange;
 
 				PanelGraph panelGraph = new PanelGraph();
 				panelGraph.setGraphTitle(title);
 				BufferedImage image = Colormaps.calculateImage(intensity, colormap);
 				panelGraph.draw(image, msiimage.getWidthMM(), msiimage.getHeightMM());
-				panelGraph.setMetadata(intensity);
+				panelGraph.setMetadata(metadata);
 
 				updateUI(new ITask() {
 					@Override
@@ -1155,28 +1145,4 @@ public class FrameMain extends JFrame {
 			});
 		}
 	};
-
-	private void syncUI() {
-		if (jradRect.isSelected() || (jradOverlay.isSelected() && isLetterTemplate != null) || (jradDraw.isSelected() && isLetterDraw != null)) {
-			btnOptimalMz.setEnabled(true);
-			btnOptimalMz2.setEnabled(true);
-			btnSpectrum.setEnabled(true);
-		} else {
-			btnOptimalMz.setEnabled(false);
-			btnOptimalMz2.setEnabled(false);
-			btnSpectrum.setEnabled(false);
-		}
-
-		int selected = tabbedPane.getSelectedIndex();
-		if (selected >= 0) {
-			Component component = tabbedPane.getComponentAt(selected);
-			if (component instanceof PanelGraph) {
-				btnOverlay.setEnabled(true);
-				btnDraw.setEnabled(true);
-			} else {
-				btnOverlay.setEnabled(false);
-				btnDraw.setEnabled(false);
-			}
-		}
-	}
 }

@@ -97,7 +97,7 @@ public class DialogLoad extends JDialog {
 
 	private IReader reader;
 	private Thread tread;
-	private Pattern pattern;
+	private Pattern selectedPattern;
 
 	private JRadioButton jradMeandering;
 	private JRadioButton jradNormal;
@@ -337,38 +337,38 @@ public class DialogLoad extends JDialog {
 					}
 
 					Filtering type = (Filtering) jcomboType.getSelectedItem();
-					IFiltering readerWithFiltering;
+					IFiltering filtering;
 					if (type == Filtering.ALL) {
-						readerWithFiltering = new NoFiltering(reader);
+						filtering = new NoFiltering(reader);
 					} else if (type == Filtering.POSITIVE) {
-						readerWithFiltering = new PolarityFiltering(reader, ScanType.POSITIVE);
+						filtering = new PolarityFiltering(reader, ScanType.POSITIVE);
 					} else if (type == Filtering.NEGATIVE) {
-						readerWithFiltering = new PolarityFiltering(reader, ScanType.NEGATIVE);
+						filtering = new PolarityFiltering(reader, ScanType.NEGATIVE);
 					} else {
 						throw new Exception(String.format("Filtering type %s not supported", type.toString()));
 					}
 
-					if (readerWithFiltering.getSpectraCount() == 0) {
+					if (filtering.getSpectraCount() == 0) {
 						throw new Exception(String.format("File does not contain %s scans", type.toString()));
 					}
 
-					ILoadPattern p;
-					if (pattern == Pattern.Pattern1) {
+					ILoadPattern pattern;
+					if (selectedPattern == Pattern.Pattern1) {
 						Pattern1.Param param = new Pattern1.Param();
 						param.lines = Integer.parseInt(jtextLines.getText());
 						param.widthInMM = Integer.parseInt(jtextWidth.getText());
 						param.heightInMM = Integer.parseInt(jtextHeight.getText());
-						param.downMotionInMM = Float.parseFloat(jtextDownMotion.getText());
-						p = new Pattern1(readerWithFiltering, param);
+						param.dropInMM = Float.parseFloat(jtextDownMotion.getText());
+						pattern = new Pattern1(filtering, param);
 					} else {
 						Pattern2.Param param = new Pattern2.Param();
 						param.lines = Integer.parseInt(jtextLines.getText());
 						param.widthInMM = Integer.parseInt(jtextWidth.getText());
 						param.heightInMM = Integer.parseInt(jtextHeight.getText());
-						p = new Pattern2(readerWithFiltering, param);
+						pattern = new Pattern2(filtering, param);
 					}
 
-					MSIImage msiimage = new MSIImage(reader, p);
+					MSIImage msiimage = new MSIImage(reader, pattern);
 
 					setVisible(false);
 					dispose();
@@ -434,7 +434,7 @@ public class DialogLoad extends JDialog {
 
 	private void setPattern(Pattern p) {
 		if (p == Pattern.Pattern1) {
-			pattern = Pattern.Pattern1;
+			selectedPattern = Pattern.Pattern1;
 			jtextDownMotion.setText("");
 			jtextDownMotion.setEditable(true);
 			try {
@@ -443,7 +443,7 @@ public class DialogLoad extends JDialog {
 				System.err.println("Cannot load pattern1.png");
 			}
 		} else if (p == Pattern.Pattern2) {
-			pattern = Pattern.Pattern2;
+			selectedPattern = Pattern.Pattern2;
 			jtextDownMotion.setText("0");
 			jtextDownMotion.setEditable(false);
 			try {

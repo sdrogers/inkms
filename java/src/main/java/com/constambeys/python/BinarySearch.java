@@ -22,6 +22,8 @@ public class BinarySearch<T> {
 	 *         value is between list[index] < value <= list[index+1]
 	 *         <p>
 	 *         index == size-1 then list[size-1] < value
+	 *         <p>
+	 *         index == -1 then value <= list[0]
 	 */
 	public int search(Comparable<T> value) {
 		int first = 0;

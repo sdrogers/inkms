@@ -43,7 +43,19 @@ public class MassRange {
 
 	public String toStringV2() {
 		double average = (higherMass + lowerMass) / 2;
-		String title = String.format("%." + (decimalPlaces + 1) + "f \u00B1 %." + (decimalPlaces + 1) + "f m/z", average, average - lowerMass);
+		String title = String.format("m/z: %." + (decimalPlaces + 1) + "f \u00B1 %." + (decimalPlaces + 1) + "f Th", average, average - lowerMass);
 		return title;
 	}
+
+	public static double[] convertToDouble(MassRange[] ranges) {
+		double massrange[] = new double[ranges.length * 2];
+
+		for (int i = 0; i < ranges.length; i++) {
+			MassRange range = ranges[i];
+			massrange[2 * i] = range.lowerMass;
+			massrange[2 * i + 1] = range.higherMass;
+		}
+		return massrange;
+	}
+
 }

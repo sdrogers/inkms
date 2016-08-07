@@ -106,8 +106,8 @@ class OptimalMz(object):
 
     def printN(self, n=5):
         result, indexes = self.getMZandIndex(n)
-        print("i1 - i:")
-        print(self.diff_g[indexes])
+        print("i - i1:")
+        print(-self.diff_g[indexes])
         print("")
         print("mz:")
         print(result)

@@ -9,9 +9,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -36,6 +33,7 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import com.constambeys.ui.colormaps.ColormapShow;
 import com.constambeys.ui.colormaps.Custom;
+import com.constambeys.ui.colormaps.Gray;
 import com.constambeys.ui.colormaps.Hot;
 import com.constambeys.ui.colormaps.IColormap;
 
@@ -48,14 +46,14 @@ import com.constambeys.ui.colormaps.IColormap;
 public class DialogGraph extends JDialog {
 
 	interface IOkListener {
-		public void actionPerformed(ActionEvent e, List<MassRange> ranges, IColormap colormap);
+		public void actionPerformed(ActionEvent e, MassRange ranges[], IColormap colormap);
 	}
 
 	/**
 	 * Specifies the available colormaps
 	 */
 	private static enum Colormap {
-		HOT("HOT"), CUSTOM("CUSTOM");
+		HOT("HOT"), GRAY("GRAY"), CUSTOM("CUSTOM");
 
 		String name;
 
@@ -76,12 +74,14 @@ public class DialogGraph extends JDialog {
 	private JList<MassRange> jList;
 
 	// Colormap
+	private ItemListener jcomboListener;
 	private JComboBox<Colormap> jcomboColor;
 	private ColormapShow colormapShow;
 
 	// Buttons
 	private JButton jbtnRight;
 	private JButton jbtnLeft;
+	private JButton jbtnDelete;
 	private JButton buttonOK;
 	private IOkListener ok;
 
@@ -115,6 +115,29 @@ public class DialogGraph extends JDialog {
 	public DialogGraph(Dialog owner, String title, boolean modal) throws IOException {
 		super(owner, title, modal);
 		setupUI();
+	}
+
+	public void addMassRange(MassRange m) {
+		jListModel.addElement(m);
+	}
+
+	public void addMassRange(MassRange ranges[]) {
+		for (MassRange m : ranges) {
+			jListModel.addElement(m);
+		}
+	}
+
+	public void setColormap(IColormap c) {
+		colormapShow.setColormap(c);
+		jcomboColor.removeItemListener(jcomboListener);
+		if (c instanceof Hot) {
+			jcomboColor.setSelectedItem(Colormap.HOT);
+		} else if (c instanceof Gray) {
+			jcomboColor.setSelectedItem(Colormap.GRAY);
+		} else {
+			jcomboColor.setSelectedItem(Colormap.CUSTOM);
+		}
+		jcomboColor.addItemListener(jcomboListener);
 	}
 
 	/**
@@ -201,6 +224,10 @@ public class DialogGraph extends JDialog {
 		jbtnLeft.setIcon(Startup.loadIcon("left128.png", height, height));
 		jbtnLeft.setFocusable(false);
 
+		jbtnDelete = new JButton();
+		jbtnDelete.setIcon(Startup.loadIcon("close128.png", height, height));
+		jbtnDelete.setFocusable(false);
+
 		ParallelGroup h1 = layoutCenter.createParallelGroup(GroupLayout.Alignment.LEADING);
 		h1.addComponent(l1);
 		h1.addComponent(jLowerMass);
@@ -210,6 +237,7 @@ public class DialogGraph extends JDialog {
 		ParallelGroup h2 = layoutCenter.createParallelGroup(GroupLayout.Alignment.CENTER);
 		h2.addComponent(jbtnRight);
 		h2.addComponent(jbtnLeft);
+		h2.addComponent(jbtnDelete);
 
 		SequentialGroup h = layoutCenter.createSequentialGroup();
 		h.addGroup(h1);
@@ -228,6 +256,7 @@ public class DialogGraph extends JDialog {
 		SequentialGroup v2 = layoutCenter.createSequentialGroup();
 		v2.addComponent(jbtnRight);
 		v2.addComponent(jbtnLeft);
+		v2.addComponent(jbtnDelete);
 
 		ParallelGroup v3 = layoutCenter.createParallelGroup(GroupLayout.Alignment.CENTER);
 		v3.addComponent(jScrollList);
@@ -273,6 +302,18 @@ public class DialogGraph extends JDialog {
 			}
 		});
 
+		jbtnDelete.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int index = jList.getSelectedIndex();
+				if (index != -1) {
+					MassRange selected = jListModel.getElementAt(index);
+					jListModel.remove(index);
+				}
+			}
+		});
+
 		buttonOK.addActionListener(new ActionListener() {
 
 			@Override
@@ -282,12 +323,12 @@ public class DialogGraph extends JDialog {
 					setVisible(false);
 					dispose();
 					if (ok != null) {
-						ArrayList<MassRange> list = new ArrayList<MassRange>();
+						MassRange ranges[] = new MassRange[jListModel.getSize()];
 						for (int i = 0; i < jListModel.getSize(); i++) {
 							MassRange item = jListModel.getElementAt(i);
-							list.add(item);
+							ranges[i] = item;
 						}
-						ok.actionPerformed(event, list, colormapShow.getColormap());
+						ok.actionPerformed(event, ranges, colormapShow.getColormap());
 					}
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -295,7 +336,7 @@ public class DialogGraph extends JDialog {
 			}
 		});
 
-		jcomboColor.addItemListener(new ItemListener() {
+		jcomboListener = new ItemListener() {
 
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -303,16 +344,21 @@ public class DialogGraph extends JDialog {
 					changeColormap((Colormap) e.getItem());
 				}
 			}
-		});
+		};
+
+		jcomboColor.addItemListener(jcomboListener);
 
 	}
 
 	private void changeColormap(Colormap c) {
 		if (c == Colormap.HOT) {
 			colormapShow.setColormap(new Hot());
+		} else if (c == Colormap.GRAY) {
+			colormapShow.setColormap(new Gray());
 		} else {
 			String input = JOptionPane.showInputDialog("Enter hue value between 0 and 1", 0.5);
-			colormapShow.setColormap(new Custom(Float.parseFloat(input)));
+			if (input != null)
+				colormapShow.setColormap(new Custom(Float.parseFloat(input)));
 		}
 	}
 
@@ -327,7 +373,7 @@ public class DialogGraph extends JDialog {
 		}
 
 		MassRange m = new MassRange(strLowerMass, strHigherMass);
-		jListModel.addElement(m);
+		addMassRange(m);
 	}
 
 	/**

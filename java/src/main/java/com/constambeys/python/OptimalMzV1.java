@@ -44,7 +44,7 @@ public class OptimalMzV1 extends OptimalMz {
 			if (callback != null)
 				callback.update((int) ((float) line / msiimage.getLines() * 100));
 
-			for (int x = 0; x < msiimage.getWidth(); x++) {
+			for (int x = 0; x < msiimage.getWidthPixels(); x++) {
 				Spectrum spectrum = msiimage.getSpectrum(line, x);
 				boolean isLetterCheck = isLetter.check(x, line);
 
@@ -71,7 +71,7 @@ public class OptimalMzV1 extends OptimalMz {
 				binStatistics[i].i = binStatistics[i].i / binStatistics[i].c;
 			if (binStatistics[i].c1 != 0)
 				binStatistics[i].i1 = binStatistics[i].i1 / binStatistics[i].c1;
-			binStatistics[i].diff = binStatistics[i].i1 - binStatistics[i].i;
+			binStatistics[i].diff = binStatistics[i].i - binStatistics[i].i1;
 		}
 
 		if (callback != null)

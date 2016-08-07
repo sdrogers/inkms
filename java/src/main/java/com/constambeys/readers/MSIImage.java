@@ -65,7 +65,7 @@ public class MSIImage {
 	 * @return Returns a 2d array
 	 * @throws JMzReaderException
 	 */
-	public double[][] getReduceSpec(IProgress callback, double... mzrange) throws Exception {
+	public double[][] getTotalIntensity(IProgress callback, double... mzrange) throws Exception {
 
 		long start = System.nanoTime();
 
@@ -107,9 +107,9 @@ public class MSIImage {
 	}
 
 	/**
-	 * @return the width of the image
+	 * @return the width of the image in pixels
 	 */
-	public int getWidth() {
+	public int getWidthPixels() {
 		return data[0].length;
 	}
 

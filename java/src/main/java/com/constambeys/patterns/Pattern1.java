@@ -33,7 +33,7 @@ public class Pattern1 implements ILoadPattern {
 		public int lines;
 		public int widthInMM;
 		public int heightInMM;
-		public float downMotionInMM;
+		public float dropInMM;
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class Pattern1 implements ILoadPattern {
 		float scansPerLineFloat = (float) scansTotal / param.lines;
 		// if not scansPerLine.is_integer():
 		// raise Exception('Pixels per line not integer value')
-		scansPerLineFloat = (scansPerLineFloat * (param.widthInMM - param.downMotionInMM) / param.widthInMM);
+		scansPerLineFloat = (scansPerLineFloat * (param.widthInMM - param.dropInMM) / param.widthInMM);
 		int scansPerLine = (int) scansPerLineFloat;
 		int skip = scansTotal - param.lines * scansPerLine;
 		int skipPerLine = skip / param.lines;

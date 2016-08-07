@@ -39,9 +39,12 @@ public abstract class OptimalMz {
 		 */
 		public double i1;
 
+		/**
+		 * Descending order
+		 */
 		@Override
 		public int compareTo(BinStatistics o) {
-			return Double.compare(diff, o.diff);
+			return Double.compare(o.diff, diff);
 		}
 	}
 
@@ -120,12 +123,14 @@ public abstract class OptimalMz {
 		StringBuffer sb = new StringBuffer();
 		List<BinStatistics> result = getTopResults(n);
 		for (BinStatistics r : result) {
-			sb.append(String.format("mz: %f - %f , i: %f - %f, c: %d - %d \n", bins.getLowerMz(r.index), bins.getHigherMz(r.index), r.i, r.i1, r.c, r.c1));
-			sb.append(String.format("i1 - i: "));
+			sb.append(String.format("mz: %f - %f , i - i1: %f - %f, c - c1: %d - %d \n", bins.getLowerMz(r.index), bins.getHigherMz(r.index), r.i, r.i1, r.c, r.c1));
+			sb.append(String.format("i - i1: "));
 			sb.append(String.format("%f\n", r.diff));
 		}
 		sb.append(String.format("range: "));
-		sb.append(String.format("%f\n", bins.getRange()));
+		if (bins instanceof BinEvenlyDistributed) {
+			sb.append(String.format("%f\n", ((BinEvenlyDistributed) bins).getRange()));
+		}
 		return sb.toString();
 	}
 

@@ -76,11 +76,6 @@ public class BinsPartsPerMillion implements IBinResolution {
 		return mzs[index + 1];
 	}
 
-	@Override
-	public double getRange() {
-		return 0;
-	}
-
 	public static void main(String[] args) throws Exception {
 		new BinsPartsPerMillion(100, 500, 5000);
 	}

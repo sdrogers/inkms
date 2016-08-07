@@ -31,8 +31,8 @@ public class IsLetterV1 implements ICheckLetter {
 	 */
 	public IsLetterV1(MSIImage msiimage, double x_start_mm, double x_stop_mm, double y_start_mm, double y_stop_mm) {
 
-		this.x_start = (int) (x_start_mm / msiimage.getWidthMM() * msiimage.getWidth());
-		this.x_stop = (int) (x_stop_mm / msiimage.getWidthMM() * msiimage.getWidth());
+		this.x_start = (int) (x_start_mm / msiimage.getWidthMM() * msiimage.getWidthPixels());
+		this.x_stop = (int) (x_stop_mm / msiimage.getWidthMM() * msiimage.getWidthPixels());
 		this.y_start = (int) (y_start_mm / msiimage.getHeightMM() * msiimage.getLines());
 		this.y_stop = (int) (y_stop_mm / msiimage.getHeightMM() * msiimage.getLines());
 	}
