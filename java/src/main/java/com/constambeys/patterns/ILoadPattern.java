@@ -8,8 +8,8 @@ package com.constambeys.patterns;
 public interface ILoadPattern {
 
 	/**
-	 * @return a 2d array mapping the spectrum index of each pixel
-	 * @throws Exception 
+	 * @return a 2d array mapping the spectrum index of each pixel lines x columns
+	 * @throws Exception
 	 */
 	int[][] getDataStructure() throws Exception;
 

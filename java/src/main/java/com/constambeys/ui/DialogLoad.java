@@ -36,7 +36,8 @@ import com.constambeys.patterns.Pattern1;
 import com.constambeys.patterns.Pattern2;
 import com.constambeys.readers.IReader;
 import com.constambeys.readers.IReader.ScanType;
-import com.constambeys.readers.ImzMLProxy;
+import com.constambeys.readers.ImzMLProxy2D;
+import com.constambeys.readers.ImzMLProxy3D;
 import com.constambeys.readers.MSIImage;
 import com.constambeys.readers.MzJavaProxy;
 import com.constambeys.readers.MzMLProxy;
@@ -157,6 +158,7 @@ public class DialogLoad extends JDialog {
 		} else {
 			// Close button is clicked
 			addWindowListener(new java.awt.event.WindowAdapter() {
+
 				@Override
 				public void windowClosing(java.awt.event.WindowEvent windowEvent) {
 					System.exit(0);
@@ -168,6 +170,7 @@ public class DialogLoad extends JDialog {
 
 		jradMeandering = new JRadioButton("Meandering", true);
 		jradNormal = new JRadioButton("Normal");
+
 		ButtonGroup group1 = new ButtonGroup();
 		group1.add(jradMeandering);
 		group1.add(jradNormal);
@@ -177,6 +180,7 @@ public class DialogLoad extends JDialog {
 
 		jlabelImage = new JLabel();
 		boxEast.add(jlabelImage);
+
 		setPattern(Pattern.Pattern1);
 
 		addListeners();
@@ -281,16 +285,27 @@ public class DialogLoad extends JDialog {
 					int result = fileChooser.showOpenDialog(DialogLoad.this);
 					if (result == JFileChooser.APPROVE_OPTION) {
 
+						File selectedFile = fileChooser.getSelectedFile();
+						String filepath = selectedFile.getAbsolutePath();
+						boolean isIMZML3D_ = false;
+						if (filepath.toLowerCase().endsWith("imzml")) {
+							int dialogResult = JOptionPane.showConfirmDialog(DialogLoad.this, "Would You Like to load a 3D image file?");
+							if (dialogResult == JOptionPane.YES_OPTION) {
+								isIMZML3D_ = true;
+							} else if (dialogResult == JOptionPane.CANCEL_OPTION) {
+								return;
+							}
+						}
+
 						jFilePath.setText("Loading ...");
 
-						File selectedFile = fileChooser.getSelectedFile();
-
+						final boolean isIMZML3D = isIMZML3D_;
 						tread = new Thread(new Runnable() {
 
 							@Override
 							public void run() {
 								try {
-									loadfile(selectedFile);
+									loadfile(selectedFile, isIMZML3D);
 								} catch (Exception ex) {
 									JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 								}
@@ -387,7 +402,7 @@ public class DialogLoad extends JDialog {
 	 * @param selectedFile
 	 * @throws Exception
 	 */
-	private void loadfile(File selectedFile) throws Exception {
+	private void loadfile(File selectedFile, boolean isIMZML3D) throws Exception {
 
 		long startTime = System.nanoTime();
 		String filepath = selectedFile.getAbsolutePath();
@@ -395,7 +410,11 @@ public class DialogLoad extends JDialog {
 		if (filepath.toLowerCase().endsWith("mzxml")) {
 			reader = new MzJavaProxy(new File(filepath));
 		} else if (filepath.toLowerCase().endsWith("imzml")) {
-			reader = new ImzMLProxy(new File(filepath));
+			if (isIMZML3D) {
+				reader = new ImzMLProxy3D(new File(filepath));
+			} else {
+				reader = new ImzMLProxy2D(new File(filepath));
+			}
 		} else if (filepath.toLowerCase().endsWith("mzml")) {
 			reader = new MzMLProxy(new File(filepath));
 		} else {
@@ -411,8 +430,11 @@ public class DialogLoad extends JDialog {
 			public void run() throws Exception {
 				jFilePath.setText(selectedFile.getAbsolutePath());
 
-				if (reader instanceof ImzMLProxy) {
-					jtextLines.setText(Integer.toString(((ImzMLProxy) reader).getLines()));
+				if (reader instanceof ImzMLProxy2D) {
+					jtextLines.setText(Integer.toString(((ImzMLProxy2D) reader).getLines()));
+					jtextLines.setEditable(false);
+				} else if (reader instanceof ImzMLProxy3D) {
+					jtextLines.setText(Integer.toString(((ImzMLProxy3D) reader).getLines()));
 					jtextLines.setEditable(false);
 				} else {
 					jtextLines.setEditable(true);

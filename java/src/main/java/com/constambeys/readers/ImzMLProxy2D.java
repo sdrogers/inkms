@@ -8,12 +8,12 @@ import imzML.ImzML;
  * 
  * @author Constambeys
  */
-public class ImzMLProxy implements IReader {
+public class ImzMLProxy2D implements IReader {
 	private ImzML imzML;
 	private int nColumns;
 	private int nRows;
 
-	public ImzMLProxy(File mzML) throws Exception {
+	public ImzMLProxy2D(File mzML) throws Exception {
 
 		imzML = imzMLConverter.ImzMLHandler.parseimzML(mzML.getAbsolutePath());
 		if (!imzML.isProcessed())
@@ -27,6 +27,7 @@ public class ImzMLProxy implements IReader {
 	public Spectrum getSpectrumByIndex(int index) {
 		index--;
 
+		// Converts index to 1 based x and y based on known file structure
 		int y = index / nColumns + 1;
 		int x = index % nColumns + 1;
 
