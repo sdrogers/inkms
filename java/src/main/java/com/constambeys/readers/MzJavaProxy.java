@@ -20,7 +20,6 @@ public class MzJavaProxy implements IReader {
 	private int count;
 
 	public MzJavaProxy(File mzXML) throws IOException {
-		long start = System.nanoTime();
 
 		MzxmlReader reader = new MzxmlReader(mzXML, Precision.DOUBLE);
 
@@ -37,9 +36,6 @@ public class MzJavaProxy implements IReader {
 		}
 
 		reader.close();
-
-		long end = System.nanoTime() - start;
-		System.out.println(String.format("%.2fs", end / 1000000000.0));
 	}
 
 	@Override

@@ -462,7 +462,7 @@ public class DialogOverlay extends JDialog implements PanelGraph.ImageClicked {
 				return;
 			}
 
-			ICheckLetter isLetter = new IsLetterV2(getTemplateOverlay(), Color.BLACK);
+			ICheckLetter isLetter = new IsLetterV2(getTemplateOverlay(), Color.BLACK.getRGB());
 			setVisible(false);
 			dispose();
 			if (ok != null)

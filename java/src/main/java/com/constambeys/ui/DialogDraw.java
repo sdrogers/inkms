@@ -193,7 +193,7 @@ public class DialogDraw extends JDialog {
 
 		radDraw.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				panelGraph.setState(e.getStateChange() == ItemEvent.SELECTED);
+				panelGraph.setIsDrawingState(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
 
@@ -227,7 +227,7 @@ public class DialogDraw extends JDialog {
 
 			BufferedImage overlay = panelGraph.getTemplateOverlay();
 			// Check Panel Graph Draw colour
-			ICheckLetter isLetter = new IsLetterV2(overlay, new Color(255, 255, 255, 128));
+			ICheckLetter isLetter = new IsLetterV2(overlay, PanelGraphDraw.LETTER_COLOR);
 			setVisible(false);
 			dispose();
 			if (ok != null)

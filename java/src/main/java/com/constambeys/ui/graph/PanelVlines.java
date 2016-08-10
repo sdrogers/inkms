@@ -49,10 +49,10 @@ public class PanelVlines extends JPanel {
 	/**
 	 * Real value statistics
 	 */
-	protected double xmin;
-	protected double xmax;
-	protected double ymin;
-	protected double ymax;
+	protected double xmin = 0;
+	protected double xmax = 100;
+	protected double ymin = 0;
+	protected double ymax = 100;
 
 	/**
 	 * Zoom = 1 No Zoom
@@ -173,11 +173,11 @@ public class PanelVlines extends JPanel {
 	 *            coordinate
 	 * @param y
 	 *            coordinate
-	 * @param inRegion
+	 * @param isBlue
 	 *            true is coloured blue otherwise red
 	 */
-	public void add(double x, double y, boolean inRegion) {
-		if (inRegion) {
+	public void add(double x, double y, boolean isBlue) {
+		if (isBlue) {
 			Vline line = new Vline(x, y, Color.BLUE);
 			lines0.add(line);
 		} else {
@@ -187,11 +187,19 @@ public class PanelVlines extends JPanel {
 	}
 
 	/**
+	 * Clear all values
+	 */
+	public void clear() {
+		lines0.clear();
+		lines1.clear();
+	}
+
+	/**
 	 * Call to update internal state
 	 * 
 	 * @throws Exception
 	 */
-	public void addCommit() throws Exception {
+	public void addCommit() throws TooFewDataException {
 		Collections.sort(lines0);
 		Collections.sort(lines1);
 
@@ -227,10 +235,10 @@ public class PanelVlines extends JPanel {
 	 * 
 	 * @throws Exception
 	 */
-	protected void calculateStatistics() throws Exception {
+	protected void calculateStatistics() throws TooFewDataException {
 
 		if (lines0.size() == 0) {
-			throw new Exception("Too few data");
+			throw new TooFewDataException();
 		}
 
 		xmin = lines0.get(0).x;
@@ -250,13 +258,13 @@ public class PanelVlines extends JPanel {
 		if (xmax == xmin) {
 			xmax = 100;
 			xmin = 0;
-			throw new Exception("Too few data");
+			throw new TooFewDataException();
 		}
 
 		if (ymax == ymin) {
 			ymax = 100;
 			ymin = 0;
-			throw new Exception("Too few data");
+			throw new TooFewDataException();
 		}
 
 		return;
@@ -481,7 +489,7 @@ public class PanelVlines extends JPanel {
 			if (showSelectedRegion) {
 				int selectionStartX = Math.min(selectionStart.x, selectionStop.x);
 				int selectionStopX = Math.max(selectionStart.x, selectionStop.x);
-				
+
 				double x1 = PixelsToX(selectionStartX - MARGIN_X_LEFT);
 				double x2 = PixelsToX(selectionStopX - MARGIN_X_LEFT);
 
@@ -638,4 +646,10 @@ public class PanelVlines extends JPanel {
 		return ((ymax - ymin) / zoom * i / max);
 	}
 
+	@SuppressWarnings("serial")
+	public static class TooFewDataException extends Exception {
+
+		public TooFewDataException() {
+		}
+	}
 }

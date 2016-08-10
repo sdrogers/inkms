@@ -24,11 +24,11 @@ public class IsLetterV2 implements ICheckLetter {
 	 * @param letter
 	 *            the colour of letters
 	 */
-	public IsLetterV2(BufferedImage imgTemplate, Color letter) {
+	public IsLetterV2(BufferedImage imgTemplate, int letter) {
 		this.imgOverlay = imgTemplate;
 		this.width = imgTemplate.getWidth();
 		this.height = imgTemplate.getHeight();
-		this.letter = letter.getRGB();
+		this.letter = letter;
 	}
 
 	@Override

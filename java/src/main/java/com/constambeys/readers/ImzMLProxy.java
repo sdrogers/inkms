@@ -14,7 +14,6 @@ public class ImzMLProxy implements IReader {
 	private int nRows;
 
 	public ImzMLProxy(File mzML) throws Exception {
-		long start = System.nanoTime();
 
 		imzML = imzMLConverter.ImzMLHandler.parseimzML(mzML.getAbsolutePath());
 		if (!imzML.isProcessed())
@@ -22,9 +21,6 @@ public class ImzMLProxy implements IReader {
 
 		nColumns = imzML.getWidth();
 		nRows = imzML.getHeight();
-
-		long end = System.nanoTime() - start;
-		System.out.println(String.format("%.2fs", end / 1000000000.0));
 	}
 
 	@Override

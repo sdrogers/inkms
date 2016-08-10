@@ -1,5 +1,8 @@
 package com.constambeys.ui.graph;
 
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+
 public class Utilities {
 
 	/**
@@ -40,6 +43,14 @@ public class Utilities {
 		}
 
 		return accuracy;
+	}
+
+	public static BufferedImage copyImage(BufferedImage source) {
+		BufferedImage destination = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
+		Graphics g = destination.getGraphics();
+		g.drawImage(source, 0, 0, null);
+		g.dispose();
+		return destination;
 	}
 
 }

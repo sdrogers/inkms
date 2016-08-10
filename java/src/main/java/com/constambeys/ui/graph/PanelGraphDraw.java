@@ -21,12 +21,17 @@ public class PanelGraphDraw extends PanelGraph {
 	private int overlayWidth;
 	private int overlayHeight;
 
-	private boolean visible;
+	/**
+	 * Mouse Pointer
+	 */
+	private boolean mouseVisible;
 	private int mouseX;
 	private int mouseY;
 
 	int rectSize = 10;
 	boolean drawing = true;
+
+	public static int LETTER_COLOR = new Color(255, 255, 255, 128).getRGB();
 
 	/**
 	 * Initialises a {@code PanelGraphDraw }
@@ -71,11 +76,18 @@ public class PanelGraphDraw extends PanelGraph {
 	}
 
 	/**
+	 * @return true == drawing , false == erasing
+	 */
+	public boolean getIsDrawingState() {
+		return this.drawing;
+	}
+
+	/**
 	 * Sets drawing or erasing state
 	 * 
 	 * @param drawing
 	 */
-	public void setState(boolean drawing) {
+	public void setIsDrawingState(boolean drawing) {
 		this.drawing = drawing;
 	}
 
@@ -88,7 +100,7 @@ public class PanelGraphDraw extends PanelGraph {
 
 		g.drawImage(imgOverlay, MARGIN_X_LEFT, margin_y_top, widthDisplayed, heightDisplayed, null);
 
-		if (visible) {
+		if (mouseVisible) {
 			// Draw mouse pointer
 			g.setColor(Color.WHITE);
 			g.fillRect(mouseX - rectSize / 2, mouseY - rectSize / 2, rectSize, rectSize);
@@ -101,9 +113,9 @@ public class PanelGraphDraw extends PanelGraph {
 	 * 
 	 * @param p
 	 */
-	private void imageClickedDragged(Point p) {
+	private void imageClickedOrDragged(Point p) {
 
-		// WARNGING: If you change the letter colour then change IsLetterV2 colour
+		// WARNGING: If you change the letter colour then change LETTER_COLOR variable
 		if (drawing) {
 			// reset composite
 			g2dOverlay.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
@@ -141,7 +153,7 @@ public class PanelGraphDraw extends PanelGraph {
 	protected class MyClickListener implements PanelGraph.ImageClicked {
 		@Override
 		public void imageClicked(Point p) {
-			imageClickedDragged(p);
+			imageClickedOrDragged(p);
 		}
 	}
 
@@ -155,7 +167,7 @@ public class PanelGraphDraw extends PanelGraph {
 
 		@Override
 		public void imageDragged(Point p) {
-			imageClickedDragged(p);
+			imageClickedOrDragged(p);
 		}
 
 	}
@@ -170,12 +182,12 @@ public class PanelGraphDraw extends PanelGraph {
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			visible = false;
+			mouseVisible = false;
 		}
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			visible = true;
+			mouseVisible = true;
 			mouseX = e.getX();
 			mouseY = e.getY();
 			PanelGraphDraw.this.repaint();

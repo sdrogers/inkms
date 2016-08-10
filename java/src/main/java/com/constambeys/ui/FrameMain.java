@@ -861,17 +861,15 @@ public class FrameMain extends JFrame {
 					PanelGraph pg = (PanelGraph) component;
 					BufferedImage imgGenerated = pg.getImage();
 					if (imgGenerated != null) {
-						DialogDraw frame = new DialogDraw(msiimage, FrameMain.this, true);
-						frame.setTitle("Draw reference region");
-						frame.setGraph(imgGenerated);
-						frame.addOkListener(new DialogDraw.IOkListener() {
+						FrameSpectrum window = new FrameSpectrum(msiimage);
+						window.setGraph(pg.getTitle(), imgGenerated);
+						window.setVisible(true);
 
-							@Override
-							public void actionPerformed(ActionEvent e, ICheckLetter isLetter1) {
-								btnSpectrumHelp(isLetter1);
-							}
-						});
-						frame.setVisible(true);
+						/*
+						 * DialogDraw frame = new DialogDraw(msiimage, FrameMain.this, true); frame.setTitle("Draw reference region"); frame.setGraph(imgGenerated); frame.addOkListener(new DialogDraw.IOkListener() {
+						 * 
+						 * @Override public void actionPerformed(ActionEvent e, ICheckLetter isLetter1) { btnSpectrumHelp(isLetter1); } }); frame.setVisible(true);
+						 */
 					} else {
 						JOptionPane.showMessageDialog(null, "Something is wrong with the graph", "Error", JOptionPane.ERROR_MESSAGE);
 					}
