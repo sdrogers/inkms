@@ -206,6 +206,7 @@ public class PanelVlines extends JPanel {
 		calculateStatistics();
 		xstart = xmin;
 		zoom = 0.9;
+		PanelVlines.this.repaint();
 	}
 
 	/**

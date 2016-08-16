@@ -52,7 +52,7 @@ public class FrameSpectrum extends JFrame {
 
 	private JButton buttonUp;
 	private JButton buttonDown;
-	private JButton buttonClose;
+	private JButton buttonOK;
 
 	private JRadioButton radInterestedRegion;
 	private JRadioButton radReferenceRegion;
@@ -65,6 +65,8 @@ public class FrameSpectrum extends JFrame {
 	private BufferedImage referenceOverlay;
 	private PanelGraphDraw panelGraphInterestedRegion;
 	private PanelGraphDraw panelGraphReferenceRegion;
+
+	private FrameSpectrumPlot window;
 	private PanelVlines panelVlines;
 
 	public FrameSpectrum(MSIImage msiimage) throws IOException {
@@ -74,9 +76,9 @@ public class FrameSpectrum extends JFrame {
 
 	private void setupUI(MSIImage msiimage) throws IOException {
 		this.msiimage = msiimage;
-		setTitle("MSI");
+		setTitle("Spectrum");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 800, 400);
+		setSize(800, 400);
 
 		JPanel background = new JPanel();
 		setContentPane(background);
@@ -109,13 +111,16 @@ public class FrameSpectrum extends JFrame {
 		panelGraphReferenceRegion.setVisible(false);
 
 		boxCenter.add(panelGraphReferenceRegion);
-		panelVlines = new PanelVlines();
-		boxCenter.add(panelVlines);
 
-		buttonClose = new JButton("OK");
+		window = new FrameSpectrumPlot();
+		panelVlines = window.panelVlines;
+		window.setLocationRelativeTo(this);
+		window.setVisible(true);
+
+		buttonOK = new JButton("OK");
 		// fills the empty gap
 		boxSouth.add(Box.createHorizontalGlue());
-		boxSouth.add(buttonClose);
+		boxSouth.add(buttonOK);
 
 		addListeners();
 	}
@@ -199,13 +204,14 @@ public class FrameSpectrum extends JFrame {
 			}
 		});
 
-		buttonClose.addActionListener(new ActionListener() {
+		buttonOK.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent event) {
-				// btnOK(event);
 				setVisible(false);
 				dispose();
+				window.setVisible(false);
+				window.dispose();
 			}
 		});
 
@@ -341,7 +347,6 @@ public class FrameSpectrum extends JFrame {
 	 */
 	public void setGraph(String title, BufferedImage imgGenerated) {
 		try {
-			setTitle(title);
 			panelGraphInterestedRegion.setGraphTitle(title);
 			panelGraphInterestedRegion.draw(imgGenerated, msiimage.getWidthMM(), msiimage.getHeightMM());
 

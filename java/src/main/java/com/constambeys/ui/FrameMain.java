@@ -733,7 +733,7 @@ public class FrameMain extends JFrame {
 				dialog.addTextBox("ppm", "Parts Per Million"); // 1000
 			}
 
-			dialog.pack();
+			dialog.pack(); // resize
 			dialog.addOkListener(new ActionListener() {
 
 				@Override
@@ -917,13 +917,11 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
-			/*if (jradOverlay.isSelected() && isLetterTemplate == null) {
-				throw new Exception("Click Overlay before Spectrum to specify overlay");
-			}
-
-			if (jradDraw.isSelected() && isLetterDraw == null) {
-				throw new Exception("Click Draw before Spectrum to specify draw");
-			}*/
+			/*
+			 * if (jradOverlay.isSelected() && isLetterTemplate == null) { throw new Exception("Click Overlay before Spectrum to specify overlay"); }
+			 * 
+			 * if (jradDraw.isSelected() && isLetterDraw == null) { throw new Exception("Click Draw before Spectrum to specify draw"); }
+			 */
 
 			int selected = tabbedPane.getSelectedIndex();
 			if (selected >= 0) {
@@ -934,6 +932,7 @@ public class FrameMain extends JFrame {
 					if (imgGenerated != null) {
 						FrameSpectrum window = new FrameSpectrum(msiimage);
 						window.setGraph(pg.getTitle(), imgGenerated);
+						window.setLocationRelativeTo(this);
 						window.setVisible(true);
 
 						/*
