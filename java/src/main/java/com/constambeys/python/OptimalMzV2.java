@@ -56,13 +56,13 @@ public class OptimalMzV2 extends OptimalMz {
 		double mzRangeLower = bins.getLowerBound();
 		double mzRangeHighest = bins.getHigherBound();
 
-		Pixel[][][] pixels = new Pixel[msiimage.getLines()][msiimage.getWidthPixels()][resolution];
+		Pixel[][][] pixels = new Pixel[msiimage.getLines()][msiimage.getColumns()][resolution];
 
 		for (int line = 0; line < msiimage.getLines(); line++) {
 			if (callback != null)
 				callback.update((int) ((float) line / msiimage.getLines() * 100));
 
-			for (int x = 0; x < msiimage.getWidthPixels(); x++) {
+			for (int x = 0; x < msiimage.getColumns(); x++) {
 				for (int i = 0; i < resolution; i++) {
 					pixels[line][x][i] = new Pixel();
 				}
@@ -102,7 +102,7 @@ public class OptimalMzV2 extends OptimalMz {
 			if (callback != null)
 				callback.update((int) ((float) line / msiimage.getLines() * 100));
 
-			for (int x = 0; x < msiimage.getWidthPixels(); x++) {
+			for (int x = 0; x < msiimage.getColumns(); x++) {
 
 				boolean isLetterCheck = isLetter.check(x, line);
 

@@ -12,6 +12,7 @@ import javax.swing.JFrame;
 public class Startup {
 	
 	public static Object sync = new Object();
+	public static boolean DEBUG = false; 
 	public static boolean DEBUG_SPECTRUM = false;
 
 	private JFrame frame;

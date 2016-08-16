@@ -117,16 +117,41 @@ public class DialogGraph extends JDialog {
 		setupUI();
 	}
 
+	/**
+	 * Adds mass m to the list
+	 * 
+	 * @param m
+	 */
 	public void addMassRange(MassRange m) {
 		jListModel.addElement(m);
 	}
 
-	public void addMassRange(MassRange ranges[]) {
-		for (MassRange m : ranges) {
+	/**
+	 * Adds mass array m to the list
+	 * 
+	 * @param ms
+	 */
+	public void addMassRange(MassRange ms[]) {
+		for (MassRange m : ms) {
 			jListModel.addElement(m);
 		}
 	}
 
+	/**
+	 * Sets user input text box to mass m
+	 * 
+	 * @param m
+	 */
+	public void setInput(MassRange m) {
+		jLowerMass.setText(m.lowerMass());
+		jHigherMass.setText(m.higherMass());
+	}
+
+	/**
+	 * Sets graph colour map
+	 * 
+	 * @param c
+	 */
 	public void setColormap(IColormap c) {
 		colormapShow.setColormap(c);
 		jcomboColor.removeItemListener(jcomboListener);
@@ -187,6 +212,12 @@ public class DialogGraph extends JDialog {
 
 	}
 
+	/**
+	 * Creates the center panel
+	 * 
+	 * @return JPanel
+	 * @throws IOException
+	 */
 	private JPanel createCenterPanel() throws IOException {
 
 		JPanel panelCenter = new JPanel();
@@ -350,6 +381,11 @@ public class DialogGraph extends JDialog {
 
 	}
 
+	/**
+	 * Changes colormap based on user input
+	 * 
+	 * @param c
+	 */
 	private void changeColormap(Colormap c) {
 		if (c == Colormap.HOT) {
 			colormapShow.setColormap(new Hot());

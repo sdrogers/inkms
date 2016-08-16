@@ -3,12 +3,12 @@ package com.constambeys.patterns;
 import com.constambeys.filtering.IFiltering;
 
 /**
- * Implements normal pattern left-> right
+ * Implements meandering pattern left-> right -> down -> left
  * 
  * @author Constambeys
  *
  */
-public class Pattern2 implements ILoadPattern {
+public class PatternMeandering implements ILoadPattern {
 
 	private Param param;
 	/**
@@ -33,10 +33,11 @@ public class Pattern2 implements ILoadPattern {
 		public int lines;
 		public int widthInMM;
 		public int heightInMM;
+		public float dropInMM;
 	}
 
 	/**
-	 * Constructs a normal pattern class which implements{@code ILoadPattern}
+	 * Constructs a meandering pattern class which implements{@code ILoadPattern}
 	 * 
 	 * @param reader
 	 *            a file reader that implements the {@code JMzReader}
@@ -46,8 +47,7 @@ public class Pattern2 implements ILoadPattern {
 	 *            the selection algorithm
 	 * @throws Exception
 	 */
-
-	public Pattern2(IFiltering reader, Param param) throws Exception {
+	public PatternMeandering(IFiltering reader, Param param) throws Exception {
 
 		this.param = param;
 		this.reader = reader;
@@ -65,6 +65,9 @@ public class Pattern2 implements ILoadPattern {
 		}
 
 		float scansPerLineFloat = (float) scansTotal / param.lines;
+		// if not scansPerLine.is_integer():
+		// raise Exception('Pixels per line not integer value')
+		scansPerLineFloat = (scansPerLineFloat * (param.widthInMM - param.dropInMM) / param.widthInMM);
 		int scansPerLine = (int) scansPerLineFloat;
 		int skip = scansTotal - param.lines * scansPerLine;
 		int skipPerLine = skip / param.lines;
@@ -73,16 +76,25 @@ public class Pattern2 implements ILoadPattern {
 		if (scansPerLine <= 0) {
 			throw new Exception("Invalid input data. Calculated scans per line cannot be 0");
 		}
+		// -----------------------------------------------------------------------
 
 		int[][] data = new int[param.lines][scansPerLine];
+		boolean direction = true; // forward / backward
 		int index = startIndex;
 		for (int line = 0; line < param.lines; line++) {
-			for (int i = 0; i < scansPerLine; i++) {
-				data[line][i] = reader.getRealIndex(index);
-				index = index + step;
+			if (direction) {
+				for (int i = 0; i < scansPerLine; i++) {
+					data[line][i] = reader.getRealIndex(index);
+					index = index + step;
+				}
+			} else {
+				for (int j = 0, i = scansPerLine - 1; i >= 0; i--, j++) {
+					data[line][j] = reader.getRealIndex(index + (i * step));
+				}
+				index = index + (scansPerLine * step);
 			}
-
 			index = index + (skipPerLine * step);
+			direction = !direction;
 			if (remaining > 0) {
 				remaining = remaining - 1;
 				index = index + step;
@@ -100,5 +112,4 @@ public class Pattern2 implements ILoadPattern {
 	public int getHeightMM() {
 		return param.heightInMM;
 	}
-
 }

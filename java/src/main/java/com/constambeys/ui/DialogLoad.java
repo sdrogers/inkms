@@ -32,8 +32,8 @@ import com.constambeys.filtering.NoFiltering;
 import com.constambeys.filtering.PolarityFiltering;
 import com.constambeys.layout.SpringUtilities;
 import com.constambeys.patterns.ILoadPattern;
-import com.constambeys.patterns.Pattern1;
-import com.constambeys.patterns.Pattern2;
+import com.constambeys.patterns.PatternMeandering;
+import com.constambeys.patterns.PatternNormal;
 import com.constambeys.readers.IReader;
 import com.constambeys.readers.IReader.ScanType;
 import com.constambeys.readers.ImzMLProxy2D;
@@ -77,7 +77,7 @@ public class DialogLoad extends JDialog {
 	}
 
 	private enum Pattern {
-		Pattern1, Pattern2;
+		MEANDERING, NORMAL;
 	}
 
 	/**
@@ -181,7 +181,7 @@ public class DialogLoad extends JDialog {
 		jlabelImage = new JLabel();
 		boxEast.add(jlabelImage);
 
-		setPattern(Pattern.Pattern1);
+		setPattern(Pattern.MEANDERING);
 
 		addListeners();
 		getRootPane().setDefaultButton(buttonOK);
@@ -331,9 +331,9 @@ public class DialogLoad extends JDialog {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					setPattern(Pattern.Pattern1);
+					setPattern(Pattern.MEANDERING);
 				} else if (e.getStateChange() == ItemEvent.DESELECTED) {
-					setPattern(Pattern.Pattern2);
+					setPattern(Pattern.NORMAL);
 				}
 			}
 		});
@@ -368,19 +368,19 @@ public class DialogLoad extends JDialog {
 					}
 
 					ILoadPattern pattern;
-					if (selectedPattern == Pattern.Pattern1) {
-						Pattern1.Param param = new Pattern1.Param();
+					if (selectedPattern == Pattern.MEANDERING) {
+						PatternMeandering.Param param = new PatternMeandering.Param();
 						param.lines = Integer.parseInt(jtextLines.getText());
 						param.widthInMM = Integer.parseInt(jtextWidth.getText());
 						param.heightInMM = Integer.parseInt(jtextHeight.getText());
 						param.dropInMM = Float.parseFloat(jtextDownMotion.getText());
-						pattern = new Pattern1(filtering, param);
+						pattern = new PatternMeandering(filtering, param);
 					} else {
-						Pattern2.Param param = new Pattern2.Param();
+						PatternNormal.Param param = new PatternNormal.Param();
 						param.lines = Integer.parseInt(jtextLines.getText());
 						param.widthInMM = Integer.parseInt(jtextWidth.getText());
 						param.heightInMM = Integer.parseInt(jtextHeight.getText());
-						pattern = new Pattern2(filtering, param);
+						pattern = new PatternNormal(filtering, param);
 					}
 
 					MSIImage msiimage = new MSIImage(reader, pattern);
@@ -455,8 +455,8 @@ public class DialogLoad extends JDialog {
 	}
 
 	private void setPattern(Pattern p) {
-		if (p == Pattern.Pattern1) {
-			selectedPattern = Pattern.Pattern1;
+		if (p == Pattern.MEANDERING) {
+			selectedPattern = Pattern.MEANDERING;
 			jtextDownMotion.setText("");
 			jtextDownMotion.setEditable(true);
 			try {
@@ -464,8 +464,8 @@ public class DialogLoad extends JDialog {
 			} catch (IOException e1) {
 				System.err.println("Cannot load pattern1.png");
 			}
-		} else if (p == Pattern.Pattern2) {
-			selectedPattern = Pattern.Pattern2;
+		} else if (p == Pattern.NORMAL) {
+			selectedPattern = Pattern.NORMAL;
 			jtextDownMotion.setText("0");
 			jtextDownMotion.setEditable(false);
 			try {

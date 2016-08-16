@@ -2,6 +2,8 @@ package com.constambeys.ui.colormaps;
 
 import java.awt.Color;
 import java.awt.Graphics;
+
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 /**
@@ -47,4 +49,20 @@ public class ColormapShow extends JPanel {
 		}
 	}
 
+	/**
+	 * Test
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		ColormapShow colormapShow = new ColormapShow();
+		// colormapShow.setColormap(new Hot());
+		// colormapShow.setColormap(new Gray());
+		colormapShow.setColormap(new Custom(0.5f));
+
+		JFrame f = new JFrame();
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		f.add(colormapShow);
+		f.setVisible(true);
+	}
 }

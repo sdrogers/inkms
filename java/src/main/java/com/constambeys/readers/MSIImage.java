@@ -107,9 +107,9 @@ public class MSIImage {
 	}
 
 	/**
-	 * @return the width of the image in pixels
+	 * @return the number of columns of the image
 	 */
-	public int getWidthPixels() {
+	public int getColumns() {
 		return data[0].length;
 	}
 

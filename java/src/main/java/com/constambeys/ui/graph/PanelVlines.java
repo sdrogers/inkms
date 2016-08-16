@@ -63,7 +63,7 @@ public class PanelVlines extends JPanel {
 	 */
 	protected double zoom = 1;
 	/**
-	 * Real x value
+	 * Real x value which the plot starts
 	 */
 	protected double xstart = 0;
 
@@ -161,7 +161,7 @@ public class PanelVlines extends JPanel {
 	 * @param y
 	 *            coordinate
 	 */
-	public void add(double x, double y) {
+	public synchronized void add(double x, double y) {
 		Vline line = new Vline(x, y);
 		lines0.add(line);
 	}
@@ -176,7 +176,7 @@ public class PanelVlines extends JPanel {
 	 * @param isBlue
 	 *            true is coloured blue otherwise red
 	 */
-	public void add(double x, double y, boolean isBlue) {
+	public synchronized void add(double x, double y, boolean isBlue) {
 		if (isBlue) {
 			Vline line = new Vline(x, y, Color.BLUE);
 			lines0.add(line);
@@ -189,7 +189,7 @@ public class PanelVlines extends JPanel {
 	/**
 	 * Clear all values
 	 */
-	public void clear() {
+	public synchronized void clear() {
 		lines0.clear();
 		lines1.clear();
 	}
@@ -199,12 +199,13 @@ public class PanelVlines extends JPanel {
 	 * 
 	 * @throws Exception
 	 */
-	public void addCommit() throws TooFewDataException {
+	public synchronized void addCommit() throws TooFewDataException {
 		Collections.sort(lines0);
 		Collections.sort(lines1);
 
 		calculateStatistics();
 		xstart = xmin;
+		zoom = 0.9;
 	}
 
 	/**
@@ -243,7 +244,14 @@ public class PanelVlines extends JPanel {
 
 		xmin = lines0.get(0).x;
 		xmax = lines0.get(lines0.size() - 1).x;
-		ymin = lines0.get(0).y;
+
+		if (xmax == xmin) {
+			xmax = 100;
+			xmin = 0;
+			throw new TooFewDataException();
+		}
+
+		ymin = 0;
 		ymax = lines0.get(0).y;
 
 		for (Vline line : lines0) {
@@ -253,12 +261,6 @@ public class PanelVlines extends JPanel {
 				ymin = y;
 			if (ymax < y)
 				ymax = y;
-		}
-
-		if (xmax == xmin) {
-			xmax = 100;
-			xmin = 0;
-			throw new TooFewDataException();
 		}
 
 		if (ymax == ymin) {
@@ -599,7 +601,7 @@ public class PanelVlines extends JPanel {
 	 *
 	 */
 	protected int yToPixels(double y) {
-		return (int) (zoom * (y) / (ymax - ymin) * available_height);
+		return (int) (zoom * (y - ymin) / (ymax - ymin) * available_height);
 	}
 
 	/**
@@ -631,7 +633,7 @@ public class PanelVlines extends JPanel {
 	 *
 	 */
 	protected double PixelsToY(int y) {
-		return y * (ymax - ymin) / zoom / available_height;
+		return ymin + y * (ymax - ymin) / zoom / available_height;
 	}
 
 	/**
@@ -643,7 +645,7 @@ public class PanelVlines extends JPanel {
 	protected double PixelsToY(int i, int max) {
 		// int y1 = (int) (zoom * (y) / (ymax - ymin) * available_height);
 		// => find y
-		return ((ymax - ymin) / zoom * i / max);
+		return ymin + ((ymax - ymin) / zoom * i / max);
 	}
 
 	@SuppressWarnings("serial")

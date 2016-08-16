@@ -51,6 +51,12 @@ import javax.swing.text.NumberFormatter;
 
 import org.apache.commons.io.FilenameUtils;
 
+import com.constambeys.files.VirtualFile1;
+import com.constambeys.files.VirtualFile2;
+import com.constambeys.filtering.IFiltering;
+import com.constambeys.filtering.NoFiltering;
+import com.constambeys.patterns.ILoadPattern;
+import com.constambeys.patterns.PatternNormal;
 import com.constambeys.python.BinEvenlyDistributed;
 import com.constambeys.python.BinsPartsPerMillion;
 import com.constambeys.python.IBinResolution;
@@ -382,6 +388,9 @@ public class FrameMain extends JFrame {
 		JMenuItem jMenuSave = new JMenuItem("Save");
 		jMenuSave.setIcon(Startup.loadIcon("save128.png", height, height));
 
+		JMenuItem jMenuColormap = new JMenuItem("Colormap");
+		jMenuColormap.setIcon(Startup.loadIcon("settings128.png", height, height));
+
 		jMenuNewWindow.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent event) {
@@ -506,6 +515,44 @@ public class FrameMain extends JFrame {
 			}
 		});
 
+		jMenuColormap.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				try {
+					int selected = tabbedPane.getSelectedIndex();
+					if (selected >= 0) {
+						Component component = tabbedPane.getComponentAt(selected);
+						if (component instanceof PanelGraph) {
+							PanelGraph pg = (PanelGraph) component;
+							GraphMetadata metadata = (GraphMetadata) pg.getMetadata();
+
+							String min = JOptionPane.showInputDialog("Enter min intensity value", metadata.min_intensity);
+							if (min == null)
+								return;
+							String max = JOptionPane.showInputDialog("Enter max intensity value", metadata.max_intensity);
+							if (max == null)
+								return;
+
+							Double min_ = Double.parseDouble(min);
+							Double max_ = Double.parseDouble(max);
+							metadata.min_intensity = min_;
+							metadata.max_intensity = max_;
+
+							BufferedImage image = Colormaps.calculateImage(metadata.intensity, metadata.colormap, metadata.min_intensity, metadata.max_intensity);
+							pg.draw(image, msiimage.getWidthMM(), msiimage.getHeightMM());
+
+						} else {
+							JOptionPane.showMessageDialog(null, "Before colormap load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+						}
+					} else {
+						JOptionPane.showMessageDialog(null, "Before colormap load a graph", "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+
 		jMenuClose.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent event) {
@@ -529,6 +576,7 @@ public class FrameMain extends JFrame {
 		fileMenuGraph.add(jMenuNewWindow);
 		fileMenuGraph.add(jMenuExport);
 		fileMenuGraph.add(jMenuSave);
+		fileMenuGraph.add(jMenuColormap);
 
 		menubar.add(fileMenuTabs);
 		menubar.add(fileMenuGraph);
@@ -543,6 +591,22 @@ public class FrameMain extends JFrame {
 	 */
 	private void btnLoad(boolean canClose) {
 		try {
+			if (Startup.DEBUG) {
+				VirtualFile1 reader;
+				IFiltering filtering;
+				ILoadPattern pattern;
+
+				reader = new VirtualFile1();
+				filtering = new NoFiltering(reader);
+
+				PatternNormal.Param param = new PatternNormal.Param();
+				param.lines = reader.getLines();
+				param.widthInMM = reader.getWidth();
+				param.heightInMM = reader.getHeight();
+				pattern = new PatternNormal(filtering, param);
+				msiimage = new MSIImage(reader, pattern);
+				return;
+			}
 			DialogLoad dialog = new DialogLoad(FrameMain.this, canClose);
 			dialog.pack();
 			dialog.addOkListener(new DialogLoad.OKListener() {
@@ -586,7 +650,14 @@ public class FrameMain extends JFrame {
 
 			DialogGraph dialog = new DialogGraph(FrameMain.this, "Set Parameters", true);
 			if (metadata != null && metadata.massrange != null) {
-				dialog.addMassRange(metadata.massrange);
+				for (int i = 0; i < metadata.massrange.length - 1; i++) {
+					MassRange m = metadata.massrange[i];
+					dialog.addMassRange(m);
+				}
+
+				if (metadata.massrange.length > 0) {
+					dialog.setInput(metadata.massrange[metadata.massrange.length - 1]);
+				}
 			}
 			if (metadata != null && metadata.colormap != null) {
 				dialog.setColormap(metadata.colormap);
@@ -846,13 +917,13 @@ public class FrameMain extends JFrame {
 				return;
 			}
 
-			if (jradOverlay.isSelected() && isLetterTemplate == null) {
+			/*if (jradOverlay.isSelected() && isLetterTemplate == null) {
 				throw new Exception("Click Overlay before Spectrum to specify overlay");
 			}
 
 			if (jradDraw.isSelected() && isLetterDraw == null) {
 				throw new Exception("Click Draw before Spectrum to specify draw");
-			}
+			}*/
 
 			int selected = tabbedPane.getSelectedIndex();
 			if (selected >= 0) {
@@ -931,7 +1002,7 @@ public class FrameMain extends JFrame {
 								if (progressTracker != null)
 									progressTracker.update((int) ((float) line / msiimage.getLines() * 100));
 
-								for (int x = 0; x < msiimage.getWidthPixels(); x++) {
+								for (int x = 0; x < msiimage.getColumns(); x++) {
 									Spectrum spectrum = msiimage.getSpectrum(line, x);
 									boolean isRegion0 = isLetter0.check(x, line);
 									boolean isRegion1 = isLetter1.check(x, line);
@@ -1000,13 +1071,16 @@ public class FrameMain extends JFrame {
 				double[][] intensity = msiimage.getTotalIntensity(progressTracker, MassRange.convertToDouble(massrange));
 
 				GraphMetadata metadata = new GraphMetadata();
+				metadata.min_intensity = 0;
+				metadata.max_intensity = Colormaps.getMaxIntensity(intensity);
 				metadata.intensity = intensity;
 				metadata.colormap = colormap;
 				metadata.massrange = massrange;
 
 				PanelGraph panelGraph = new PanelGraph();
 				panelGraph.setGraphTitle(title);
-				BufferedImage image = Colormaps.calculateImage(intensity, colormap);
+
+				BufferedImage image = Colormaps.calculateImage(intensity, colormap, metadata.min_intensity, metadata.max_intensity);
 				panelGraph.draw(image, msiimage.getWidthMM(), msiimage.getHeightMM());
 				panelGraph.setMetadata(metadata);
 

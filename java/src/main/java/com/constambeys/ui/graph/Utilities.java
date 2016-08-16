@@ -32,17 +32,21 @@ public class Utilities {
 	 * @return order
 	 */
 	public static int calculateDesimalPlaces(double interval) {
-		// Get decimal number
-		interval = interval - Math.floor(interval);
-		int accuracy = 0;
-		while (interval != 0 && accuracy < 6) {
-			interval = interval * 10;
-			// Get decimal number
-			interval = interval - Math.floor(interval);
-			accuracy++;
-		}
+		String interval_ = String.format("%.6f", interval);
 
-		return accuracy;
+		int dot_start = interval_.indexOf(".");
+		int starting = Math.max(dot_start, 0);
+		int ending = Math.min(dot_start + 6, interval_.length() - 1);
+
+		char digit;
+		for (int i = ending, decimal = 6; i >= starting; i--, decimal--) {
+			digit = interval_.charAt(i);
+			if (digit != '0') {
+				return decimal;
+			}
+		}
+		return 0;
+
 	}
 
 	public static BufferedImage copyImage(BufferedImage source) {

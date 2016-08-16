@@ -127,7 +127,7 @@ public class PanelGraphDraw extends PanelGraph {
 
 		}
 
-		int width = (int) ((double) rectSize / widthDisplayed * overlayWidth);
+		int width = (int) ((double) rectSize / widthDisplayed * overlayWidth) + 1;
 		int height = (int) ((double) rectSize / heightDisplayed * overlayHeight) + 1;
 
 		g2dOverlay.fillRect((int) (overlayWidth * p.x_ratio), (int) (overlayHeight * p.y_ratio), width, height);

@@ -1,6 +1,5 @@
 package com.constambeys.python;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 /**
