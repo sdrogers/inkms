@@ -177,7 +177,11 @@ public class FrameMain extends JFrame {
 		JLabel l;
 
 		Box box1 = new Box(BoxLayout.Y_AXIS);
-		box1.setBorder(BorderFactory.createTitledBorder("Region"));
+		box1.setBorder(BorderFactory.createTitledBorder("Optimal Mass"));
+
+		Box box1_1 = new Box(BoxLayout.Y_AXIS);
+		box1_1.setBorder(BorderFactory.createTitledBorder("Region"));
+
 		jradRect = new JRadioButton("Rectangle", true);
 		jradOverlay = new JRadioButton("Overlay");
 		jradDraw = new JRadioButton("Draw Region");
@@ -185,22 +189,26 @@ public class FrameMain extends JFrame {
 		group1.add(jradRect);
 		group1.add(jradOverlay);
 		group1.add(jradDraw);
-		box1.add(jradRect);
-		box1.add(jradOverlay);
-		box1.add(jradDraw);
+		box1_1.add(jradRect);
+		box1_1.add(jradOverlay);
+		box1_1.add(jradDraw);
+		box1.add(box1_1);
 
-		Box box2 = new Box(BoxLayout.Y_AXIS);
-		box2.setBorder(BorderFactory.createTitledBorder("Bins"));
+		Box box1_2 = new Box(BoxLayout.Y_AXIS);
+		box1_2.setBorder(BorderFactory.createTitledBorder("Bins"));
+
 		jradEvenly = new JRadioButton("Evenly", true);
 		jradPPM = new JRadioButton("PPM");
 		ButtonGroup group2 = new ButtonGroup();
 		group2.add(jradEvenly);
 		group2.add(jradPPM);
-		box2.add(jradEvenly);
-		box2.add(jradPPM);
+		box1_2.add(jradEvenly);
+		box1_2.add(jradPPM);
+		box1.add(box1_2);
 
-		Box box3 = new Box(BoxLayout.Y_AXIS);
-		box3.setBorder(BorderFactory.createTitledBorder("Parameters"));
+		Box box2 = new Box(BoxLayout.Y_AXIS);
+		box2.setBorder(BorderFactory.createTitledBorder("Parameters"));
+
 		l = new JLabel("Graphs: ", JLabel.TRAILING);
 		NumberFormat format1 = NumberFormat.getInstance();
 		NumberFormatter formatter1 = new NumberFormatter(format1);
@@ -217,8 +225,8 @@ public class FrameMain extends JFrame {
 		maxsize1.height = prefsize1.height;
 		jnumGraphs.setMaximumSize(maxsize1);
 		l.setLabelFor(jnumGraphs);
-		box3.add(l);
-		box3.add(jnumGraphs);
+		box2.add(l);
+		box2.add(jnumGraphs);
 
 		l = new JLabel("OptMz2 Weight: ", JLabel.TRAILING);
 		NumberFormat format2 = NumberFormat.getInstance();
@@ -236,15 +244,13 @@ public class FrameMain extends JFrame {
 		maxsize2.height = prefsize2.height;
 		jV2PixelsWeight.setMaximumSize(maxsize2);
 		l.setLabelFor(jV2PixelsWeight);
-		box3.add(l);
-		box3.add(jV2PixelsWeight);
+		box2.add(l);
+		box2.add(jV2PixelsWeight);
 
 		Box main = new Box(BoxLayout.Y_AXIS);
 		main.add(box1);
 		main.add(Box.createRigidArea(new Dimension(0, 10)));
 		main.add(box2);
-		main.add(Box.createRigidArea(new Dimension(0, 10)));
-		main.add(box3);
 
 		return main;
 	}
@@ -1087,6 +1093,7 @@ public class FrameMain extends JFrame {
 					@Override
 					public void run() {
 						tabbedPane.add("Tab " + (tabbedPane.getTabCount() + 1), panelGraph);
+						tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
 					}
 				});
 			}

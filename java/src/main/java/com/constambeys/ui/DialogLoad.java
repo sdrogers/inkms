@@ -1,6 +1,7 @@
 package com.constambeys.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -197,6 +198,7 @@ public class DialogLoad extends JDialog {
 		panelCenter.add(l);
 		jFilePath = new JTextField(10);
 		jFilePath.setEditable(false);
+		jFilePath.setBackground(Color.WHITE);
 		l.setLabelFor(jFilePath);
 		panelCenter.add(jFilePath);
 

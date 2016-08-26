@@ -13,7 +13,7 @@ import com.constambeys.readers.Spectrum;
  */
 public class OptimalMzV2 extends OptimalMz {
 
-	public class Pixel {
+	public static class Pixel {
 		/**
 		 * The sum intensity values of each pixel region 0 or 1
 		 */

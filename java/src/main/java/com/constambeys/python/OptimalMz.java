@@ -13,7 +13,7 @@ import com.constambeys.readers.MSIImage;
  */
 public abstract class OptimalMz {
 
-	public class BinStatistics implements Comparable<BinStatistics> {
+	public static class BinStatistics implements Comparable<BinStatistics> {
 		/**
 		 * Saves bin index used to retrieve bin information
 		 */

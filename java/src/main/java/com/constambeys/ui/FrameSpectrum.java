@@ -471,19 +471,22 @@ public class FrameSpectrum extends JFrame {
 							referenceOverlay = addSpectrumHelp(panelGraphReferenceRegion, referenceOverlay, false);
 						}
 					} else {
-						panelVlines.clear();
-						Graphics2D g0 = interestedOverlay.createGraphics();
-						g0.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
-						g0.fillRect(0, 0, interestedOverlay.getWidth(), interestedOverlay.getHeight());
-						g0.dispose();
+						if (isInterestedRegion) {
+							panelVlines.clear(true);
+							Graphics2D g0 = interestedOverlay.createGraphics();
+							g0.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
+							g0.fillRect(0, 0, interestedOverlay.getWidth(), interestedOverlay.getHeight());
+							g0.dispose();
+							interestedOverlay = addSpectrumHelp(panelGraphInterestedRegion, interestedOverlay, true);
+						} else {
+							panelVlines.clear(false);
+							Graphics2D g1 = referenceOverlay.createGraphics();
+							g1.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
+							g1.fillRect(0, 0, referenceOverlay.getWidth(), referenceOverlay.getHeight());
+							g1.dispose();
+							referenceOverlay = addSpectrumHelp(panelGraphReferenceRegion, referenceOverlay, false);
+						}
 
-						Graphics2D g1 = referenceOverlay.createGraphics();
-						g1.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
-						g1.fillRect(0, 0, referenceOverlay.getWidth(), referenceOverlay.getHeight());
-						g1.dispose();
-
-						interestedOverlay = addSpectrumHelp(panelGraphInterestedRegion, interestedOverlay, true);
-						referenceOverlay = addSpectrumHelp(panelGraphReferenceRegion, referenceOverlay, false);
 					}
 				} while (resetRestart());
 

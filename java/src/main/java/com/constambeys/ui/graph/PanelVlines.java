@@ -189,9 +189,12 @@ public class PanelVlines extends JPanel {
 	/**
 	 * Clear all values
 	 */
-	public synchronized void clear() {
-		lines0.clear();
-		lines1.clear();
+	public synchronized void clear(boolean blueRegion) {
+		if (blueRegion) {
+			lines0.clear();
+		} else {
+			lines1.clear();
+		}
 	}
 
 	/**

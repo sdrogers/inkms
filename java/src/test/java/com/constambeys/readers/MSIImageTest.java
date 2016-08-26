@@ -14,6 +14,9 @@ import com.constambeys.readers.IReader.ScanType;
 
 public class MSIImageTest {
 
+	private double R0 = 250f;
+	private double R1 = 10f;
+
 	/**
 	 * File: File1
 	 * <p>
@@ -53,15 +56,15 @@ public class MSIImageTest {
 			for (int column = 0; column < columns; column++) {
 				if (line % 2 == 0) {
 					if (reader.patternNormal[line][column]) {
-						Assert.assertNotEquals(0, intensity[line][column]);
+						Assert.assertEquals(R0, intensity[line][column], 0.001);
 					} else {
-						Assert.assertEquals(0, intensity[line][column], 0.001);
+						Assert.assertEquals(R1, intensity[line][column], 0.001);
 					}
 				} else {
 					if (reader.patternNormal[line][columns - 1 - column]) {
-						Assert.assertNotEquals(0, intensity[line][column]);
+						Assert.assertEquals(R0, intensity[line][column], 0.001);
 					} else {
-						Assert.assertEquals(0, intensity[line][column], 0.001);
+						Assert.assertEquals(R1, intensity[line][column], 0.001);
 					}
 				}
 			}
@@ -108,15 +111,15 @@ public class MSIImageTest {
 			for (int column = 0; column < columns; column++) {
 				if (line % 2 == 0) {
 					if (reader.patternNormal[line][column]) {
-						Assert.assertNotEquals(0, intensity[line][column]);
+						Assert.assertEquals(R0, intensity[line][column], 0.001);
 					} else {
-						Assert.assertEquals(0, intensity[line][column], 0.001);
+						Assert.assertEquals(R1, intensity[line][column], 0.001);
 					}
 				} else {
 					if (reader.patternNormal[line][columns - 1 - column]) {
-						Assert.assertNotEquals(0, intensity[line][column]);
+						Assert.assertEquals(R0, intensity[line][column], 0.001);
 					} else {
-						Assert.assertEquals(0, intensity[line][column], 0.001);
+						Assert.assertEquals(R1, intensity[line][column], 0.001);
 					}
 				}
 			}
@@ -159,9 +162,9 @@ public class MSIImageTest {
 		for (int line = 0; line < intensity.length; line++) {
 			for (int column = 0; column < intensity[0].length; column++) {
 				if (reader.patternNormal[line][column]) {
-					Assert.assertNotEquals(0, intensity[line][column]);
+					Assert.assertEquals(R0, intensity[line][column], 0.001);
 				} else {
-					Assert.assertEquals(0, intensity[line][column], 0.001);
+					Assert.assertEquals(R1, intensity[line][column], 0.001);
 				}
 			}
 		}
@@ -203,9 +206,9 @@ public class MSIImageTest {
 		for (int line = 0; line < intensity.length; line++) {
 			for (int column = 0; column < intensity[0].length; column++) {
 				if (reader.patternNormal[line][column]) {
-					Assert.assertNotEquals(0, intensity[line][column]);
+					Assert.assertEquals(R0, intensity[line][column], 0.001);
 				} else {
-					Assert.assertEquals(0, intensity[line][column], 0.001);
+					Assert.assertEquals(R1, intensity[line][column], 0.001);
 				}
 			}
 		}
